@@ -372,8 +372,22 @@ public readonly record struct Entity : IAddRemove<Entity>, IHasTyped, IAddRemove
     /// </summary>
     public bool Alive => _world != null && _world.IsAlive(Id);
 
+    
     /// <inheritdoc/>
-    public override string ToString()
+    /// <remarks>
+    /// This function formerly created what <see cref="Dump"/> returns now.
+    /// </remarks>
+    public override string ToString() => Id.ToString();
+    
+    /// <summary>
+    /// Returns the raw value of this entity.
+    /// </summary>
+    public ulong ToRaw() => Id.Value;
+    
+    /// <summary>
+    /// Simple Multiline Dump that lists the attached components. (formerly ToString())
+    /// </summary>
+    public string Dump()
     {
         var sb = new System.Text.StringBuilder(Id.ToString());
         sb.Append(' ');
