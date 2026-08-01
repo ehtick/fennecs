@@ -63,7 +63,8 @@ public readonly struct Batch : IDisposable, IAddRemove<Batch>
         if (Additions.Contains(typeExpression))
             throw new InvalidOperationException($"Duplicate addition {typeExpression} : {data}  in same batch!");
 
-        if (Removals.Contains(typeExpression))
+        // Matches is checked both ways so Wildcard removals conflict with concrete additions of the same type.
+        if (typeExpression.Matches(Removals))
             throw new InvalidOperationException($"Addition {typeExpression} conflicts with removal  in same batch!");
 
         Additions.Add(typeExpression);
@@ -82,7 +83,8 @@ public readonly struct Batch : IDisposable, IAddRemove<Batch>
             throw new InvalidOperationException(
                 $"TypeExpression {typeExpression} is not included via Has<T> or Any<T> by this Query/Mask, removals could cause unintended runtime state. See QueryBuilder.Has<T>(). See RemoveConflict.Disallow, RemoveConflict.Skip.");
 
-        if (Additions.Contains(typeExpression))
+        // Matches is checked both ways so Wildcard removals conflict with concrete additions of the same type.
+        if (typeExpression.Matches(Additions))
             throw new InvalidOperationException($"Removal of {typeExpression} conflicts with addition in same batch!");
 
         if (Removals.Contains(typeExpression))
@@ -125,6 +127,9 @@ public readonly struct Batch : IDisposable, IAddRemove<Batch>
     
     /// <inheritdoc />
     public Batch Remove<T>() where T : notnull => RemoveComponent<T>(Match.Plain);
+
+    /// <inheritdoc />
+    public Batch Remove<C>(Match match) where C : notnull => RemoveComponent<C>(match);
 
     /// <inheritdoc />
     public Batch Remove<R>(Entity relation) where R : notnull => RemoveComponent<R>(relation);

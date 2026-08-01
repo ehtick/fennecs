@@ -50,8 +50,12 @@ namespace fennecs
 
         private void AssertNotRequired(TypeExpression type)
         {
-            if (Array.IndexOf(_required, type) >= 0)
-                throw new InvalidOperationException($"Component {type} is a required Component of this template and must be provided at Spawn.");
+            // Matches subsumes equality for concrete expressions and also covers Wildcards.
+            foreach (var required in _required)
+            {
+                if (type.Matches(required))
+                    throw new InvalidOperationException($"Component {required} is a required Component of this template and must be provided at Spawn.");
+            }
         }
 
         private EntityTemplate<C0> AddComponent(TypeExpression type, object value)
@@ -76,6 +80,21 @@ namespace fennecs
         {
             AssertMutable();
             AssertNotRequired(type);
+
+            if (type.isWildcard)
+            {
+                var removed = false;
+                for (var i = _components.Count - 1; i >= 0; i--)
+                {
+                    if (!type.Matches(_components[i])) continue;
+                    _components.RemoveAt(i);
+                    _values.RemoveAt(i);
+                    removed = true;
+                }
+                if (!removed) throw new InvalidOperationException($"Template has no Component matching {type}");
+                return this;
+            }
+
             _values.RemoveAt(_components.IndexOf(type));
             _components.Remove(type);
             return this;
@@ -119,6 +138,13 @@ namespace fennecs
         public EntityTemplate<C0> Remove<T>() where T : notnull
         {
             var type = Comp<T>.Plain.Expression;
+            return RemoveComponent(type);
+        }
+
+        /// <inheritdoc cref="EntityTemplate.Remove{T}(Match)"/>
+        public EntityTemplate<C0> Remove<T>(Match match) where T : notnull
+        {
+            var type = TypeExpression.Of<T>(match);
             return RemoveComponent(type);
         }
 
@@ -336,8 +362,12 @@ namespace fennecs
 
         private void AssertNotRequired(TypeExpression type)
         {
-            if (Array.IndexOf(_required, type) >= 0)
-                throw new InvalidOperationException($"Component {type} is a required Component of this template and must be provided at Spawn.");
+            // Matches subsumes equality for concrete expressions and also covers Wildcards.
+            foreach (var required in _required)
+            {
+                if (type.Matches(required))
+                    throw new InvalidOperationException($"Component {required} is a required Component of this template and must be provided at Spawn.");
+            }
         }
 
         private EntityTemplate<C0, C1> AddComponent(TypeExpression type, object value)
@@ -362,6 +392,21 @@ namespace fennecs
         {
             AssertMutable();
             AssertNotRequired(type);
+
+            if (type.isWildcard)
+            {
+                var removed = false;
+                for (var i = _components.Count - 1; i >= 0; i--)
+                {
+                    if (!type.Matches(_components[i])) continue;
+                    _components.RemoveAt(i);
+                    _values.RemoveAt(i);
+                    removed = true;
+                }
+                if (!removed) throw new InvalidOperationException($"Template has no Component matching {type}");
+                return this;
+            }
+
             _values.RemoveAt(_components.IndexOf(type));
             _components.Remove(type);
             return this;
@@ -405,6 +450,13 @@ namespace fennecs
         public EntityTemplate<C0, C1> Remove<T>() where T : notnull
         {
             var type = Comp<T>.Plain.Expression;
+            return RemoveComponent(type);
+        }
+
+        /// <inheritdoc cref="EntityTemplate.Remove{T}(Match)"/>
+        public EntityTemplate<C0, C1> Remove<T>(Match match) where T : notnull
+        {
+            var type = TypeExpression.Of<T>(match);
             return RemoveComponent(type);
         }
 
@@ -639,8 +691,12 @@ namespace fennecs
 
         private void AssertNotRequired(TypeExpression type)
         {
-            if (Array.IndexOf(_required, type) >= 0)
-                throw new InvalidOperationException($"Component {type} is a required Component of this template and must be provided at Spawn.");
+            // Matches subsumes equality for concrete expressions and also covers Wildcards.
+            foreach (var required in _required)
+            {
+                if (type.Matches(required))
+                    throw new InvalidOperationException($"Component {required} is a required Component of this template and must be provided at Spawn.");
+            }
         }
 
         private EntityTemplate<C0, C1, C2> AddComponent(TypeExpression type, object value)
@@ -665,6 +721,21 @@ namespace fennecs
         {
             AssertMutable();
             AssertNotRequired(type);
+
+            if (type.isWildcard)
+            {
+                var removed = false;
+                for (var i = _components.Count - 1; i >= 0; i--)
+                {
+                    if (!type.Matches(_components[i])) continue;
+                    _components.RemoveAt(i);
+                    _values.RemoveAt(i);
+                    removed = true;
+                }
+                if (!removed) throw new InvalidOperationException($"Template has no Component matching {type}");
+                return this;
+            }
+
             _values.RemoveAt(_components.IndexOf(type));
             _components.Remove(type);
             return this;
@@ -708,6 +779,13 @@ namespace fennecs
         public EntityTemplate<C0, C1, C2> Remove<T>() where T : notnull
         {
             var type = Comp<T>.Plain.Expression;
+            return RemoveComponent(type);
+        }
+
+        /// <inheritdoc cref="EntityTemplate.Remove{T}(Match)"/>
+        public EntityTemplate<C0, C1, C2> Remove<T>(Match match) where T : notnull
+        {
+            var type = TypeExpression.Of<T>(match);
             return RemoveComponent(type);
         }
 
@@ -958,8 +1036,12 @@ namespace fennecs
 
         private void AssertNotRequired(TypeExpression type)
         {
-            if (Array.IndexOf(_required, type) >= 0)
-                throw new InvalidOperationException($"Component {type} is a required Component of this template and must be provided at Spawn.");
+            // Matches subsumes equality for concrete expressions and also covers Wildcards.
+            foreach (var required in _required)
+            {
+                if (type.Matches(required))
+                    throw new InvalidOperationException($"Component {required} is a required Component of this template and must be provided at Spawn.");
+            }
         }
 
         private EntityTemplate<C0, C1, C2, C3> AddComponent(TypeExpression type, object value)
@@ -984,6 +1066,21 @@ namespace fennecs
         {
             AssertMutable();
             AssertNotRequired(type);
+
+            if (type.isWildcard)
+            {
+                var removed = false;
+                for (var i = _components.Count - 1; i >= 0; i--)
+                {
+                    if (!type.Matches(_components[i])) continue;
+                    _components.RemoveAt(i);
+                    _values.RemoveAt(i);
+                    removed = true;
+                }
+                if (!removed) throw new InvalidOperationException($"Template has no Component matching {type}");
+                return this;
+            }
+
             _values.RemoveAt(_components.IndexOf(type));
             _components.Remove(type);
             return this;
@@ -1027,6 +1124,13 @@ namespace fennecs
         public EntityTemplate<C0, C1, C2, C3> Remove<T>() where T : notnull
         {
             var type = Comp<T>.Plain.Expression;
+            return RemoveComponent(type);
+        }
+
+        /// <inheritdoc cref="EntityTemplate.Remove{T}(Match)"/>
+        public EntityTemplate<C0, C1, C2, C3> Remove<T>(Match match) where T : notnull
+        {
+            var type = TypeExpression.Of<T>(match);
             return RemoveComponent(type);
         }
 
@@ -1293,8 +1397,12 @@ namespace fennecs
 
         private void AssertNotRequired(TypeExpression type)
         {
-            if (Array.IndexOf(_required, type) >= 0)
-                throw new InvalidOperationException($"Component {type} is a required Component of this template and must be provided at Spawn.");
+            // Matches subsumes equality for concrete expressions and also covers Wildcards.
+            foreach (var required in _required)
+            {
+                if (type.Matches(required))
+                    throw new InvalidOperationException($"Component {required} is a required Component of this template and must be provided at Spawn.");
+            }
         }
 
         private EntityTemplate<C0, C1, C2, C3, C4> AddComponent(TypeExpression type, object value)
@@ -1319,6 +1427,21 @@ namespace fennecs
         {
             AssertMutable();
             AssertNotRequired(type);
+
+            if (type.isWildcard)
+            {
+                var removed = false;
+                for (var i = _components.Count - 1; i >= 0; i--)
+                {
+                    if (!type.Matches(_components[i])) continue;
+                    _components.RemoveAt(i);
+                    _values.RemoveAt(i);
+                    removed = true;
+                }
+                if (!removed) throw new InvalidOperationException($"Template has no Component matching {type}");
+                return this;
+            }
+
             _values.RemoveAt(_components.IndexOf(type));
             _components.Remove(type);
             return this;
@@ -1362,6 +1485,13 @@ namespace fennecs
         public EntityTemplate<C0, C1, C2, C3, C4> Remove<T>() where T : notnull
         {
             var type = Comp<T>.Plain.Expression;
+            return RemoveComponent(type);
+        }
+
+        /// <inheritdoc cref="EntityTemplate.Remove{T}(Match)"/>
+        public EntityTemplate<C0, C1, C2, C3, C4> Remove<T>(Match match) where T : notnull
+        {
+            var type = TypeExpression.Of<T>(match);
             return RemoveComponent(type);
         }
 
@@ -1643,8 +1773,12 @@ namespace fennecs
 
         private void AssertNotRequired(TypeExpression type)
         {
-            if (Array.IndexOf(_required, type) >= 0)
-                throw new InvalidOperationException($"Component {type} is a required Component of this template and must be provided at Spawn.");
+            // Matches subsumes equality for concrete expressions and also covers Wildcards.
+            foreach (var required in _required)
+            {
+                if (type.Matches(required))
+                    throw new InvalidOperationException($"Component {required} is a required Component of this template and must be provided at Spawn.");
+            }
         }
 
         private EntityTemplate<C0, C1, C2, C3, C4, C5> AddComponent(TypeExpression type, object value)
@@ -1669,6 +1803,21 @@ namespace fennecs
         {
             AssertMutable();
             AssertNotRequired(type);
+
+            if (type.isWildcard)
+            {
+                var removed = false;
+                for (var i = _components.Count - 1; i >= 0; i--)
+                {
+                    if (!type.Matches(_components[i])) continue;
+                    _components.RemoveAt(i);
+                    _values.RemoveAt(i);
+                    removed = true;
+                }
+                if (!removed) throw new InvalidOperationException($"Template has no Component matching {type}");
+                return this;
+            }
+
             _values.RemoveAt(_components.IndexOf(type));
             _components.Remove(type);
             return this;
@@ -1712,6 +1861,13 @@ namespace fennecs
         public EntityTemplate<C0, C1, C2, C3, C4, C5> Remove<T>() where T : notnull
         {
             var type = Comp<T>.Plain.Expression;
+            return RemoveComponent(type);
+        }
+
+        /// <inheritdoc cref="EntityTemplate.Remove{T}(Match)"/>
+        public EntityTemplate<C0, C1, C2, C3, C4, C5> Remove<T>(Match match) where T : notnull
+        {
+            var type = TypeExpression.Of<T>(match);
             return RemoveComponent(type);
         }
 

@@ -43,6 +43,19 @@ public interface IAddRemove<out SELF>
     public SELF Remove<C>() where C : notnull;
 
     /// <summary>
+    /// Remove all Components of type C matching the given Match Expression from the Entity/Entities.
+    /// </summary>
+    /// <remarks>
+    /// <para>Accepts Wildcards: <see cref="Match.Any"/> removes Plain, Relation, and Object Link Components of the type;
+    /// <see cref="Match.Target"/> removes Relations and Object Links; <see cref="Match.Entity"/> removes all Relations;
+    /// <see cref="Match.Object"/> removes all Object Links.</para>
+    /// <para>Specific terms work as well: <see cref="Match.Plain"/> is equivalent to <see cref="Remove{C}()"/>,
+    /// and <see cref="Match.Relation"/> / <see cref="Match.Link{T}"/> remove that single Relation or Link.</para>
+    /// </remarks>
+    /// <returns>itself (fluent pattern)</returns>
+    public SELF Remove<C>(Match match) where C : notnull;
+
+    /// <summary>
     /// Remove a Relation Component of type R with the specified relation from the Entity/Entities.
     /// </summary>
     /// <returns>itself (fluent pattern)</returns>

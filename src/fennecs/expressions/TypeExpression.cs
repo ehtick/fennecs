@@ -89,6 +89,9 @@ internal readonly record struct TypeExpression : IComparable<TypeExpression>
         //TODO: HUGE OPTIMIZATION POTENTIAL! (set comparison is way faster than linear search, etc.) FIXME!!
         foreach (var type in other)
         {
+            // Identical expressions always match; the pairwise check below is not reflexive
+            // for the Entity/Object Wildcards (their category arms admit only specific keys).
+            if (self.Equals(type)) return true;
             if (self.Matches(type)) return true;
             if (type.Matches(self)) return true;
         }

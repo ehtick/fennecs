@@ -331,6 +331,15 @@ public sealed partial class Query : IReadOnlySet<Entity>, IDisposable, IBatchBeg
     public void Remove<T>() where T : notnull => Batch().Remove<T>().Submit();
 
 
+    /// <summary>
+    ///     Removes all Components of the given type matching the Match Expression (Wildcards permitted)
+    ///     from all Entities matched by this query.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">if the Query does not rule out this Component type in a Filter Expression.</exception>
+    /// <typeparam name="T">any Component type matched by the query</typeparam>
+    public void Remove<T>(Match match) where T : notnull => Batch().Remove<T>(match).Submit();
+
+
     /// <inheritdoc />
     public Batch Batch() => new(Archetypes, Aspect, Mask.Clone(), default, default);
 

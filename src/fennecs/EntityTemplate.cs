@@ -48,6 +48,21 @@ public sealed class EntityTemplate : IDisposable, IAddRemove<EntityTemplate>
     private EntityTemplate RemoveComponent(TypeExpression type)
     {
         AssertMutable();
+
+        if (type.isWildcard)
+        {
+            var removed = false;
+            for (var i = _components.Count - 1; i >= 0; i--)
+            {
+                if (!type.Matches(_components[i])) continue;
+                _components.RemoveAt(i);
+                _values.RemoveAt(i);
+                removed = true;
+            }
+            if (!removed) throw new InvalidOperationException($"Template has no Component matching {type}");
+            return this;
+        }
+
         _values.RemoveAt(_components.IndexOf(type));
         _components.Remove(type);
         return this;
@@ -99,6 +114,19 @@ public sealed class EntityTemplate : IDisposable, IAddRemove<EntityTemplate>
     public EntityTemplate Remove<T>() where T : notnull
     {
         var type = Comp<T>.Plain.Expression;
+        return RemoveComponent(type);
+    }
+
+    /// <inheritdoc />
+    /// <summary>
+    /// Removes all Components of the given type matching the Match Expression from the Template.
+    /// Wildcard Match Expressions are permitted and remove all matching Components.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">if a Wildcard matches no configured Component</exception>
+    /// <returns>EntityTemplate (fluent interface)</returns>
+    public EntityTemplate Remove<T>(Match match) where T : notnull
+    {
+        var type = TypeExpression.Of<T>(match);
         return RemoveComponent(type);
     }
 

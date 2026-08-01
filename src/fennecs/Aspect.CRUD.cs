@@ -49,9 +49,18 @@ public partial class Aspect
 
         var oldArchetype = meta.Archetype;
 
-        if (!oldArchetype.HasStorage(typeExpression)) ThrowDoesNotHaveComponent(entity, typeExpression);
-
-        var newSignature = oldArchetype.Signature.Remove(typeExpression);
+        Signature newSignature;
+        if (typeExpression.isWildcard)
+        {
+            // A Wildcard strips every stored expression it covers, in a single structural change.
+            newSignature = oldArchetype.Signature.Except(oldArchetype.Signature.Where(type => typeExpression.Matches(type)));
+            if (newSignature.Count == oldArchetype.Signature.Count) ThrowDoesNotHaveComponent(entity, typeExpression);
+        }
+        else
+        {
+            if (!oldArchetype.HasStorage(typeExpression)) ThrowDoesNotHaveComponent(entity, typeExpression);
+            newSignature = oldArchetype.Signature.Remove(typeExpression);
+        }
 
         // Lazy membership: removing the last owned Component evicts the Entity from this Aspect.
         // (Main keeps all living Entities, at minimum in its Root archetype)
@@ -168,6 +177,13 @@ public partial class Aspect
         foreach (var archetype in operation.Archetypes)
         {
             var preAddSignature = archetype.Signature.Except(operation.Removals);
+
+            // Wildcard removals match stored expressions by type, not identity: strip everything they cover.
+            foreach (var removal in operation.Removals)
+            {
+                if (!removal.isWildcard) continue;
+                preAddSignature = preAddSignature.Except(preAddSignature.Where(type => removal.Matches(type)));
+            }
             var destinationSignature = preAddSignature.Union(operation.Additions);
 
             // Lazy membership: batch-removing all owned Components evicts the Entities from this Aspect.

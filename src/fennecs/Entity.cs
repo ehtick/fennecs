@@ -179,6 +179,19 @@ public readonly record struct Entity : IAddRemove<Entity>, IHasTyped, IAddRemove
     }
 
 
+    /// <inheritdoc />
+    /// <summary>
+    /// Removes all Components of a specific type matching the given Match Expression from the current entity.
+    /// Wildcard Match Expressions are permitted and remove all matching Components in a single structural change.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">if the Entity has no Component matching the expression</exception>
+    public Entity Remove<C>(Match match) where C : notnull
+    {
+        World.RemoveComponent(this, TypeExpression.Of<C>(match));
+        return this;
+    }
+
+
     /// <summary>
     /// Removes a relation of a specific type between the current entity and the target entity.
     /// </summary>
