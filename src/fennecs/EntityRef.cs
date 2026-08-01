@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MIT
 
+using fennecs.CRUD;
+
 namespace fennecs;
 
 /// <summary>
@@ -15,12 +17,19 @@ namespace fennecs;
 /// </para>
 /// </summary>
 /// <remarks>
+/// <para>
 /// Inside a runner, the World is in Deferred mode: structural changes (<see cref="Add{C}(C)"/>,
 /// <see cref="Remove{C}()"/>, <see cref="Despawn"/>) are queued and applied after the loop, so
 /// this reference stays valid for the remainder of the iteration — but reads after a deferred
 /// Remove still see the old data.
+/// </para>
+/// <para>
+/// As a <c>ref struct</c>, EntityRef can never be boxed into its interfaces — generic code
+/// reaches them via <c>where T : IAddRemove&lt;T&gt;, allows ref struct</c> (constrained,
+/// allocation-free dispatch).
+/// </para>
 /// </remarks>
-public readonly ref struct EntityRef
+public readonly ref struct EntityRef : IAddRemove<EntityRef>, IHasTyped
 {
     private readonly Archetype _archetype;
     private readonly int _row;
@@ -74,10 +83,16 @@ public readonly ref struct EntityRef
 
 
     /// <summary>
+    /// Checks if the Entity has a Plain Component of a specific type.
+    /// </summary>
+    public bool Has<C>() where C : notnull => Has<C>(default(Match));
+
+
+    /// <summary>
     /// Checks if the Entity has a Component of a specific type.
     /// Allows for a <see cref="Match"/> Expression to be specified (Wildcards).
     /// </summary>
-    public bool Has<C>(Match match = default) where C : notnull =>
+    public bool Has<C>(Match match) where C : notnull =>
         _archetype.Matches(TypeExpression.Of<C>(match)) || World.HasComponent<C>(Entity, match);
 
 
@@ -85,6 +100,12 @@ public readonly ref struct EntityRef
     /// Checks if the Entity has a relation Component backed by <typeparamref name="R"/> targeting the given Entity.
     /// </summary>
     public bool Has<R>(Entity relation) where R : notnull => Has<R>(new Relate(relation));
+
+
+    /// <summary>
+    /// Checks if the Entity has an Object Link with the specified linked object.
+    /// </summary>
+    public bool Has<L>(L linkedObject) where L : class => Has(Link<L>.With(linkedObject));
 
 
     /// <summary>
@@ -111,6 +132,12 @@ public readonly ref struct EntityRef
     /// Adds a newable Plain Component to the Entity. (deferred inside runners)
     /// </summary>
     public EntityRef Add<C>() where C : notnull, new() => Add(new C());
+
+
+    /// <summary>
+    /// Adds a newable relation Component targeting the given Entity. (deferred inside runners)
+    /// </summary>
+    public EntityRef Add<T>(Entity relation) where T : notnull, new() => Add(new T(), relation);
 
 
     /// <summary>
@@ -178,6 +205,12 @@ public readonly ref struct EntityRef
         World.RemoveComponent(Entity, TypeExpression.Of<R>(new Relate(relation)));
         return this;
     }
+
+
+    /// <summary>
+    /// Removes an Object Link with the specified linked object from the Entity. (deferred inside runners)
+    /// </summary>
+    public EntityRef Remove<L>(L linkedObject) where L : class => Remove(Link<L>.With(linkedObject));
 
 
     /// <summary>

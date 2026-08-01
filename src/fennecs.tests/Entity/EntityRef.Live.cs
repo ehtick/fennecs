@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MIT
 
+using fennecs.CRUD;
+
 namespace fennecs.tests;
 
 /// <summary>
@@ -306,6 +308,71 @@ public class LiveEntityRefTests
 
         Assert.False(entity.Has<string>(Match.Any));
         Assert.True(entity.Has<int>());
+    }
+
+
+    // Generic helpers proving constrained, boxing-free interface dispatch on the ref struct.
+    private static T StripAllStrings<T>(T subject) where T : IAddRemove<T>, allows ref struct
+        => subject.Remove<string>(Match.Any);
+
+
+    private static bool HasComponent<T, C>(T subject) where T : IHasTyped, allows ref struct where C : notnull
+        => subject.Has<C>();
+
+
+    [Fact]
+    public void Implements_IAddRemove_via_Constrained_Generics()
+    {
+        using var world = new World();
+        var entity = world.Spawn().Add(123).Add("plain");
+
+        var stream = world.Query<int>().Stream();
+        stream.For((in EntityRef e, ref int _) => StripAllStrings(e));
+        Assert.False(entity.Has<string>(Match.Any));
+
+        // The same helper dispatches to Entity — one generic algorithm, both handle types.
+        entity.Add("plain again");
+        StripAllStrings(entity);
+        Assert.False(entity.Has<string>(Match.Any));
+    }
+
+
+    [Fact]
+    public void Implements_IHasTyped_via_Constrained_Generics()
+    {
+        using var world = new World();
+        world.Spawn().Add(123);
+
+        var stream = world.Query<int>().Stream();
+        var visited = 0;
+        stream.For((in EntityRef e, ref int _) =>
+        {
+            Assert.True(HasComponent<EntityRef, int>(e));
+            Assert.False(HasComponent<EntityRef, float>(e));
+            visited++;
+        });
+        Assert.Equal(1, visited);
+    }
+
+
+    [Fact]
+    public void Interface_Completing_Members_Work()
+    {
+        using var world = new World();
+        var target = world.Spawn();
+        var linked = new List<int>();
+        var entity = world.Spawn().Add(123).Add(Link.With(linked));
+
+        var stream = world.Query<int>().Stream();
+        stream.For((in EntityRef e, ref int _) =>
+        {
+            Assert.True(e.Has(linked));         // Has<L>(L linkedObject)
+            e.Add<Tag>(target);                 // Add<T>(Entity relation), newable
+            e.Remove(linked);                   // Remove<L>(L linkedObject)
+        });
+
+        Assert.True(entity.Has<Tag>(target));
+        Assert.False(entity.Has(linked));
     }
 
 

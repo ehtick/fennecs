@@ -3,7 +3,12 @@
 /// <summary>
 /// Objects of this type can perform Add and Remove operations on Entities or sets of Entities.
 /// </summary>
-public interface IAddRemove<out SELF>
+/// <remarks>
+/// <c>allows ref struct</c> admits <see cref="EntityRef"/> as an implementer. Generic code
+/// constrained on this interface must re-declare the anti-constraint to accept it:
+/// <c>where T : IAddRemove&lt;T&gt;, allows ref struct</c>.
+/// </remarks>
+public interface IAddRemove<out SELF> where SELF : allows ref struct
 {
     /// <summary>
     /// Add a default, Plain newable Component of type C to the Entity/Entities.

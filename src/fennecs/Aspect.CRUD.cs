@@ -45,8 +45,8 @@ public partial class Aspect
     {
         if (!Contains(entity))
         {
-            if (mode == RemoveConflict.Allow) return;
-            ThrowDoesNotHaveComponent(entity, typeExpression);
+            if (mode != RemoveConflict.Allow) ThrowDoesNotHaveComponent(entity, typeExpression);
+            return;
         }
 
         ref var meta = ref _meta[entity.Index];
@@ -60,16 +60,16 @@ public partial class Aspect
             newSignature = oldArchetype.Signature.Except(oldArchetype.Signature.Where(type => typeExpression.Matches(type)));
             if (newSignature.Count == oldArchetype.Signature.Count)
             {
-                if (mode == RemoveConflict.Allow) return;
-                ThrowDoesNotHaveComponent(entity, typeExpression);
+                if (mode != RemoveConflict.Allow) ThrowDoesNotHaveComponent(entity, typeExpression);
+                return;
             }
         }
         else
         {
             if (!oldArchetype.HasStorage(typeExpression))
             {
-                if (mode == RemoveConflict.Allow) return;
-                ThrowDoesNotHaveComponent(entity, typeExpression);
+                if (mode != RemoveConflict.Allow) ThrowDoesNotHaveComponent(entity, typeExpression);
+                return;
             }
             newSignature = oldArchetype.Signature.Remove(typeExpression);
         }
