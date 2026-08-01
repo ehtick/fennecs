@@ -30,3 +30,7 @@ Secondary keys may be:
 - **Nothing** - a ***Plain Component*** with no secondary key
 - **Entity** - designating the component as a [Relation](Relation.md) to the target Entity
 - **Object** - constituting an [Object Link](Link.md) to a reference type
+
+::: info :neofox_magnify: Wildcards
+[Wildcard Match Expressions](/docs/Queries/Matching.md#wildcards) (`Match.Any`, `Match.Target`, `Entity.Any`, `Link.Any`) match whole categories of secondary keys – in Queries, and also in `Remove<C>(Match)` to strip all matching components in one structural change.
+:::

@@ -20,6 +20,7 @@ The `Remove` method detaches a component from an entity. It returns the entity i
 | Signature | Description |
 |-----------|-------------|
 | `Entity.Remove<C>()` | Removes a plain component |
+| `Entity.Remove<C>(Match match)` | Removes all components matching a [Match Expression](/docs/Queries/Matching.md) (Wildcards allowed!) |
 | `Entity.Remove<C>(Entity relation)` | Removes a relation to a specific entity |
 | `Entity.Remove<L>(L linkedObject)` | Removes a link to a specific object |
 | `Entity.Remove<L>(Link<L> link)` | Removes a link by its wrapper |
@@ -101,7 +102,7 @@ For object links, removing the link doesn't destroy or dispose the linked object
 
 ## Removing Multiple of Same Type
 
-If an entity has multiple components of the same type (via relations), you must specify which one to remove:
+If an entity has multiple components of the same type (via relations), you can specify which one to remove:
 
 ```cs
 var target1 = world.Spawn();
@@ -116,6 +117,19 @@ entity.Remove<int>(target1);  // Only removes the target1 relation
 // target2 relation still exists
 Console.WriteLine(entity.Has<int>(target2));  // true
 ```
+
+### Removing with Wildcards
+
+`Remove<C>(Match)` accepts [Wildcard Match Expressions](/docs/Queries/Matching.md#wildcards) to strip all matching components of a type in a single structural change:
+
+```cs
+entity.Remove<Owes>(Entity.Any);    // remove all Owes relations, to anyone
+entity.Remove<Bank>(Link.Any);      // remove all Bank object links
+entity.Remove<Owes>(Match.Target);  // remove all relations AND links (keeps plain)
+entity.Remove<Owes>(Match.Any);     // remove everything Owes: plain, relations, links
+```
+
+Like all removals, this throws if **nothing** matches the expression.
 
 ## Use Cases
 

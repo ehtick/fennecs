@@ -101,7 +101,7 @@ bob.Add(Link.With(targo)); // bob also banks at targo
 
 | Capability | Description |
 |------------|-------------|
-| Add/Remove | Attach or detach from entities (single or bulk) |
+| Add/Remove | Attach or detach from entities (single, bulk, or by [Wildcard](/docs/Queries/Matching.md#wildcards) via `Remove<C>(Match)`) |
 | Any Type | Backed by any C# language type |
 | Relations | Have an optional [Target](/docs/Queries/Matching.md#match-targets) as secondary key |
 | Sharing | Reference types can be shared between entities |

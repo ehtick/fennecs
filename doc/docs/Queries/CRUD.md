@@ -17,6 +17,7 @@ description: 'Bulk CRUD on fennecs Queries - Add, Remove, Despawn, and Truncate 
 |--------|-------------|
 | `Query.Add<C>(value)` | Add a component to all matched Entities |
 | `Query.Remove<C>()` | Remove a component from all matched Entities |
+| `Query.Remove<C>(match)` | Remove all matching components (Wildcards allowed) from all matched Entities |
 | `Query.Despawn()` | Despawn all matched Entities |
 | `Query.Truncate(n, mode)` | Reduce matched Entities to a specific count |
 | `Query.Batch()` | Begin a batch for multiple structural changes |
@@ -93,6 +94,9 @@ query.Batch().Add(new Attacking(damage), targetEntity).Submit();
 
 // Remove a relation from all matched entities
 query.Batch().Remove<Attacking>(targetEntity).Submit();
+
+// Wildcards work too: remove ALL Attacking relations, whatever their target
+query.Batch().Remove<Attacking>(Entity.Any).Submit();
 ```
 
 ## Batch Operations

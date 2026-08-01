@@ -27,6 +27,7 @@ Because the Link's target is the backing data, the Link resolves **bidirectional
 | Add Link | `entity.Add(Link.With(obj))` | `bob.Add(Link.With(chase))` |
 | Remove Link | `entity.Remove<T>(obj)` | `bob.Remove<Bank>(chase)` |
 | Remove Link (inferred) | `entity.Remove(obj)` | `bob.Remove(chase)` |
+| Remove All Links | `entity.Remove<T>(Link.Any)` | `bob.Remove<Bank>(Link.Any)` |
 
 ## Creating Links
 
@@ -82,6 +83,7 @@ var entitiesExceptCustomersOfChase = world
 ```cs
 bob.Remove<Bank>(chase); // bob no longer banks at chase
 bob.Remove(chase); // type inference works here, too
+bob.Remove<Bank>(Link.Any); // bob goes unbanked (Wildcard removes all Bank links)
 ```
 
 ## Constraints

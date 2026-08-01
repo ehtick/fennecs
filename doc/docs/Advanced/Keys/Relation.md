@@ -24,6 +24,7 @@ The relation is said to be ***backed by its Component type***, and any data can 
 |-----------|--------|--------|
 | Add Relation | `entity.Add<T>(data, target)` | `bob.Add<Owes>(new(10M), alice)` |
 | Remove Relation | `entity.Remove<T>(target)` | `bob.Remove<Owes>(alice)` |
+| Remove All Relations | `entity.Remove<T>(Entity.Any)` | `bob.Remove<Owes>(Entity.Any)` |
 | Check Relation | `entity.Has<T>(target)` | `bob.Has<Owes>(eve)` |
 | Get Relation Data | `entity.Ref<T>(target)` | `bob.Ref<Owes>(eve)` |
 
@@ -56,6 +57,7 @@ bob.Add<Owes>(new(23M), eve); // and owes eve $23 (Relation Owes->eve)
 
 ```cs [Removing a Relation]
 bob.Remove<Owes>(alice); // bob no longer owes alice
+bob.Remove<Owes>(Entity.Any); // debt jubilee! bob owes no one (Wildcard)
 ```
 
 ```cs [Modifying Backing Data]
