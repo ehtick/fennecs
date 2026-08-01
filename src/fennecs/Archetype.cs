@@ -206,7 +206,7 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
     /// <param name="additions">the new Components and their TypeExpressions to add to the destination Archetype</param>
     /// <param name="backFills">values for each addition to add</param>
     /// <param name="addMode"></param>
-    internal void Migrate(Archetype destination, PooledList<TypeExpression> additions, PooledList<object> backFills, Batch.AddConflict addMode)
+    internal void Migrate(Archetype destination, PooledList<TypeExpression> additions, PooledList<object> backFills, AddConflict addMode)
     {
         if (IsEmpty) return;
         
@@ -217,7 +217,7 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
         var addedStart = destination.Count;
 
         // Replacement pre-fill of values ("Replace")
-        if (addMode == Batch.AddConflict.Replace)
+        if (addMode == AddConflict.Replace)
         {
             var alreadyPresent = Signature.Intersect(additions);
             foreach (var type in alreadyPresent)
@@ -264,7 +264,7 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
     /// discarding any Components not present in the destination.
     /// </summary>
     /// <param name="destination">the Archetype to move the Entities to</param>
-    internal void Migrate(Archetype destination) => Migrate(destination, PooledList<TypeExpression>.Rent(), PooledList<object>.Rent(), Batch.AddConflict.Strict);
+    internal void Migrate(Archetype destination) => Migrate(destination, PooledList<TypeExpression>.Rent(), PooledList<object>.Rent(), AddConflict.Strict);
 
 
     /// <summary>

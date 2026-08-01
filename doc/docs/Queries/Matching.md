@@ -149,7 +149,7 @@ var followersOfBob = world.Query<Position>()
 ```
 
 ::: info :neofox_knives: WILDCARDS CUT BOTH WAYS
-Wildcards aren't just for matching – [`Remove<C>(Match)`](/docs/Entities/ComponentRemove.md#removing-with-wildcards) accepts them on Entities, Batches, and Templates to strip all matching components at once.
+Wildcards aren't just for matching – [`Remove<C>(Match)`](/docs/Entities/ComponentRemove.md#removing-with-wildcards) accepts them on Entities, EntityRefs (inside runners), Batches, and Templates to strip all matching components at once.
 :::
 
 ## Conflicting Match Expressions

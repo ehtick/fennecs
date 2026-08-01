@@ -289,6 +289,88 @@ public class IAddRemoveWildcardTests
     #endregion
 
 
+    #region Entity RemoveConflict overload
+
+    [Fact]
+    public void Entity_Remove_Strict_Mode_Throws_when_Nothing_Matches()
+    {
+        using var world = new World();
+        var entity = world.Spawn().Add(new Marker(42));
+
+        Assert.Throws<InvalidOperationException>(() => entity.Remove<string>(Match.Any, RemoveConflict.Strict));
+    }
+
+
+    [Fact]
+    public void Entity_Remove_Allow_Mode_is_NoOp_when_Nothing_Matches()
+    {
+        using var world = new World();
+        var entity = world.Spawn().Add(new Marker(42));
+
+        var result = entity.Remove<string>(Match.Any, RemoveConflict.Allow);
+
+        Assert.Equal(entity, result);
+        Assert.True(entity.Has<Marker>());
+        Assert.Equal(new Marker(42), entity.Ref<Marker>());
+    }
+
+
+    [Fact]
+    public void Entity_Remove_Allow_Mode_Removes_when_Matching()
+    {
+        using var world = new World();
+        var target = world.Spawn();
+        var entity = SpawnTriKind(world, target, out _);
+
+        entity.Remove<string>(Match.Any, RemoveConflict.Allow);
+
+        Assert.False(entity.Has<string>(Match.Any));
+        Assert.True(entity.Has<Marker>());
+    }
+
+
+    [Fact]
+    public void Entity_Remove_Allow_Mode_is_Idempotent_for_Concrete_Expressions()
+    {
+        using var world = new World();
+        var entity = world.Spawn().Add(new Marker(42)).Add("plain");
+
+        entity.Remove<string>(Match.Plain, RemoveConflict.Allow);
+        entity.Remove<string>(Match.Plain, RemoveConflict.Allow);
+
+        Assert.False(entity.Has<string>());
+        Assert.True(entity.Has<Marker>());
+    }
+
+
+    [Fact]
+    public void Entity_Remove_Allow_Mode_is_NoOp_when_Not_a_Member_of_the_Owning_Aspect()
+    {
+        using var world = new World();
+        world.AddAspect("game").Owns<Rel>();
+
+        var entity = world.Spawn().Add(new Marker(42));
+
+        entity.Remove<Rel>(Match.Any, RemoveConflict.Allow);
+
+        Assert.True(entity.Has<Marker>());
+        Assert.Throws<InvalidOperationException>(() => entity.Remove<Rel>(Match.Any, RemoveConflict.Strict));
+    }
+
+
+    [Fact]
+    public void Entity_Remove_Allow_Mode_Still_Throws_for_Dead_Entities()
+    {
+        using var world = new World();
+        var entity = world.Spawn().Add(new Marker(42));
+        entity.Despawn();
+
+        Assert.Throws<ObjectDisposedException>(() => entity.Remove<Marker>(Match.Any, RemoveConflict.Allow));
+    }
+
+    #endregion
+
+
     #region Batch & Query
 
     [Fact]
@@ -302,7 +384,7 @@ public class IAddRemoveWildcardTests
         var entity2 = world.Spawn().Add(new Marker(2)).Add(new Rel(2), target1).Add(new Rel(3), target2);
 
         var query = world.Query().Has<Rel>(Match.Entity).Compile();
-        query.Batch(Batch.RemoveConflict.Strict).Remove<Rel>(Match.Entity).Submit();
+        query.Batch(RemoveConflict.Strict).Remove<Rel>(Match.Entity).Submit();
 
         Assert.False(entity1.Has<Rel>(Match.Entity));
         Assert.False(entity2.Has<Rel>(Match.Entity));
@@ -319,7 +401,7 @@ public class IAddRemoveWildcardTests
         var entity = SpawnTriKind(world, target, out _);
 
         var query = world.Query().Has<string>(Match.Any).Compile();
-        query.Batch(Batch.RemoveConflict.Strict).Remove<string>(Match.Any).Submit();
+        query.Batch(RemoveConflict.Strict).Remove<string>(Match.Any).Submit();
 
         Assert.False(entity.Has<string>(Match.Any));
         Assert.True(entity.Has<Marker>());
@@ -333,7 +415,7 @@ public class IAddRemoveWildcardTests
         world.Spawn().Add(new Marker(1));
 
         var query = world.Query().Has<Marker>().Compile();
-        var batch = query.Batch(Batch.RemoveConflict.Strict);
+        var batch = query.Batch(RemoveConflict.Strict);
 
         Assert.Throws<InvalidOperationException>(() => batch.Remove<string>(Match.Any));
     }
@@ -349,7 +431,7 @@ public class IAddRemoveWildcardTests
         var unrelated = world.Spawn().Add(new Marker(2));
 
         var query = world.Query().Has<Marker>().Compile();
-        query.Batch(Batch.RemoveConflict.Allow).Remove<Rel>(Match.Entity).Submit();
+        query.Batch(RemoveConflict.Allow).Remove<Rel>(Match.Entity).Submit();
 
         Assert.False(related.Has<Rel>(Match.Entity));
         Assert.True(unrelated.Has<Marker>());
@@ -364,7 +446,7 @@ public class IAddRemoveWildcardTests
         world.Spawn().Add("present");
 
         var query = world.Query().Has<string>().Compile();
-        var batch = query.Batch(Batch.AddConflict.Preserve, Batch.RemoveConflict.Allow).Add("added");
+        var batch = query.Batch(AddConflict.Preserve, RemoveConflict.Allow).Add("added");
 
         Assert.Throws<InvalidOperationException>(() => batch.Remove<string>(Match.Any));
     }
@@ -377,7 +459,7 @@ public class IAddRemoveWildcardTests
         world.Spawn().Add("present");
 
         var query = world.Query().Has<string>().Compile();
-        var batch = query.Batch(Batch.AddConflict.Preserve, Batch.RemoveConflict.Allow).Remove<string>(Match.Any);
+        var batch = query.Batch(AddConflict.Preserve, RemoveConflict.Allow).Remove<string>(Match.Any);
 
         Assert.Throws<InvalidOperationException>(() => batch.Add("added"));
     }
@@ -390,7 +472,7 @@ public class IAddRemoveWildcardTests
         world.Spawn().Add("present");
 
         var query = world.Query().Has<string>().Compile();
-        var batch = query.Batch(Batch.RemoveConflict.Allow).Remove<string>(Match.Any);
+        var batch = query.Batch(RemoveConflict.Allow).Remove<string>(Match.Any);
 
         Assert.Throws<InvalidOperationException>(() => batch.Remove<string>(Match.Any));
     }

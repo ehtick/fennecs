@@ -193,6 +193,20 @@ public readonly record struct Entity : IAddRemove<Entity>, IHasTyped, IAddRemove
 
 
     /// <summary>
+    /// Removes all Components of a specific type matching the given Match Expression from the current entity,
+    /// with an explicit conflict resolution mode: <see cref="RemoveConflict.Strict"/> (default) throws
+    /// if no Component matches, <see cref="RemoveConflict.Allow"/> makes the removal idempotent
+    /// (a no-op when nothing matches).
+    /// </summary>
+    /// <exception cref="InvalidOperationException">under <see cref="RemoveConflict.Strict"/>, if the Entity has no Component matching the expression</exception>
+    public Entity Remove<C>(Match match, RemoveConflict mode) where C : notnull
+    {
+        World.RemoveComponent(this, TypeExpression.Of<C>(match), mode);
+        return this;
+    }
+
+
+    /// <summary>
     /// Removes a relation of a specific type between the current entity and the target entity.
     /// </summary>
     /// <param name="relation">target of the relation.</param>

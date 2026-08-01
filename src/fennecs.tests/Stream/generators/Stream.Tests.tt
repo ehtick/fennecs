@@ -620,15 +620,15 @@ public class Stream<#= n #><#= setName #>Tests(ITestOutputHelper output)
         var stream = world.Query<<#= types #>>().Stream();
 
         // Batch(AddConflict) overload
-        stream.Batch(Batch.AddConflict.Replace).Add("added").Submit();
+        stream.Batch(AddConflict.Replace).Add("added").Submit();
         Assert.True(entity.Has<string>());
 
         // Batch(RemoveConflict) overload
-        stream.Batch(Batch.RemoveConflict.Allow).Remove<string>().Submit();
+        stream.Batch(RemoveConflict.Allow).Remove<string>().Submit();
         Assert.False(entity.Has<string>());
 
         // Batch(AddConflict, RemoveConflict) overload
-        stream.Batch(Batch.AddConflict.Replace, Batch.RemoveConflict.Allow).Add("both").Submit();
+        stream.Batch(AddConflict.Replace, RemoveConflict.Allow).Add("both").Submit();
         Assert.True(entity.Has<string>());
     }
 

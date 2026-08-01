@@ -140,57 +140,6 @@ public readonly struct Batch : IDisposable, IAddRemove<Batch>
     /// <inheritdoc />
     public Batch Remove<T>(Link<T> link) where T : class => RemoveComponent<T>(link);
 
-    /// <summary>
-    /// Specifies behavior when adding a Component to an archetype that already has the same type of Component. 
-    /// </summary>
-    public enum AddConflict
-    {
-        /// <summary>
-        /// Disallows the addition of Components that could already be present in a query.
-        /// </summary>
-        /// <remarks>
-        /// Exclude the Component from the query via <see cref="QueryBuilderBase{QB}.Not{T}(Match)"/> or similar
-        /// means. If you want to allow the addition of Components that are already present, use <see cref="Preserve"/>
-        /// to keep any values already present, or use <see cref="Replace"/> if you'd like to overwrite the Component
-        /// value everywhere it is already encountered in the query.
-        /// </remarks>
-        Strict = default,
-
-        /// <summary>
-        /// Keeps the existing Component data whenever trying to add a duplicate.
-        /// </summary>
-        Preserve,
-
-        /// <summary>
-        /// Overwrites existing Component data with the addded component if it is already present.
-        /// </summary>
-        /// <remarks>
-        /// Alternatively, you can use the faster <see cref="Stream{C0}.Blit"/> if you
-        /// can ensure that the component is present on all Entities in the query.
-        /// </remarks>
-        Replace,
-    }
-
-
-    /// <summary>
-    /// Batch Removal conflict resolution mode.
-    /// </summary>
-    public enum RemoveConflict
-    {
-        /// <summary>
-        /// Disallow remove operation if the Component to be removed is not guaranteed to be present
-        /// on ALL matched Archetypes, see <see cref="QueryBuilderBase{QB}.Has{T}(Match)"/>.
-        /// </summary>
-        Strict = default,
-
-        /// <summary>
-        /// Allow operating on Archetypes where the Component to be removed is not present.
-        /// Removal operations are Idempotent on these archetypes, i.e. they don't change them
-        /// on their own.
-        /// </summary>
-        Allow,
-    }
-
     #endregion
 
 

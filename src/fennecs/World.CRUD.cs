@@ -36,19 +36,19 @@ public partial class World
     }
 
 
-    internal void RemoveComponent(Entity entity, TypeExpression typeExpression)
+    internal void RemoveComponent(Entity entity, TypeExpression typeExpression, RemoveConflict mode = default)
     {
         var aspect = AspectOf(typeExpression);
 
         if (Mode == WorldMode.Deferred)
         {
-            _deferredOperations.Enqueue(new DeferredOperation {Opcode = Opcode.Remove, Entity = entity, TypeExpression = typeExpression});
+            _deferredOperations.Enqueue(new DeferredOperation {Opcode = Opcode.Remove, Entity = entity, TypeExpression = typeExpression, RemoveMode = mode});
             return;
         }
 
         AssertAlive(entity);
 
-        aspect.RemoveComponent(entity, typeExpression);
+        aspect.RemoveComponent(entity, typeExpression, mode);
     }
 
 

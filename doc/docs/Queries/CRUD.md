@@ -125,9 +125,9 @@ Batch operations can encounter semantic conflicts when adding/removing component
 | `Add<T>` conflict | Some or all Entities already have that component |
 | `Remove<T>` conflict | Not every Entity has that component |
 
-Pass conflict resolution strategies to `Query.Batch(Batch.AddConflict, Batch.RemoveConflict)`:
+Pass conflict resolution strategies to `Query.Batch(AddConflict, RemoveConflict)`:
 
-#### Batch.AddConflict Options
+#### AddConflict Options
 
 | Option | Behavior |
 |--------|----------|
@@ -135,7 +135,7 @@ Pass conflict resolution strategies to `Query.Batch(Batch.AddConflict, Batch.Rem
 | `Preserve` | Keep existing values, add only where not present |
 | `Replace` | Overwrite existing values, add where not present |
 
-#### Batch.RemoveConflict Options
+#### RemoveConflict Options
 
 | Option | Behavior |
 |--------|----------|
@@ -144,7 +144,7 @@ Pass conflict resolution strategies to `Query.Batch(Batch.AddConflict, Batch.Rem
 
 ```cs
 // Example: Replace health values on all entities, even those that already have Health
-query.Batch(Batch.AddConflict.Replace)
+query.Batch(AddConflict.Replace)
     .Add(new Health(100))
     .Submit();
 ```

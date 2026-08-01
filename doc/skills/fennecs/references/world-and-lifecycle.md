@@ -99,7 +99,7 @@ so consecutive calls can miss entities that "escaped" after the first change.
 A `Batch` applies all operations to the *original* matched set atomically:
 
 ```csharp
-query.Batch(Batch.AddConflict.Replace, Batch.RemoveConflict.Allow)
+query.Batch(AddConflict.Replace, RemoveConflict.Allow)
     .Add(new Cooldown(2f))
     .Add<RequestProjectileSpawn>()
     .Remove<Loaded>()
@@ -111,13 +111,13 @@ World owns the batch; call `Dispose()` only if you decide *not* to submit.
 
 Conflict modes (both default `Strict`):
 
-| `Batch.AddConflict` | Behavior when some matched entities already have the component |
+| `AddConflict` | Behavior when some matched entities already have the component |
 |---|---|
 | `Strict` | throw — unless the query's `Not<T>()` guarantees absence |
 | `Preserve` | keep existing values, add where missing |
 | `Replace` | overwrite everywhere, add where missing |
 
-| `Batch.RemoveConflict` | Behavior when not all matched entities have the component |
+| `RemoveConflict` | Behavior when not all matched entities have the component |
 |---|---|
 | `Strict` | throw — unless the query's `Has<T>()` guarantees presence |
 | `Allow` | remove where present, skip elsewhere (idempotent) |

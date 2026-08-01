@@ -21,6 +21,7 @@ The `Remove` method detaches a component from an entity. It returns the entity i
 |-----------|-------------|
 | `Entity.Remove<C>()` | Removes a plain component |
 | `Entity.Remove<C>(Match match)` | Removes all components matching a [Match Expression](/docs/Queries/Matching.md) (Wildcards allowed!) |
+| `Entity.Remove<C>(Match match, RemoveConflict mode)` | Same, with explicit conflict resolution: `Strict` throws if nothing matches (default), `Allow` is idempotent |
 | `Entity.Remove<C>(Entity relation)` | Removes a relation to a specific entity |
 | `Entity.Remove<L>(L linkedObject)` | Removes a link to a specific object |
 | `Entity.Remove<L>(Link<L> link)` | Removes a link by its wrapper |
@@ -28,9 +29,10 @@ The `Remove` method detaches a component from an entity. It returns the entity i
 All overloads return the `Entity`, allowing fluent chaining.
 
 ::: warning :neofox_owo: Component Must Exist!
-Attempting to remove a component that doesn't exist will throw an exception. Use [`Has<C>()`](ComponentHas.md) to check first if you're unsure.
+Attempting to remove a component that doesn't exist will throw an exception. Use [`Has<C>()`](ComponentHas.md) to check first if you're unsure – or pass `RemoveConflict.Allow` to make the removal idempotent.
 ```cs
 entity.Remove<Health>();  // ❌ Throws if no Health component!
+entity.Remove<Health>(Match.Plain, RemoveConflict.Allow);  // ✅ No-op if absent
 ```
 :::
 
@@ -129,7 +131,13 @@ entity.Remove<Owes>(Match.Target);  // remove all relations AND links (keeps pla
 entity.Remove<Owes>(Match.Any);     // remove everything Owes: plain, relations, links
 ```
 
-Like all removals, this throws if **nothing** matches the expression.
+This also works on the `EntityRef` handed to you inside [Stream runners](/docs/Streams/Stream.For.md) (deferred, like all structural changes there).
+
+Like all removals, this throws if **nothing** matches the expression – unless you opt into leniency with `RemoveConflict.Allow`, which makes the removal a no-op when nothing matches:
+
+```cs
+entity.Remove<Owes>(Entity.Any, RemoveConflict.Allow);  // debt jubilee, even for the debt-free
+```
 
 ## Use Cases
 

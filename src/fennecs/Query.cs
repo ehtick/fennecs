@@ -347,14 +347,14 @@ public sealed partial class Query : IReadOnlySet<Entity>, IDisposable, IBatchBeg
     /// <summary>
     /// Provide a Builder Struct that allows to enqueue multiple operations on the Entities matched by this Query.
     /// Allows configuring custom handling of conflicts when adding Components that might already be on some Entities in the
-    /// query, see <see cref="Batch.AddConflict"/> and <see cref="Batch.AddConflict"/>.
+    /// query, see <see cref="AddConflict"/> and <see cref="AddConflict"/>.
     /// </summary>
     /// <remarks>
     /// (Add, Remove, etc.) If they were applied one by one, they would cause the Entities to no longer be matched
     /// after the first operation, and thus lead to undesired results.
     /// </remarks> 
     /// <returns>a BatchOperation that needs to be executed by calling <see cref="Batch.Submit"/></returns>
-    public Batch Batch(Batch.AddConflict addConflict)
+    public Batch Batch(AddConflict addConflict)
     {
         return new Batch(Archetypes, Aspect, Mask.Clone(), addConflict, default);
     }
@@ -363,14 +363,14 @@ public sealed partial class Query : IReadOnlySet<Entity>, IDisposable, IBatchBeg
     /// <summary>
     /// Provide a Builder Struct that allows to enqueue multiple operations on the Entities matched by this Query.
     /// Allows configuring custom handling of conflicts when adding Components that might already be on some Entities in the
-    /// query, see <see cref="Batch.AddConflict"/> and <see cref="Batch.AddConflict"/>.
+    /// query, see <see cref="AddConflict"/> and <see cref="AddConflict"/>.
     /// </summary>
     /// <remarks>
     /// (Add, Remove, etc.) If they were applied one by one, they would cause the Entities to no longer be matched
     /// after the first operation, and thus lead to undesired results.
     /// </remarks> 
     /// <returns>a BatchOperation that needs to be executed by calling <see cref="Batch.Submit"/></returns>
-    public Batch Batch(Batch.RemoveConflict removeConflict)
+    public Batch Batch(RemoveConflict removeConflict)
     {
         return new Batch(Archetypes, Aspect, Mask.Clone(), default, removeConflict);
     }
@@ -379,14 +379,14 @@ public sealed partial class Query : IReadOnlySet<Entity>, IDisposable, IBatchBeg
     /// <summary>
     /// Provide a Builder Struct that allows to enqueue multiple operations on the Entities matched by this Query.
     /// Allows configuring custom handling of conflicts when adding Components that might already be on some Entities in the
-    /// query, see <see cref="Batch.AddConflict"/> and <see cref="Batch.AddConflict"/>.
+    /// query, see <see cref="AddConflict"/> and <see cref="AddConflict"/>.
     /// </summary>
     /// <remarks>
     /// (Add, Remove, etc.) If they were applied one by one, they would cause the Entities to no longer be matched
     /// after the first operation, and thus lead to undesired results.
     /// </remarks> 
     /// <returns>a BatchOperation that needs to be executed by calling <see cref="Batch.Submit"/></returns>
-    public Batch Batch(Batch.AddConflict addConflict, Batch.RemoveConflict removeConflict)
+    public Batch Batch(AddConflict addConflict, RemoveConflict removeConflict)
     {
         return new(Archetypes, Aspect, Mask.Clone(), addConflict, removeConflict);
     }

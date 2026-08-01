@@ -575,15 +575,15 @@ public class Stream1ValueTests(ITestOutputHelper output)
         var stream = world.Query<ValA>().Stream();
 
         // Batch(AddConflict) overload
-        stream.Batch(Batch.AddConflict.Replace).Add("added").Submit();
+        stream.Batch(AddConflict.Replace).Add("added").Submit();
         Assert.True(entity.Has<string>());
 
         // Batch(RemoveConflict) overload
-        stream.Batch(Batch.RemoveConflict.Allow).Remove<string>().Submit();
+        stream.Batch(RemoveConflict.Allow).Remove<string>().Submit();
         Assert.False(entity.Has<string>());
 
         // Batch(AddConflict, RemoveConflict) overload
-        stream.Batch(Batch.AddConflict.Replace, Batch.RemoveConflict.Allow).Add("both").Submit();
+        stream.Batch(AddConflict.Replace, RemoveConflict.Allow).Add("both").Submit();
         Assert.True(entity.Has<string>());
     }
 
@@ -1243,15 +1243,15 @@ public class Stream2ValueTests(ITestOutputHelper output)
         var stream = world.Query<ValA, ValB>().Stream();
 
         // Batch(AddConflict) overload
-        stream.Batch(Batch.AddConflict.Replace).Add("added").Submit();
+        stream.Batch(AddConflict.Replace).Add("added").Submit();
         Assert.True(entity.Has<string>());
 
         // Batch(RemoveConflict) overload
-        stream.Batch(Batch.RemoveConflict.Allow).Remove<string>().Submit();
+        stream.Batch(RemoveConflict.Allow).Remove<string>().Submit();
         Assert.False(entity.Has<string>());
 
         // Batch(AddConflict, RemoveConflict) overload
-        stream.Batch(Batch.AddConflict.Replace, Batch.RemoveConflict.Allow).Add("both").Submit();
+        stream.Batch(AddConflict.Replace, RemoveConflict.Allow).Add("both").Submit();
         Assert.True(entity.Has<string>());
     }
 
@@ -1917,15 +1917,15 @@ public class Stream3ValueTests(ITestOutputHelper output)
         var stream = world.Query<ValA, ValB, ValC>().Stream();
 
         // Batch(AddConflict) overload
-        stream.Batch(Batch.AddConflict.Replace).Add("added").Submit();
+        stream.Batch(AddConflict.Replace).Add("added").Submit();
         Assert.True(entity.Has<string>());
 
         // Batch(RemoveConflict) overload
-        stream.Batch(Batch.RemoveConflict.Allow).Remove<string>().Submit();
+        stream.Batch(RemoveConflict.Allow).Remove<string>().Submit();
         Assert.False(entity.Has<string>());
 
         // Batch(AddConflict, RemoveConflict) overload
-        stream.Batch(Batch.AddConflict.Replace, Batch.RemoveConflict.Allow).Add("both").Submit();
+        stream.Batch(AddConflict.Replace, RemoveConflict.Allow).Add("both").Submit();
         Assert.True(entity.Has<string>());
     }
 
@@ -2597,15 +2597,15 @@ public class Stream4ValueTests(ITestOutputHelper output)
         var stream = world.Query<ValA, ValB, ValC, ValD>().Stream();
 
         // Batch(AddConflict) overload
-        stream.Batch(Batch.AddConflict.Replace).Add("added").Submit();
+        stream.Batch(AddConflict.Replace).Add("added").Submit();
         Assert.True(entity.Has<string>());
 
         // Batch(RemoveConflict) overload
-        stream.Batch(Batch.RemoveConflict.Allow).Remove<string>().Submit();
+        stream.Batch(RemoveConflict.Allow).Remove<string>().Submit();
         Assert.False(entity.Has<string>());
 
         // Batch(AddConflict, RemoveConflict) overload
-        stream.Batch(Batch.AddConflict.Replace, Batch.RemoveConflict.Allow).Add("both").Submit();
+        stream.Batch(AddConflict.Replace, RemoveConflict.Allow).Add("both").Submit();
         Assert.True(entity.Has<string>());
     }
 
@@ -3283,15 +3283,15 @@ public class Stream5ValueTests(ITestOutputHelper output)
         var stream = world.Query<ValA, ValB, ValC, ValD, ValE>().Stream();
 
         // Batch(AddConflict) overload
-        stream.Batch(Batch.AddConflict.Replace).Add("added").Submit();
+        stream.Batch(AddConflict.Replace).Add("added").Submit();
         Assert.True(entity.Has<string>());
 
         // Batch(RemoveConflict) overload
-        stream.Batch(Batch.RemoveConflict.Allow).Remove<string>().Submit();
+        stream.Batch(RemoveConflict.Allow).Remove<string>().Submit();
         Assert.False(entity.Has<string>());
 
         // Batch(AddConflict, RemoveConflict) overload
-        stream.Batch(Batch.AddConflict.Replace, Batch.RemoveConflict.Allow).Add("both").Submit();
+        stream.Batch(AddConflict.Replace, RemoveConflict.Allow).Add("both").Submit();
         Assert.True(entity.Has<string>());
     }
 
@@ -3939,15 +3939,15 @@ public class Stream1RefTests(ITestOutputHelper output)
         var stream = world.Query<RefA>().Stream();
 
         // Batch(AddConflict) overload
-        stream.Batch(Batch.AddConflict.Replace).Add("added").Submit();
+        stream.Batch(AddConflict.Replace).Add("added").Submit();
         Assert.True(entity.Has<string>());
 
         // Batch(RemoveConflict) overload
-        stream.Batch(Batch.RemoveConflict.Allow).Remove<string>().Submit();
+        stream.Batch(RemoveConflict.Allow).Remove<string>().Submit();
         Assert.False(entity.Has<string>());
 
         // Batch(AddConflict, RemoveConflict) overload
-        stream.Batch(Batch.AddConflict.Replace, Batch.RemoveConflict.Allow).Add("both").Submit();
+        stream.Batch(AddConflict.Replace, RemoveConflict.Allow).Add("both").Submit();
         Assert.True(entity.Has<string>());
     }
 
@@ -4607,15 +4607,15 @@ public class Stream2RefTests(ITestOutputHelper output)
         var stream = world.Query<RefA, RefB>().Stream();
 
         // Batch(AddConflict) overload
-        stream.Batch(Batch.AddConflict.Replace).Add("added").Submit();
+        stream.Batch(AddConflict.Replace).Add("added").Submit();
         Assert.True(entity.Has<string>());
 
         // Batch(RemoveConflict) overload
-        stream.Batch(Batch.RemoveConflict.Allow).Remove<string>().Submit();
+        stream.Batch(RemoveConflict.Allow).Remove<string>().Submit();
         Assert.False(entity.Has<string>());
 
         // Batch(AddConflict, RemoveConflict) overload
-        stream.Batch(Batch.AddConflict.Replace, Batch.RemoveConflict.Allow).Add("both").Submit();
+        stream.Batch(AddConflict.Replace, RemoveConflict.Allow).Add("both").Submit();
         Assert.True(entity.Has<string>());
     }
 
@@ -5281,15 +5281,15 @@ public class Stream3RefTests(ITestOutputHelper output)
         var stream = world.Query<RefA, RefB, RefC>().Stream();
 
         // Batch(AddConflict) overload
-        stream.Batch(Batch.AddConflict.Replace).Add("added").Submit();
+        stream.Batch(AddConflict.Replace).Add("added").Submit();
         Assert.True(entity.Has<string>());
 
         // Batch(RemoveConflict) overload
-        stream.Batch(Batch.RemoveConflict.Allow).Remove<string>().Submit();
+        stream.Batch(RemoveConflict.Allow).Remove<string>().Submit();
         Assert.False(entity.Has<string>());
 
         // Batch(AddConflict, RemoveConflict) overload
-        stream.Batch(Batch.AddConflict.Replace, Batch.RemoveConflict.Allow).Add("both").Submit();
+        stream.Batch(AddConflict.Replace, RemoveConflict.Allow).Add("both").Submit();
         Assert.True(entity.Has<string>());
     }
 
@@ -5961,15 +5961,15 @@ public class Stream4RefTests(ITestOutputHelper output)
         var stream = world.Query<RefA, RefB, RefC, RefD>().Stream();
 
         // Batch(AddConflict) overload
-        stream.Batch(Batch.AddConflict.Replace).Add("added").Submit();
+        stream.Batch(AddConflict.Replace).Add("added").Submit();
         Assert.True(entity.Has<string>());
 
         // Batch(RemoveConflict) overload
-        stream.Batch(Batch.RemoveConflict.Allow).Remove<string>().Submit();
+        stream.Batch(RemoveConflict.Allow).Remove<string>().Submit();
         Assert.False(entity.Has<string>());
 
         // Batch(AddConflict, RemoveConflict) overload
-        stream.Batch(Batch.AddConflict.Replace, Batch.RemoveConflict.Allow).Add("both").Submit();
+        stream.Batch(AddConflict.Replace, RemoveConflict.Allow).Add("both").Submit();
         Assert.True(entity.Has<string>());
     }
 
@@ -6647,15 +6647,15 @@ public class Stream5RefTests(ITestOutputHelper output)
         var stream = world.Query<RefA, RefB, RefC, RefD, RefE>().Stream();
 
         // Batch(AddConflict) overload
-        stream.Batch(Batch.AddConflict.Replace).Add("added").Submit();
+        stream.Batch(AddConflict.Replace).Add("added").Submit();
         Assert.True(entity.Has<string>());
 
         // Batch(RemoveConflict) overload
-        stream.Batch(Batch.RemoveConflict.Allow).Remove<string>().Submit();
+        stream.Batch(RemoveConflict.Allow).Remove<string>().Submit();
         Assert.False(entity.Has<string>());
 
         // Batch(AddConflict, RemoveConflict) overload
-        stream.Batch(Batch.AddConflict.Replace, Batch.RemoveConflict.Allow).Add("both").Submit();
+        stream.Batch(AddConflict.Replace, RemoveConflict.Allow).Add("both").Submit();
         Assert.True(entity.Has<string>());
     }
 
@@ -7315,15 +7315,15 @@ public class Stream2MixedTests(ITestOutputHelper output)
         var stream = world.Query<ValA, RefB>().Stream();
 
         // Batch(AddConflict) overload
-        stream.Batch(Batch.AddConflict.Replace).Add("added").Submit();
+        stream.Batch(AddConflict.Replace).Add("added").Submit();
         Assert.True(entity.Has<string>());
 
         // Batch(RemoveConflict) overload
-        stream.Batch(Batch.RemoveConflict.Allow).Remove<string>().Submit();
+        stream.Batch(RemoveConflict.Allow).Remove<string>().Submit();
         Assert.False(entity.Has<string>());
 
         // Batch(AddConflict, RemoveConflict) overload
-        stream.Batch(Batch.AddConflict.Replace, Batch.RemoveConflict.Allow).Add("both").Submit();
+        stream.Batch(AddConflict.Replace, RemoveConflict.Allow).Add("both").Submit();
         Assert.True(entity.Has<string>());
     }
 
@@ -7989,15 +7989,15 @@ public class Stream3MixedTests(ITestOutputHelper output)
         var stream = world.Query<ValA, RefB, ValC>().Stream();
 
         // Batch(AddConflict) overload
-        stream.Batch(Batch.AddConflict.Replace).Add("added").Submit();
+        stream.Batch(AddConflict.Replace).Add("added").Submit();
         Assert.True(entity.Has<string>());
 
         // Batch(RemoveConflict) overload
-        stream.Batch(Batch.RemoveConflict.Allow).Remove<string>().Submit();
+        stream.Batch(RemoveConflict.Allow).Remove<string>().Submit();
         Assert.False(entity.Has<string>());
 
         // Batch(AddConflict, RemoveConflict) overload
-        stream.Batch(Batch.AddConflict.Replace, Batch.RemoveConflict.Allow).Add("both").Submit();
+        stream.Batch(AddConflict.Replace, RemoveConflict.Allow).Add("both").Submit();
         Assert.True(entity.Has<string>());
     }
 
@@ -8669,15 +8669,15 @@ public class Stream4MixedTests(ITestOutputHelper output)
         var stream = world.Query<ValA, RefB, ValC, RefD>().Stream();
 
         // Batch(AddConflict) overload
-        stream.Batch(Batch.AddConflict.Replace).Add("added").Submit();
+        stream.Batch(AddConflict.Replace).Add("added").Submit();
         Assert.True(entity.Has<string>());
 
         // Batch(RemoveConflict) overload
-        stream.Batch(Batch.RemoveConflict.Allow).Remove<string>().Submit();
+        stream.Batch(RemoveConflict.Allow).Remove<string>().Submit();
         Assert.False(entity.Has<string>());
 
         // Batch(AddConflict, RemoveConflict) overload
-        stream.Batch(Batch.AddConflict.Replace, Batch.RemoveConflict.Allow).Add("both").Submit();
+        stream.Batch(AddConflict.Replace, RemoveConflict.Allow).Add("both").Submit();
         Assert.True(entity.Has<string>());
     }
 
@@ -9355,15 +9355,15 @@ public class Stream5MixedTests(ITestOutputHelper output)
         var stream = world.Query<ValA, RefB, ValC, RefD, ValE>().Stream();
 
         // Batch(AddConflict) overload
-        stream.Batch(Batch.AddConflict.Replace).Add("added").Submit();
+        stream.Batch(AddConflict.Replace).Add("added").Submit();
         Assert.True(entity.Has<string>());
 
         // Batch(RemoveConflict) overload
-        stream.Batch(Batch.RemoveConflict.Allow).Remove<string>().Submit();
+        stream.Batch(RemoveConflict.Allow).Remove<string>().Submit();
         Assert.False(entity.Has<string>());
 
         // Batch(AddConflict, RemoveConflict) overload
-        stream.Batch(Batch.AddConflict.Replace, Batch.RemoveConflict.Allow).Add("both").Submit();
+        stream.Batch(AddConflict.Replace, RemoveConflict.Allow).Add("both").Submit();
         Assert.True(entity.Has<string>());
     }
 

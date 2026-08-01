@@ -16,7 +16,7 @@ public class QueryBatchTests
         world.Spawn().Add(123);
 
         var intQuery = world.Query<int>().Compile();
-        intQuery.Batch(Batch.AddConflict.Preserve).Add("batched").Submit();
+        intQuery.Batch(AddConflict.Preserve).Add("batched").Submit();
     }
 
 
@@ -27,8 +27,8 @@ public class QueryBatchTests
         world.Spawn().Add(123);
 
         var intQuery = world.Query<int>().Compile();
-        intQuery.Batch(Batch.AddConflict.Preserve).Add(123456.0f).Submit();
-        intQuery.Batch(Batch.AddConflict.Preserve).Add<float>().Submit();
+        intQuery.Batch(AddConflict.Preserve).Add(123456.0f).Submit();
+        intQuery.Batch(AddConflict.Preserve).Add<float>().Submit();
     }
 
 
@@ -52,8 +52,8 @@ public class QueryBatchTests
         world.Spawn().Add(123);
 
         var intQuery = world.Query<int>().Compile();
-        intQuery.Batch(Batch.AddConflict.Preserve).Add(new TypeA(55)).Submit();
-        intQuery.Batch(Batch.AddConflict.Preserve).Add<TypeA>().Submit();
+        intQuery.Batch(AddConflict.Preserve).Add(new TypeA(55)).Submit();
+        intQuery.Batch(AddConflict.Preserve).Add<TypeA>().Submit();
     }
 
 
@@ -74,7 +74,7 @@ public class QueryBatchTests
         Assert.Contains(e4, stringQuery);
 
         var intQuery = world.Query<int>().Not<string>().Compile();
-        intQuery.Batch(Batch.AddConflict.Replace).Add("batched").Submit();
+        intQuery.Batch(AddConflict.Replace).Add("batched").Submit();
 
         Assert.Equal(4, stringQuery.Count);
 
@@ -182,7 +182,7 @@ public class QueryBatchTests
         var intQuery = world.Query<int>().Compile();
 
         var worldLock = world.Lock();
-        intQuery.Batch(Batch.AddConflict.Preserve).Add("batched").Submit();
+        intQuery.Batch(AddConflict.Preserve).Add("batched").Submit();
 
         // Deferred operations are not immediately visible
         Assert.DoesNotContain(e1, stringQuery);
@@ -212,7 +212,7 @@ public class QueryBatchTests
         Assert.Empty(floatQuery);
 
         var stringQuery = world.Query<string>().Compile();
-        stringQuery.Batch(Batch.AddConflict.Preserve).Add(123f).Submit();
+        stringQuery.Batch(AddConflict.Preserve).Add(123f).Submit();
     }
 
 
@@ -234,7 +234,7 @@ public class QueryBatchTests
         Assert.Empty(relationQuery);
 
         var intQuery = world.Query<int>().Compile();
-        intQuery.Batch(Batch.AddConflict.Preserve).Add<float>(e3).Submit();
+        intQuery.Batch(AddConflict.Preserve).Add<float>(e3).Submit();
 
         Assert.Equal(2, relationQuery.Count);
         Assert.Contains(e1, relationQuery);
@@ -261,7 +261,7 @@ public class QueryBatchTests
         Assert.Empty(relationQuery);
 
         var intQuery = world.Query<int>().Compile();
-        intQuery.Batch(Batch.AddConflict.Preserve).Add<string>("object backed, buddy!", e3).Submit();
+        intQuery.Batch(AddConflict.Preserve).Add<string>("object backed, buddy!", e3).Submit();
 
         Assert.Equal(2, relationQuery.Count);
         Assert.Contains(e1, relationQuery);
@@ -319,7 +319,7 @@ public class QueryBatchTests
         Assert.Empty(linkQuery);
 
         var intQuery = world.Query<int>().Compile();
-        intQuery.Batch(Batch.AddConflict.Preserve).Add(Link.With("doom")).Submit();
+        intQuery.Batch(AddConflict.Preserve).Add(Link.With("doom")).Submit();
 
         Assert.Equal(2, linkQuery.Count);
         Assert.Contains(e1, linkQuery);
@@ -456,7 +456,7 @@ public class QueryBatchTests
         Assert.Equal(3, intQuery.Count);
 
         // ! no lock !
-        intQuery.Batch(Batch.AddConflict.Preserve).Add("batched").Submit();
+        intQuery.Batch(AddConflict.Preserve).Add("batched").Submit();
         // ! no lock !
 
         Assert.Equal(3, intQuery.Count);
@@ -486,7 +486,7 @@ public class QueryBatchTests
         Assert.Equal(3, intQuery.Count);
 
         // ! no lock !
-        intQuery.Batch(Batch.AddConflict.Replace).Add("batched").Submit();
+        intQuery.Batch(AddConflict.Replace).Add("batched").Submit();
         // ! no lock !
 
         Assert.Equal(3, intQuery.Count);
@@ -512,7 +512,7 @@ public class QueryBatchTests
         Assert.Equal(3, intQuery.Count);
 
         var worldLock = world.Lock();
-        intQuery.Batch(Batch.AddConflict.Replace).Add("batched").Submit();
+        intQuery.Batch(AddConflict.Replace).Add("batched").Submit();
         worldLock.Dispose();
 
         Assert.Equal(3, intQuery.Count);
@@ -564,7 +564,7 @@ public class QueryBatchTests
         var stringQuery = world.Query<string>().Compile();
         Assert.Throws<InvalidOperationException>(() =>
         {
-            stringQuery.Batch(Batch.AddConflict.Strict)
+            stringQuery.Batch(AddConflict.Strict)
                 .Add<float>()
                 .Submit();
         });
@@ -578,14 +578,14 @@ public class QueryBatchTests
         var stringQuery = world.Query<string>().Has<float>().Compile();
         Assert.Throws<InvalidOperationException>(() =>
         {
-            stringQuery.Batch(Batch.RemoveConflict.Strict)
+            stringQuery.Batch(RemoveConflict.Strict)
                 .Remove<float>()
                 .Remove<float>()
                 .Submit();
         });
         Assert.Throws<InvalidOperationException>(() =>
         {
-            stringQuery.Batch(Batch.RemoveConflict.Allow)
+            stringQuery.Batch(RemoveConflict.Allow)
                 .Remove<float>()
                 .Remove<float>()
                 .Submit();
@@ -600,21 +600,21 @@ public class QueryBatchTests
         var stringQuery = world.Query<string>().Not<float>().Compile();
         Assert.Throws<InvalidOperationException>(() =>
         {
-            stringQuery.Batch(Batch.AddConflict.Strict)
+            stringQuery.Batch(AddConflict.Strict)
                 .Add<float>()
                 .Add<float>()
                 .Submit();
         });
         Assert.Throws<InvalidOperationException>(() =>
         {
-            stringQuery.Batch(Batch.AddConflict.Preserve)
+            stringQuery.Batch(AddConflict.Preserve)
                 .Add<float>()
                 .Add<float>()
                 .Submit();
         });
         Assert.Throws<InvalidOperationException>(() =>
         {
-            stringQuery.Batch(Batch.AddConflict.Replace)
+            stringQuery.Batch(AddConflict.Replace)
                 .Add<float>()
                 .Add<float>()
                 .Submit();
@@ -629,21 +629,21 @@ public class QueryBatchTests
         var stringQuery = world.Query<string>().Compile();
         Assert.Throws<InvalidOperationException>(() =>
         {
-            stringQuery.Batch(Batch.AddConflict.Strict)
+            stringQuery.Batch(AddConflict.Strict)
                 .Remove<string>()
                 .Add<string>("lala!")
                 .Submit();
         });
         Assert.Throws<InvalidOperationException>(() =>
         {
-            stringQuery.Batch(Batch.AddConflict.Preserve)
+            stringQuery.Batch(AddConflict.Preserve)
                 .Remove<string>()
                 .Add<string>("lala!")
                 .Submit();
         });
         Assert.Throws<InvalidOperationException>(() =>
         {
-            stringQuery.Batch(Batch.AddConflict.Replace)
+            stringQuery.Batch(AddConflict.Replace)
                 .Remove<string>()
                 .Add<string>("lala!")
                 .Submit();
@@ -658,21 +658,21 @@ public class QueryBatchTests
         var stringQuery = world.Query<string>().Not<float>().Compile();
         Assert.Throws<InvalidOperationException>(() =>
         {
-            stringQuery.Batch(Batch.AddConflict.Strict, Batch.RemoveConflict.Allow)
+            stringQuery.Batch(AddConflict.Strict, RemoveConflict.Allow)
                 .Add(55.5f)
                 .Remove<float>() //this fails because of the wrong reason, but is ok.
                 .Submit();
         });
         Assert.Throws<InvalidOperationException>(() =>
         {
-            stringQuery.Batch(Batch.AddConflict.Preserve, Batch.RemoveConflict.Allow)
+            stringQuery.Batch(AddConflict.Preserve, RemoveConflict.Allow)
                 .Add(55.5f)
                 .Remove<float>()
                 .Submit();
         });
         Assert.Throws<InvalidOperationException>(() =>
         {
-            stringQuery.Batch(Batch.AddConflict.Replace, Batch.RemoveConflict.Allow)
+            stringQuery.Batch(AddConflict.Replace, RemoveConflict.Allow)
                 .Add(55.5f)
                 .Remove<float>()
                 .Submit();
@@ -687,7 +687,7 @@ public class QueryBatchTests
         var stringQuery = world.Query<string>().Compile();
         Assert.Throws<InvalidOperationException>(() =>
         {
-            stringQuery.Batch(Batch.RemoveConflict.Strict)
+            stringQuery.Batch(RemoveConflict.Strict)
                 .Remove<float>()
                 .Submit();
         });
@@ -702,7 +702,7 @@ public class QueryBatchTests
         var stringQuery = world.Query<string>().Compile();
 
         stringQuery
-            .Batch(Batch.RemoveConflict.Allow)
+            .Batch(RemoveConflict.Allow)
             .Remove<string>()
             .Remove<float>()
             .Submit();
@@ -717,7 +717,7 @@ public class QueryBatchTests
         var stringQuery = world.Query<string>().Compile();
 
         stringQuery
-            .Batch(Batch.AddConflict.Preserve, Batch.RemoveConflict.Allow)
+            .Batch(AddConflict.Preserve, RemoveConflict.Allow)
             .Remove<string>()
             .Remove<float>()
             .Submit();
@@ -738,7 +738,7 @@ public class QueryBatchTests
         Assert.DoesNotContain(e2, stringQuery);
         Assert.Contains(e3, stringQuery);
 
-        stringQuery.Batch(Batch.AddConflict.Preserve).Add<int>().Submit();
+        stringQuery.Batch(AddConflict.Preserve).Add<int>().Submit();
 
         Assert.Single(stringQuery);
         Assert.Contains(e3, stringQuery);
@@ -761,7 +761,7 @@ public class QueryBatchTests
         Assert.Single(stringQuery);
         Assert.Contains(e3, stringQuery);
 
-        stringQuery.Batch(Batch.AddConflict.Preserve).Remove(target).Submit();
+        stringQuery.Batch(AddConflict.Preserve).Remove(target).Submit();
 
         Assert.Empty(stringQuery);
         Assert.Empty(stringQuery);
@@ -778,7 +778,7 @@ public class QueryBatchTests
         Assert.Single(stringQuery);
         Assert.Contains(e3, stringQuery);
 
-        stringQuery.Batch(Batch.AddConflict.Preserve).Remove(Link.With(target)).Submit();
+        stringQuery.Batch(AddConflict.Preserve).Remove(Link.With(target)).Submit();
 
         Assert.Empty(stringQuery);
         Assert.Empty(stringQuery);
@@ -795,11 +795,11 @@ public class QueryBatchTests
         Assert.Single(stringQuery);
         Assert.Contains(e3, stringQuery);
 
-        stringQuery.Batch(Batch.AddConflict.Preserve).Remove(Link.With(target)).Submit();
+        stringQuery.Batch(AddConflict.Preserve).Remove(Link.With(target)).Submit();
 
         Assert.Empty(stringQuery);
         Assert.Empty(stringQuery);
 
-        stringQuery.Batch(Batch.AddConflict.Preserve).Remove(Link.With(target)).Submit();
+        stringQuery.Batch(AddConflict.Preserve).Remove(Link.With(target)).Submit();
     }
 }

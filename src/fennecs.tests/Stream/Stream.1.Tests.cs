@@ -110,7 +110,7 @@ public class Stream1Tests
         var stream = world.Query<string>(Match.Any).Stream();
 
         Assert.True(entity.Has<string>());
-        stream.Batch(Batch.AddConflict.Replace, Batch.RemoveConflict.Allow).Remove<string>().Submit();
+        stream.Batch(AddConflict.Replace, RemoveConflict.Allow).Remove<string>().Submit();
         Assert.False(entity.Has<string>());
 
         Assert.Empty(world.Query<string>().Compile());
@@ -125,7 +125,7 @@ public class Stream1Tests
         var stream = world.Query<string>(Match.Any).Stream();
 
         Assert.True(entity.Has<string>());
-        stream.Batch(Batch.AddConflict.Replace).Remove<string>().Submit();
+        stream.Batch(AddConflict.Replace).Remove<string>().Submit();
         Assert.False(entity.Has<string>());
 
         Assert.Empty(world.Query<string>().Compile());
@@ -140,7 +140,7 @@ public class Stream1Tests
         var stream = world.Query<string>(Match.Any).Stream();
 
         Assert.True(entity.Has<string>());
-        stream.Batch(Batch.RemoveConflict.Allow).Remove<string>().Submit();
+        stream.Batch(RemoveConflict.Allow).Remove<string>().Submit();
         Assert.False(entity.Has<string>());
 
         Assert.Empty(world.Query<string>().Compile());

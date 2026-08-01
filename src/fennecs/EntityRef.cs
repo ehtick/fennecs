@@ -144,6 +144,33 @@ public readonly ref struct EntityRef
 
 
     /// <summary>
+    /// Removes all Components of type <typeparamref name="C"/> matching the given Match Expression
+    /// from the Entity. Wildcard Match Expressions are permitted and remove all matching Components
+    /// in a single structural change. (deferred inside runners)
+    /// </summary>
+    /// <exception cref="InvalidOperationException">if the Entity has no Component matching the expression</exception>
+    public EntityRef Remove<C>(Match match) where C : notnull
+    {
+        World.RemoveComponent(Entity, TypeExpression.Of<C>(match));
+        return this;
+    }
+
+
+    /// <summary>
+    /// Removes all Components of type <typeparamref name="C"/> matching the given Match Expression
+    /// from the Entity, with an explicit conflict resolution mode: <see cref="RemoveConflict.Strict"/>
+    /// (default) throws if no Component matches, <see cref="RemoveConflict.Allow"/> makes the
+    /// removal idempotent (a no-op when nothing matches). (deferred inside runners)
+    /// </summary>
+    /// <exception cref="InvalidOperationException">under <see cref="RemoveConflict.Strict"/>, if the Entity has no Component matching the expression</exception>
+    public EntityRef Remove<C>(Match match, RemoveConflict mode) where C : notnull
+    {
+        World.RemoveComponent(Entity, TypeExpression.Of<C>(match), mode);
+        return this;
+    }
+
+
+    /// <summary>
     /// Removes a relation Component targeting the given Entity. (deferred inside runners)
     /// </summary>
     public EntityRef Remove<R>(Entity relation) where R : notnull

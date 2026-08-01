@@ -13,7 +13,7 @@ public class BulkDespawnTests
         world.Spawn().Add('b').Add("fennecs");
         world.Spawn().Add(1).Add('c').Add("fennecs");
 
-        world.Query<string>(Match.Plain).Compile().Batch(Batch.RemoveConflict.Allow).Remove<char>().Submit();
+        world.Query<string>(Match.Plain).Compile().Batch(RemoveConflict.Allow).Remove<char>().Submit();
         world.Query<int>(Match.Plain).Stream().Despawn();
     }
 }

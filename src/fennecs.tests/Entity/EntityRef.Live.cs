@@ -177,6 +177,139 @@ public class LiveEntityRefTests
 
 
     [Fact]
+    public void Remove_Any_Wildcard_Removes_Plain_Relation_And_Link()
+    {
+        using var world = new World();
+        var target = world.Spawn();
+        var entity = world.Spawn().Add(123)
+            .Add("plain")
+            .Add("related", target)
+            .Add(Link.With("linked"));
+
+        var stream = world.Query<int>().Stream();
+        stream.For((in EntityRef e, ref int _) =>
+        {
+            e.Remove<string>(Match.Any);
+
+            // Structural changes are deferred inside the runner.
+            Assert.True(e.Has<string>(Match.Any));
+        });
+
+        Assert.False(entity.Has<string>(Match.Any));
+        Assert.True(entity.Has<int>());
+        Assert.True(entity.Alive);
+    }
+
+
+    [Fact]
+    public void Remove_Target_Wildcard_Keeps_Plain()
+    {
+        using var world = new World();
+        var target = world.Spawn();
+        var entity = world.Spawn().Add(123)
+            .Add("plain")
+            .Add("related", target)
+            .Add(Link.With("linked"));
+
+        var stream = world.Query<int>().Stream();
+        stream.For((in EntityRef e, ref int _) =>
+            e.Remove<string>(Match.Target));
+
+        Assert.True(entity.Has<string>());
+        Assert.False(entity.Has<string>(target));
+        Assert.False(entity.Has<string>(Match.Object));
+    }
+
+
+    [Fact]
+    public void Remove_Entity_and_Object_Wildcards_are_Selective_and_Chainable()
+    {
+        using var world = new World();
+        var target1 = world.Spawn();
+        var target2 = world.Spawn();
+        var entity = world.Spawn().Add(123)
+            .Add("plain")
+            .Add("related", target1)
+            .Add("also related", target2)
+            .Add(Link.With("linked"));
+
+        var stream = world.Query<int>().Stream();
+        stream.For((in EntityRef e, ref int _) =>
+            e.Remove<string>(Match.Entity).Remove<string>(Match.Object));
+
+        Assert.True(entity.Has<string>());
+        Assert.False(entity.Has<string>(Match.Entity));
+        Assert.False(entity.Has<string>(Match.Object));
+    }
+
+
+    [Fact]
+    public void Remove_Plain_Match_is_Equivalent_to_Parameterless_Remove()
+    {
+        using var world = new World();
+        var target = world.Spawn();
+        var entity = world.Spawn().Add(123)
+            .Add("plain")
+            .Add("related", target);
+
+        var stream = world.Query<int>().Stream();
+        stream.For((in EntityRef e, ref int _) =>
+            e.Remove<string>(Match.Plain));
+
+        Assert.False(entity.Has<string>());
+        Assert.True(entity.Has<string>(target));
+    }
+
+
+    [Fact]
+    public void Remove_Wildcard_Throws_when_Nothing_Matches()
+    {
+        using var world = new World();
+        world.Spawn().Add(123);
+
+        var stream = world.Query<int>().Stream();
+
+        // The removal is deferred, so the exception surfaces at catch-up after the loop.
+        Assert.Throws<InvalidOperationException>(() =>
+            stream.For((in EntityRef e, ref int _) => e.Remove<string>(Match.Any)));
+    }
+
+
+    [Fact]
+    public void Remove_Allow_Mode_is_NoOp_when_Nothing_Matches()
+    {
+        using var world = new World();
+        var entity = world.Spawn().Add(123);
+
+        var stream = world.Query<int>().Stream();
+        stream.For((in EntityRef e, ref int _) =>
+            e.Remove<string>(Match.Any, RemoveConflict.Allow));
+
+        Assert.True(entity.Has<int>());
+        Assert.True(entity.Alive);
+    }
+
+
+    [Fact]
+    public void Remove_Allow_Mode_Removes_when_Matching_and_is_Chainable()
+    {
+        using var world = new World();
+        var target = world.Spawn();
+        var entity = world.Spawn().Add(123)
+            .Add("plain")
+            .Add("related", target);
+
+        var stream = world.Query<int>().Stream();
+        stream.For((in EntityRef e, ref int _) =>
+            e.Remove<string>(Match.Any, RemoveConflict.Allow)
+                .Remove<float>(Match.Any, RemoveConflict.Allow)); // no floats — a no-op
+
+        Assert.False(entity.Has<string>(Match.Any));
+        Assert.True(entity.Has<int>());
+    }
+
+
+    [Fact]
     public void Despawn_is_Deferred()
     {
         using var world = new World();

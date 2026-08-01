@@ -41,9 +41,13 @@ public partial class Aspect
     }
 
 
-    internal void RemoveComponent(Entity entity, TypeExpression typeExpression)
+    internal void RemoveComponent(Entity entity, TypeExpression typeExpression, RemoveConflict mode = default)
     {
-        if (!Contains(entity)) ThrowDoesNotHaveComponent(entity, typeExpression);
+        if (!Contains(entity))
+        {
+            if (mode == RemoveConflict.Allow) return;
+            ThrowDoesNotHaveComponent(entity, typeExpression);
+        }
 
         ref var meta = ref _meta[entity.Index];
 
@@ -54,11 +58,19 @@ public partial class Aspect
         {
             // A Wildcard strips every stored expression it covers, in a single structural change.
             newSignature = oldArchetype.Signature.Except(oldArchetype.Signature.Where(type => typeExpression.Matches(type)));
-            if (newSignature.Count == oldArchetype.Signature.Count) ThrowDoesNotHaveComponent(entity, typeExpression);
+            if (newSignature.Count == oldArchetype.Signature.Count)
+            {
+                if (mode == RemoveConflict.Allow) return;
+                ThrowDoesNotHaveComponent(entity, typeExpression);
+            }
         }
         else
         {
-            if (!oldArchetype.HasStorage(typeExpression)) ThrowDoesNotHaveComponent(entity, typeExpression);
+            if (!oldArchetype.HasStorage(typeExpression))
+            {
+                if (mode == RemoveConflict.Allow) return;
+                ThrowDoesNotHaveComponent(entity, typeExpression);
+            }
             newSignature = oldArchetype.Signature.Remove(typeExpression);
         }
 

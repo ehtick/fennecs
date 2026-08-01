@@ -55,7 +55,7 @@ public partial class World
                     break;
 
                 case Opcode.Remove:
-                    RemoveComponent(op.Entity, op.TypeExpression);
+                    RemoveComponent(op.Entity, op.TypeExpression, op.RemoveMode);
                     break;
 
                 case Opcode.Despawn:
@@ -78,6 +78,7 @@ public partial class World
         internal Entity Entity;
         internal object Data;
         internal Archetype Archetype;
+        internal RemoveConflict RemoveMode;
 
 
         [SetsRequiredMembers]

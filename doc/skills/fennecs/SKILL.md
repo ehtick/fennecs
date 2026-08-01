@@ -165,7 +165,7 @@ query.Despawn();               // despawn all matched
 query.Truncate(1000);          // reduce matched count
 
 // Multiple structural changes on one query: batch them.
-query.Batch(Batch.AddConflict.Replace, Batch.RemoveConflict.Allow)
+query.Batch(AddConflict.Replace, RemoveConflict.Allow)
     .Add(new Health(100))
     .Remove<Invulnerable>()
     .Submit();                 // Dispose() the batch only if NOT submitting
@@ -173,7 +173,9 @@ query.Batch(Batch.AddConflict.Replace, Batch.RemoveConflict.Allow)
 
 Conflict modes: `AddConflict.{Strict, Preserve, Replace}`,
 `RemoveConflict.{Strict, Allow}` — `Strict` (default) throws when the operation
-isn't guaranteed valid for every matched entity.
+isn't guaranteed valid for every matched entity. `Entity.Remove<C>(Match, RemoveConflict)`
+and its `EntityRef` twin take `RemoveConflict` too: `Allow` makes the removal a
+no-op instead of a throw when nothing matches.
 
 ## Sharp edges (check these first when debugging)
 
