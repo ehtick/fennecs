@@ -31,7 +31,7 @@ public class AspectQueryTests
         Assert.Equal(2, positions.Count);
 
         var crews = world.Query<CrewData>().Compile();
-        Assert.Equal(1, crews.Count);
+        Assert.Single(crews);
     }
 
 
@@ -97,10 +97,10 @@ public class AspectQueryTests
         world.Spawn().Add(new CrewData(3));
 
         var loaded = world.Query<CrewData>().Has<Cargo>().Compile();
-        Assert.Equal(1, loaded.Count);
+        Assert.Single(loaded);
 
         var empty = game.Query<CrewData>().Not<Cargo>().Compile();
-        Assert.Equal(1, empty.Count);
+        Assert.Single(empty);
     }
 
 
@@ -115,7 +115,7 @@ public class AspectQueryTests
 
         Assert.Equal(2, world.All.Count);
         Assert.Same(world.All, world.Main.All);
-        Assert.Equal(1, game.All.Count);
+        Assert.Single(game.All);
     }
 
 
@@ -166,11 +166,11 @@ public class AspectQueryTests
         using var _1 = world;
 
         var crews = game.Query<CrewData>().Compile();
-        Assert.Equal(0, crews.Count);
+        Assert.Empty(crews);
 
         // Creates a brand-new archetype in the game aspect after the query was compiled.
         world.Spawn().Add(new CrewData(5)).Add(new Cargo(10));
-        Assert.Equal(1, crews.Count);
+        Assert.Single(crews);
     }
 
 

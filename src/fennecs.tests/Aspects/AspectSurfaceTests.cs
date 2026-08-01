@@ -30,22 +30,22 @@ public class AspectSurfaceTests(ITestOutputHelper output)
         var (world, aspect) = CreateWorld();
         using var _1 = world;
 
-        Assert.Equal(1, aspect.Query().Has<S1>().Compile().Count);
+        Assert.Single(aspect.Query().Has<S1>().Compile());
 
-        Assert.Equal(1, aspect.Query<S1>().Compile().Count);
-        Assert.Equal(1, aspect.Query<S1>(Match.Plain).Compile().Count);
+        Assert.Single(aspect.Query<S1>().Compile());
+        Assert.Single(aspect.Query<S1>(Match.Plain).Compile());
 
-        Assert.Equal(1, aspect.Query<S1, S2>().Compile().Count);
-        Assert.Equal(1, aspect.Query<S1, S2>(Match.Plain, Match.Plain).Compile().Count);
+        Assert.Single(aspect.Query<S1, S2>().Compile());
+        Assert.Single(aspect.Query<S1, S2>(Match.Plain, Match.Plain).Compile());
 
-        Assert.Equal(1, aspect.Query<S1, S2, S3>().Compile().Count);
-        Assert.Equal(1, aspect.Query<S1, S2, S3>(Match.Plain, Match.Plain, Match.Plain).Compile().Count);
+        Assert.Single(aspect.Query<S1, S2, S3>().Compile());
+        Assert.Single(aspect.Query<S1, S2, S3>(Match.Plain, Match.Plain, Match.Plain).Compile());
 
-        Assert.Equal(1, aspect.Query<S1, S2, S3, S4>().Compile().Count);
-        Assert.Equal(1, aspect.Query<S1, S2, S3, S4>(Match.Plain, Match.Plain, Match.Plain, Match.Plain).Compile().Count);
+        Assert.Single(aspect.Query<S1, S2, S3, S4>().Compile());
+        Assert.Single(aspect.Query<S1, S2, S3, S4>(Match.Plain, Match.Plain, Match.Plain, Match.Plain).Compile());
 
-        Assert.Equal(1, aspect.Query<S1, S2, S3, S4, S5>().Compile().Count);
-        Assert.Equal(1, aspect.Query<S1, S2, S3, S4, S5>(Match.Plain, Match.Plain, Match.Plain, Match.Plain, Match.Plain).Compile().Count);
+        Assert.Single(aspect.Query<S1, S2, S3, S4, S5>().Compile());
+        Assert.Single(aspect.Query<S1, S2, S3, S4, S5>(Match.Plain, Match.Plain, Match.Plain, Match.Plain, Match.Plain).Compile());
     }
 
 
