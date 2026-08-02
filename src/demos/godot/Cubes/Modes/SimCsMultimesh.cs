@@ -8,7 +8,7 @@ using Vector3 = System.Numerics.Vector3;
 namespace fennecs.demos.godot.Cubes;
 
 /// <summary>
-///     Mode e) C# + MultiMesh: state in plain C# arrays, a single-threaded loop runs the motion math
+///     Mode f) C# + MultiMesh: state in plain C# arrays, a single-threaded loop runs the motion math
 ///     and the Matrix4X3 buffer is submitted to the MultiMesh in one call.
 ///     Driven via Call() by <see cref="DemoCubes" />.
 /// </summary>

@@ -42,11 +42,12 @@ public partial class DemoCubes : Node
 	[Export] public Slider SimulatedSlider = null!;
 	[Export] public RichTextLabel InfoText = null!;
 
-	// Godot: The seven mode sims, in button order (a..g).
+	// Godot: The eight mode sims, in button order (a..h).
 	[Export] public Node SimGdNodes = null!;
 	[Export] public Node SimCsNodes = null!;
 	[Export] public Node SimFennecsNodes = null!;
 	[Export] public Node SimGdMultimesh = null!;
+	[Export] public Node SimGdMultimeshThreads = null!;
 	[Export] public Node SimCsMultimesh = null!;
 	[Export] public Node SimFennecsFor = null!;
 	[Export] public Node SimFennecsJobs = null!;
@@ -55,7 +56,7 @@ public partial class DemoCubes : Node
 	public int QueryCount { get; private set; }
 
 	private Node[] _sims = [];
-	private int _mode = 6; // default: g) fennecs + MultiMesh + Jobs
+	private int _mode = 7; // default: h) fennecs + MultiMesh + Jobs
 
 	// Calculation: Smoothed values for the simulation.
 	private float _time;
@@ -74,9 +75,10 @@ public partial class DemoCubes : Node
 		InfoCommon + "b) C# + Nodes\n\nEvery cube is its own MeshInstance3D. A C# loop over plain arrays runs the motion math and writes each node's Transform3D, one by one, every frame." + InfoNodeWarning,
 		InfoCommon + "c) fennecs + Nodes\n\nCube state lives in Components on fennecs Entities - Position, index, and the cube's own MeshInstance3D as a reference-type Component. A single Stream.For runs the motion math and writes each Entity's node Transform3D." + InfoNodeWarning,
 		InfoCommon + "d) GDScript + MultiMesh\n\nPositions live in a PackedVector3Array. A GDScript loop runs the motion math and fills a PackedFloat32Array that is submitted to a MultiMesh in a single call.",
-		InfoCommon + "e) C# + MultiMesh\n\nState lives in plain C# arrays. A single-threaded loop runs the motion math and fills a Matrix4x3 buffer that is submitted to a MultiMesh in a single call.\n\nNB: this is 'faster' than fennecs because it is a bespoke solution that can only work for this one particular case. Always prefer the bespoke approach when you have only a small number of use cases or very uniform entities.",
-		InfoCommon + "f) fennecs + MultiMesh\n\nState is stored in Components on the Entities:\n[ul]\n1x System.Numerics.Vector3 (as Position)\n1x Matrix4x3 (custom struct, as Transform)\n1x integer (as a simple identifier)\n[/ul]\nA single-threaded Stream.For runs the motion math, then Stream.Raw submits the raw Matrix4x3 structs directly to a MultiMesh.",
-		InfoCommon + "g) fennecs + MultiMesh + Jobs\n\nState is stored in Components on the Entities:\n[ul]\n1x System.Numerics.Vector3 (as Position)\n1x Matrix4x3 (custom struct, as Transform)\n1x integer (as a simple identifier)\n[/ul]\nA parallel Stream.Job spreads the motion math across all CPU cores, then Stream.Raw submits the raw Matrix4x3 structs directly to a MultiMesh.",
+		InfoCommon + "e) GDScript + MultiMesh + Threads\n\nLike the GDScript MultiMesh mode, but the motion math is chunked into WorkerThreadPool group tasks that run across all CPU cores, each writing a disjoint range of the PackedFloat32Array. The buffer is then submitted to the MultiMesh in a single call from the main thread.",
+		InfoCommon + "f) C# + MultiMesh\n\nState lives in plain C# arrays. A single-threaded loop runs the motion math and fills a Matrix4x3 buffer that is submitted to a MultiMesh in a single call.\n\nNB: this is 'faster' than fennecs because it is a bespoke solution that can only work for this one particular case. Always prefer the bespoke approach when you have only a small number of use cases or very uniform entities.",
+		InfoCommon + "g) fennecs + MultiMesh\n\nState is stored in Components on the Entities:\n[ul]\n1x System.Numerics.Vector3 (as Position)\n1x Matrix4x3 (custom struct, as Transform)\n1x integer (as a simple identifier)\n[/ul]\nA single-threaded Stream.For runs the motion math, then Stream.Raw submits the raw Matrix4x3 structs directly to a MultiMesh.",
+		InfoCommon + "h) fennecs + MultiMesh + Jobs\n\nState is stored in Components on the Entities:\n[ul]\n1x System.Numerics.Vector3 (as Position)\n1x Matrix4x3 (custom struct, as Transform)\n1x integer (as a simple identifier)\n[/ul]\nA parallel Stream.Job spreads the motion math across all CPU cores, then Stream.Raw submits the raw Matrix4x3 structs directly to a MultiMesh.",
 	];
 
 
@@ -85,7 +87,7 @@ public partial class DemoCubes : Node
 	/// </summary>
 	public override void _Ready()
 	{
-		_sims = [SimGdNodes, SimCsNodes, SimFennecsNodes, SimGdMultimesh, SimCsMultimesh, SimFennecsFor, SimFennecsJobs];
+		_sims = [SimGdNodes, SimCsNodes, SimFennecsNodes, SimGdMultimesh, SimGdMultimeshThreads, SimCsMultimesh, SimFennecsFor, SimFennecsJobs];
 
 		// Boilerplate: Put all sims in a known state, then bring up the default mode.
 		foreach (var sim in _sims) sim.Call("Deactivate");

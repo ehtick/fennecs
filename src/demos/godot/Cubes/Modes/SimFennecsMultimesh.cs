@@ -9,7 +9,7 @@ namespace fennecs.demos.godot.Cubes;
 
 /// <summary>
 ///     <para>
-///         Modes f+g) fennecs + MultiMesh: state is stored in Components on the Entities
+///         Modes g+h) fennecs + MultiMesh: state is stored in Components on the Entities
 ///         (Position, Matrix4X3 Transform, and an integer index).
 ///     </para>
 ///     <para>
