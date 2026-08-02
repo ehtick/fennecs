@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
 
 using System;
-using System.Runtime.InteropServices;
 using Godot;
-using Vector3 = System.Numerics.Vector3;
 
 namespace fennecs.demos.godot.Cubes;
 
@@ -12,61 +10,29 @@ namespace fennecs.demos.godot.Cubes;
 ///         DemoCubes (Godot version)
 ///     </para>
 ///     <para>
-///         All motion  is 100% CPU simulation (no GPU). Here, we demonstrate a simple case how to update the positions of a large number of Entities.
+///         All motion is 100% CPU simulation (no GPU). The identical simulation runs in seven
+///         interchangeable modes — GDScript, plain C#, or fennecs; rendered either through
+///         individual MeshInstance3D nodes or a single MultiMesh — selectable at runtime.
 ///     </para>
 ///     <para>
-///         State is stored in Components on the Entities:
-///     </para>
-///     <ul>
-///         <li>1x System.Numerics.Vector3 (as Position)</li>
-///         <li>1x Matrix4x3 (custom struct, as Transform)</li>
-///         <li>1x integer (as a simple identifier)</li>
-///     </ul>
-///     <para>
-///         The state is transferred into the Godot Engine in bulk each frame using Query.Raw and submitting just the Matrix4x3 structs directly to a MultiMesh.
-///     </para>
-///     <para>
-///         That static buffer is then used by Godot's Renderer to display the Cubes.
+///         This node owns the shared state (time, amplitude, entity counts, sliders) and forwards
+///         the per-frame work to the active mode sim in Modes/. All sims share the same calling
+///         convention: Activate / Deactivate / SetSimulatedCount / UpdateSim.
 ///     </para>
 /// </summary>
 [GlobalClass]
 [Icon("res://icon.svg")]
 public partial class DemoCubes : Node
 {
-	// Config: Maximum # of Entities that can be spawned. For brevity, made const instead
-	// of [Export] so we don't have to pass it in as an additional uniform.
-	private const int MaxEntities = 313370;
-
 	// Calculation: Internal Speed of the Simulation.
 	private const float BaseTimeScale = 0.0003f;
 
-	// Fennecs: The World that will contain the Entities.
-	private readonly World _world = new(MaxEntities);
-
-	// Calculation: Visible CubeCount (can be smoothed to be passed in as a uniform).
-	private float _cubeCount = 1;
-	private Vector3 _currentAmplitude;
-
-	// Calculation: Smoothed values expressing the portion of Entities that are visible.
-	private float _currentRenderedFraction;
-	private float _currentTimeScale = BaseTimeScale;
-
-	// Calculation: Smoothed values for the simulation.
-	private Vector3 _goalAmplitude;
-
-	// Fennecs: The Query that will be used to interact with the Entities.
-	private Stream<Matrix4X3, Vector3, int> _stream;
-	
-	// Fennecs: A view into our query that only exports the Matrix4X3 transforms to Godot.
-	private Stream<Matrix4X3> _exportStream;
-	
-	// Calculation: Elapsed time value for the simulation.
-	private float _time;
+	private static readonly StringName UpdateSimName = "UpdateSim";
 
 	// Godot: Exports to interact with the UI
 	[Export] public Camera3D Camera = null!;
 
-	// Godot: The main MultiMeshInstance3D that will be used to render the cubes.
+	// Godot: The MultiMeshInstance3D shared by all MultiMesh modes.
 	[Export] public MultiMeshInstance3D MeshInstance = null!;
 
 	// Config: Size of the simulation space
@@ -74,44 +40,44 @@ public partial class DemoCubes : Node
 	[Export] public float MinAmplitude = 250;
 	[Export] public Slider RenderedSlider = null!;
 	[Export] public Slider SimulatedSlider = null!;
+	[Export] public RichTextLabel InfoText = null!;
+
+	// Godot: The seven mode sims, in button order (a..g).
+	[Export] public Node SimGdNodes = null!;
+	[Export] public Node SimCsNodes = null!;
+	[Export] public Node SimFennecsNodes = null!;
+	[Export] public Node SimGdMultimesh = null!;
+	[Export] public Node SimCsMultimesh = null!;
+	[Export] public Node SimFennecsFor = null!;
+	[Export] public Node SimFennecsJobs = null!;
 
 	// Godot: Read by the UI to show the simulated Entity count. (not just the visible ones)
-	private int QueryCount => _stream.Count;
+	public int QueryCount { get; private set; }
 
-	// Facade: Sets and reads the MultiMesh's InstanceCount.
-	private int InstanceCount
-	{
-		get => MeshInstance.Multimesh.InstanceCount;
-		set => MeshInstance.Multimesh.InstanceCount = value;
-	}
+	private Node[] _sims = [];
+	private int _mode = 6; // default: g) fennecs + MultiMesh + Jobs
 
+	// Calculation: Smoothed values for the simulation.
+	private float _time;
+	private float _currentTimeScale = BaseTimeScale;
+	private float _currentRenderedFraction;
+	private Vector3 _currentAmplitude;
+	private Vector3 _goalAmplitude;
 
-	/// <summary>
-	///     Spawn or Remove Entities to match the desired count.
-	/// </summary>
-	/// <param name="spawnCount">the count of Entities to simulate</param>
-	private void SetEntityCount(int spawnCount)
-	{
-		// Spawn new Entities if needed.
-		var difference = spawnCount - _stream.Count;
+	private const string InfoCommon = "All motion is 100% CPU simulation (no GPU). Rendered output and motion are identical in every mode - only the machinery differs.\n\n";
 
-		if (difference > 0)
-		{
-			_world.Template()
-				.Add<int>()
-				.Add<Matrix4X3>()
-				.Add<Vector3>()
-				.Spawn(difference);
+	private const string InfoNodeWarning = "\n\nSpawning tens of thousands of Nodes takes a while - mind the sliders!";
 
-			// Number all the Entities
-			var i = 0;
-			_stream.For((ref Matrix4X3 _, ref Vector3 _, ref int index) => index = i++);
-		}
-		
-		// Cut off excess Entities, if any.
-		if (difference < 0) _stream.Query.Truncate(spawnCount);
-		
-	}
+	private static readonly string[] ModeInfos =
+	[
+		InfoCommon + "a) GDScript + Nodes\n\nEvery cube is its own MeshInstance3D. A GDScript loop runs the motion math and writes each node's Transform3D, one by one, every frame." + InfoNodeWarning,
+		InfoCommon + "b) C# + Nodes\n\nEvery cube is its own MeshInstance3D. A C# loop over plain arrays runs the motion math and writes each node's Transform3D, one by one, every frame." + InfoNodeWarning,
+		InfoCommon + "c) fennecs + Nodes\n\nCube state lives in Components on fennecs Entities - Position, index, and the cube's own MeshInstance3D as a reference-type Component. A single Stream.For runs the motion math and writes each Entity's node Transform3D." + InfoNodeWarning,
+		InfoCommon + "d) GDScript + MultiMesh\n\nPositions live in a PackedVector3Array. A GDScript loop runs the motion math and fills a PackedFloat32Array that is submitted to a MultiMesh in a single call.",
+		InfoCommon + "e) C# + MultiMesh\n\nState lives in plain C# arrays. A single-threaded loop runs the motion math and fills a Matrix4x3 buffer that is submitted to a MultiMesh in a single call.",
+		InfoCommon + "f) fennecs + MultiMesh\n\nState is stored in Components on the Entities:\n[ul]\n1x System.Numerics.Vector3 (as Position)\n1x Matrix4x3 (custom struct, as Transform)\n1x integer (as a simple identifier)\n[/ul]\nA single-threaded Stream.For runs the motion math, then Stream.Raw submits the raw Matrix4x3 structs directly to a MultiMesh.",
+		InfoCommon + "g) fennecs + MultiMesh + Jobs\n\nState is stored in Components on the Entities:\n[ul]\n1x System.Numerics.Vector3 (as Position)\n1x Matrix4x3 (custom struct, as Transform)\n1x integer (as a simple identifier)\n[/ul]\nA parallel Stream.Job spreads the motion math across all CPU cores, then Stream.Raw submits the raw Matrix4x3 structs directly to a MultiMesh.",
+	];
 
 
 	/// <summary>
@@ -119,12 +85,12 @@ public partial class DemoCubes : Node
 	/// </summary>
 	public override void _Ready()
 	{
-		// Boilerplate: Prepare our Query that we'll use to interact with the Entities.
-		_stream = _world.Query<Matrix4X3, Vector3, int>().Stream();
-		_exportStream = _world.Query<Matrix4X3>().Stream();
+		_sims = [SimGdNodes, SimCsNodes, SimFennecsNodes, SimGdMultimesh, SimCsMultimesh, SimFennecsFor, SimFennecsJobs];
 
-		// Boilerplate: Users can change the number of Entities, so pre-warm the memory allocator a bit.
-		SetEntityCount(MaxEntities);
+		// Boilerplate: Put all sims in a known state, then bring up the default mode.
+		foreach (var sim in _sims) sim.Call("Deactivate");
+		_sims[_mode].Call("Activate");
+		InfoText.Text = ModeInfos[_mode];
 
 		// Boilerplate: Apply the initial state of the UI.
 		_on_simulated_slider_value_changed(SimulatedSlider.Value);
@@ -133,7 +99,7 @@ public partial class DemoCubes : Node
 
 
 	/// <summary>
-	///     This is the Method that simulates the motion of the cubes and sends the data to Godot.
+	///     Advances the shared simulation state and delegates the frame to the active mode sim.
 	/// </summary>
 	/// <param name="delta">time elapsed since last tick, in seconds</param>
 	public override void _Process(double delta)
@@ -145,83 +111,35 @@ public partial class DemoCubes : Node
 		_time += dt * _currentTimeScale;
 
 		// Calculation: Determine the number of entities that will be displayed (also used to smooth out animation).
-		_cubeCount = Mathf.FloorToInt(_currentRenderedFraction * _stream.Count);
-
-		// ----------------------- HERE'S WHERE THE SIMULATION WORK IS RUN ------------------------
-		// Update Transforms and Positions of all Cube Entities.
-		//  We decided to put the code for this into a static method.
-		// -------------------------------------------------------------------------------------------
-		_stream.Job((_time, _currentAmplitude, _cubeCount, dt), UpdatePositionForCube);
+		var cubeCount = Mathf.FloorToInt(_currentRenderedFraction * QueryCount);
 
 		// Make the cloud of cubes denser if there are more cubes.
-		var amplitudePortion = Mathf.Clamp(1.0f - _stream.Count / (float) MaxEntities, 0f, 1f);
+		var amplitudePortion = Mathf.Clamp(1.0f - QueryCount / (float) CubeMotion.MaxEntities, 0f, 1f);
 		_goalAmplitude = Mathf.Lerp(MinAmplitude, MaxAmplitude, amplitudePortion) * Vector3.One;
 		_currentAmplitude = _currentAmplitude * 0.9f + 0.1f * _goalAmplitude;
 
-		// Engine: Communicate the Number of Visible Entities to Godot's MultiMesh.
-		InstanceCount = (int) _cubeCount;
-
-		// ------------------------ HERE IS WHERE THE DATA IS SENT TO GODOT ------------------------
-		// Copy transforms into MultiMesh
-		// Note that this is a static anonymous method: It doesn't have the allocation baggage of a lambda's closure.
-		// We're saving a few keystrokes by using a method on the Query with only the first Stream Type (Matrix4X3).
-		// But fennecs doesn't limit us. We can use any Instance or Static method, lambda, or delegate here.
-		// -------------------------------------------------------------------------------------------
-		_exportStream.Raw(
-			uniform: (MeshInstance.Multimesh.GetRid(), InstanceCount * Matrix4X3.SizeInFloats),
-			action:  ((Rid mesh, int count) uniform, Memory<Matrix4X3> transforms) =>
-			{
-				var floatSpan = MemoryMarshal.Cast<Matrix4X3, float>(transforms.Span);
-				RenderingServer.MultimeshSetBuffer(uniform.mesh, floatSpan[..uniform.count]);
-			});
-	}
-
-
-	// ----------------------- HERE'S WHERE THE SIMULATION WORK IS RUN ------------------------
-	// Update Transforms and Positions of all Cube Entities.
-	//  We decided to put the code for this into a static method to keep _Process() clean.
-	// -------------------------------------------------------------------------------------------
-	private static void UpdatePositionForCube(
-		(float Time, Vector3 Amplitude, float CubeCount, float dt) uniform,
-		ref Matrix4X3 transform,
-		ref Vector3 position,
-		ref int index)
-	{
-		#region Motion Calculations (just generic math for the cube motion)
-
-		// Calculation: Apply a chaotic Lissajous-like motion for the cubes
-		var motionIndex = (index + uniform.Time * Mathf.Tau * 69f) % uniform.CubeCount - uniform.CubeCount / 2f;
-
-		var entityRatio = uniform.CubeCount / MaxEntities;
-
-		var phase1 = motionIndex / 3f * Mathf.Sin(motionIndex / 1500f * Mathf.Tau) * 7f * Mathf.Tau / uniform.CubeCount;
-		var phase2 = motionIndex / 3f * Mathf.Sin(motionIndex / 1700f * Mathf.Tau) * (Mathf.Sin(uniform.Time * 23f) + 1.5f) * 5f * Mathf.Tau / uniform.CubeCount;
-		var phase3 = motionIndex / 3f * Mathf.Sin(motionIndex / 1000f * Mathf.Tau) * (Mathf.Sin(uniform.Time * 13f) + 1.5f) * 11f * entityRatio * Mathf.Tau / uniform.CubeCount;
-
-		var vector = new Vector3
-		{
-			X = Mathf.Sin(phase1 + uniform.Time * 500f + motionIndex / 150f),
-			Y = Mathf.Sin(phase2 + uniform.Time * 500f + motionIndex / 100f),
-			Z = Mathf.Sin(phase3 + uniform.Time * 500f + motionIndex / 200f),
-		};
-
-		var cubic = Mathf.Sin(uniform.Time * 300f * Mathf.Tau) * 0.5f + 0.5f;
-		var shell = Mathf.Clamp(vector.Length(), 0, 1);
-		vector = (1.0f - cubic) * shell * vector / vector.Length() + cubic * vector;
-
-		#endregion
-
-
-		// Update Component: Store position state, smoothing it to illustrate accumulative operations using data from the past frame.
-		position = Fir(position, vector, 0.99f, uniform.dt);
-
-		// Update Component: Build & store Matrix Transform (for the MultiMesh), scaling sizes between 1 and 3
-		var scale = 2f * (1.5f - Mathf.Sqrt(uniform.CubeCount / MaxEntities));
-		transform = new Matrix4X3(position * uniform.Amplitude, scale);
+		// The active mode sim runs the motion math and hands the results to Godot's renderer.
+		_sims[_mode].Call(UpdateSimName, _time, _currentAmplitude, (float) cubeCount, dt);
 	}
 
 
 	#region Signal Handlers
+
+	/// <summary>
+	///     Godot: Signal Handler (mode buttons, bound with the mode index)
+	/// </summary>
+	private void _on_mode_selected(int mode)
+	{
+		if (mode == _mode) return;
+
+		_sims[_mode].Call("Deactivate");
+		_mode = mode;
+		_sims[_mode].Call("Activate");
+		_sims[_mode].Call("SetSimulatedCount", QueryCount);
+
+		InfoText.Text = ModeInfos[_mode];
+	}
+
 
 	/// <summary>
 	///     Godot: Signal Handler
@@ -242,39 +160,11 @@ public partial class DemoCubes : Node
 	private void _on_simulated_slider_value_changed(double value)
 	{
 		// Set the number of entities to simulate
-		var count = (int) Math.Ceiling(Math.Pow(value, Mathf.Sqrt2) * MaxEntities);
-		count = Math.Clamp((count / 100 + 1) * 100, 0, MaxEntities);
-		SetEntityCount(count);
-	}
+		var count = (int) Math.Ceiling(Math.Pow(value, Mathf.Sqrt2) * CubeMotion.MaxEntities);
+		count = Math.Clamp((count / 100 + 1) * 100, 0, CubeMotion.MaxEntities);
 
-	#endregion
-
-
-	#region Math Helpers
-
-	/// <summary>
-	///     Calculation: A basic finite impulse response filter.
-	/// </summary>
-	private static float Fir(float from, float to, float k, float dt)
-	{
-		var exponent = dt * 120f; // reference frame rate, it's 2026, for fox’s sake!
-
-		var alpha = Mathf.Pow(k, exponent);
-
-		return alpha * from + to * (1.0f - alpha);
-	}
-
-
-	/// <summary>
-	///     Calculation: A basic finite impulse response filter... for Vectors!
-	/// </summary>
-	private static Vector3 Fir(Vector3 from, Vector3 to, float k, float dt)
-	{
-		var exponent = dt * 120f; // reference frame rate, it's 2026, for fox’s sake!
-
-		var alpha = Mathf.Pow(k, exponent);
-
-		return alpha * from + to * (1.0f - alpha);
+		QueryCount = count;
+		_sims[_mode].Call("SetSimulatedCount", count);
 	}
 
 	#endregion

@@ -11,6 +11,12 @@
 [ext_resource type="Material" uid="uid://vjeh1fpt4xak" path="res://Cubes/Materials/orange_light.tres" id="9_t1ajc"]
 [ext_resource type="Material" uid="uid://db1pq7ldj0yi6" path="res://Cubes/Materials/blue_light.tres" id="10_vph3x"]
 [ext_resource type="Environment" uid="uid://cobxhviqf06rg" path="res://Cubes/Environment-Cubes.tres" id="11_jg0sh"]
+[ext_resource type="Script" uid="uid://cnca25yhvql3n" path="res://Cubes/Modes/sim_gd_nodes.gd" id="12_simgn"]
+[ext_resource type="Script" uid="uid://bucnpq6hc355b" path="res://Cubes/Modes/SimCsNodes.cs" id="13_simcn"]
+[ext_resource type="Script" uid="uid://bv1x8nvmntere" path="res://Cubes/Modes/SimFennecsNodes.cs" id="14_simfn"]
+[ext_resource type="Script" uid="uid://cujhb3rpx7fvd" path="res://Cubes/Modes/sim_gd_multimesh.gd" id="15_simgm"]
+[ext_resource type="Script" uid="uid://sidkce13oui4" path="res://Cubes/Modes/SimCsMultimesh.cs" id="16_simcm"]
+[ext_resource type="Script" uid="uid://cnq0j8k345g5d" path="res://Cubes/Modes/SimFennecsMultimesh.cs" id="17_simfm"]
 
 [sub_resource type="MultiMesh" id="MultiMesh_fdhkq"]
 transform_format = 1
@@ -22,6 +28,8 @@ font_size = 32
 
 [sub_resource type="LabelSettings" id="LabelSettings_d0l4f"]
 font = ExtResource("4_plwtk")
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_modes"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_1qaly"]
 material = ExtResource("9_t1ajc")
@@ -47,16 +55,56 @@ font_size = 32
 
 [node name="fennecs Cube Demo" type="Node3D" unique_id=1095857023]
 
-[node name="Demo" type="Node" parent="." unique_id=697463136 node_paths=PackedStringArray("Camera", "MeshInstance", "RenderedSlider", "SimulatedSlider")]
+[node name="Demo" type="Node" parent="." unique_id=697463136 node_paths=PackedStringArray("Camera", "MeshInstance", "RenderedSlider", "SimulatedSlider", "InfoText", "SimGdNodes", "SimCsNodes", "SimFennecsNodes", "SimGdMultimesh", "SimCsMultimesh", "SimFennecsFor", "SimFennecsJobs")]
 unique_name_in_owner = true
 script = ExtResource("1_1jicl")
 Camera = NodePath("../Camera Pivot/Camera3D")
 MeshInstance = NodePath("MultiMeshInstance3D")
 RenderedSlider = NodePath("../User Interface/Spawn Controls/Sliders/VisibleSlider")
 SimulatedSlider = NodePath("../User Interface/Spawn Controls/Sliders/SimulatedSlider")
+InfoText = NodePath("../User Interface/Info Text")
+SimGdNodes = NodePath("Sim GDScript Nodes")
+SimCsNodes = NodePath("Sim CSharp Nodes")
+SimFennecsNodes = NodePath("Sim Fennecs Nodes")
+SimGdMultimesh = NodePath("Sim GDScript MultiMesh")
+SimCsMultimesh = NodePath("Sim CSharp MultiMesh")
+SimFennecsFor = NodePath("Sim Fennecs For")
+SimFennecsJobs = NodePath("Sim Fennecs Jobs")
 
 [node name="MultiMeshInstance3D" type="MultiMeshInstance3D" parent="Demo" unique_id=640308170]
 multimesh = SubResource("MultiMesh_fdhkq")
+
+[node name="Sim GDScript Nodes" type="Node3D" parent="Demo" unique_id=936483300]
+visible = false
+script = ExtResource("12_simgn")
+cube_mesh = ExtResource("2_e3y7g")
+
+[node name="Sim CSharp Nodes" type="Node3D" parent="Demo" unique_id=365496073]
+visible = false
+script = ExtResource("13_simcn")
+CubeMesh = ExtResource("2_e3y7g")
+
+[node name="Sim Fennecs Nodes" type="Node3D" parent="Demo" unique_id=491691707]
+visible = false
+script = ExtResource("14_simfn")
+CubeMesh = ExtResource("2_e3y7g")
+
+[node name="Sim GDScript MultiMesh" type="Node" parent="Demo" unique_id=1071242945 node_paths=PackedStringArray("mesh_instance")]
+script = ExtResource("15_simgm")
+mesh_instance = NodePath("../MultiMeshInstance3D")
+
+[node name="Sim CSharp MultiMesh" type="Node" parent="Demo" unique_id=613291847 node_paths=PackedStringArray("MeshInstance")]
+script = ExtResource("16_simcm")
+MeshInstance = NodePath("../MultiMeshInstance3D")
+
+[node name="Sim Fennecs For" type="Node" parent="Demo" unique_id=723171882 node_paths=PackedStringArray("MeshInstance")]
+script = ExtResource("17_simfm")
+MeshInstance = NodePath("../MultiMeshInstance3D")
+
+[node name="Sim Fennecs Jobs" type="Node" parent="Demo" unique_id=697612914 node_paths=PackedStringArray("MeshInstance")]
+script = ExtResource("17_simfm")
+MeshInstance = NodePath("../MultiMeshInstance3D")
+UseJobs = true
 
 [node name="User Interface" parent="." unique_id=75621677 instance=ExtResource("5_gh02a")]
 offset_left = 0.0
@@ -102,6 +150,7 @@ grow_vertical = 0
 alignment = 2
 
 [node name="FPS Label" type="Label" parent="User Interface/Spawn Controls" unique_id=1309327721]
+process_mode = 3
 modulate = Color(1, 1, 1, 0.501961)
 layout_mode = 2
 size_flags_horizontal = 8
@@ -133,10 +182,10 @@ ticks_on_borders = true
 custom_minimum_size = Vector2(60, 500)
 layout_mode = 2
 theme = ExtResource("3_h31e3")
-min_value = 0.05
+min_value = 0.1
 max_value = 1.0
-step = 0.05
-value = 0.39999999999999997
+step = 0.1
+value = 0.5
 tick_count = 20
 ticks_on_borders = true
 
@@ -178,6 +227,60 @@ text = "Entities Visible"
 label_settings = SubResource("LabelSettings_d0l4f")
 horizontal_alignment = 2
 vertical_alignment = 1
+
+[node name="Mode Buttons" type="VBoxContainer" parent="User Interface" unique_id=2012912805]
+modulate = Color(1, 1, 1, 0.501961)
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -315.0
+offset_right = 260.0
+grow_vertical = 0
+theme = ExtResource("3_h31e3")
+
+[node name="Mode A" type="Button" parent="User Interface/Mode Buttons" unique_id=613937903]
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_modes")
+text = "GDScript + Nodes"
+
+[node name="Mode B" type="Button" parent="User Interface/Mode Buttons" unique_id=1923946490]
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_modes")
+text = "C# + Nodes"
+
+[node name="Mode C" type="Button" parent="User Interface/Mode Buttons" unique_id=1923150198]
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_modes")
+text = "fennecs + Nodes"
+
+[node name="Mode D" type="Button" parent="User Interface/Mode Buttons" unique_id=1131714773]
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_modes")
+text = "GDScript + MultiMesh"
+
+[node name="Mode E" type="Button" parent="User Interface/Mode Buttons" unique_id=1263366121]
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_modes")
+text = "C# + MultiMesh"
+
+[node name="Mode F" type="Button" parent="User Interface/Mode Buttons" unique_id=760910735]
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_modes")
+text = "fennecs + MultiMesh"
+
+[node name="Mode G" type="Button" parent="User Interface/Mode Buttons" unique_id=44777278]
+layout_mode = 2
+toggle_mode = true
+button_pressed = true
+button_group = SubResource("ButtonGroup_modes")
+text = "fennecs + MultiMesh + Jobs"
 
 [node name="Camera Pivot" type="Node3D" parent="." unique_id=1197047102]
 script = ExtResource("7_1fct3")
@@ -239,5 +342,11 @@ label_settings = SubResource("LabelSettings_plas6")
 horizontal_alignment = 1
 
 [connection signal="value_changed" from="User Interface/Spawn Controls/Sliders/VisibleSlider" to="Demo" method="_on_rendered_slider_value_changed"]
-[connection signal="drag_ended" from="User Interface/Spawn Controls/Sliders/SimulatedSlider" to="Demo" method="_on_simulated_slider_drag_ended"]
 [connection signal="value_changed" from="User Interface/Spawn Controls/Sliders/SimulatedSlider" to="Demo" method="_on_simulated_slider_value_changed"]
+[connection signal="pressed" from="User Interface/Mode Buttons/Mode A" to="Demo" method="_on_mode_selected" binds= [0]]
+[connection signal="pressed" from="User Interface/Mode Buttons/Mode B" to="Demo" method="_on_mode_selected" binds= [1]]
+[connection signal="pressed" from="User Interface/Mode Buttons/Mode C" to="Demo" method="_on_mode_selected" binds= [2]]
+[connection signal="pressed" from="User Interface/Mode Buttons/Mode D" to="Demo" method="_on_mode_selected" binds= [3]]
+[connection signal="pressed" from="User Interface/Mode Buttons/Mode E" to="Demo" method="_on_mode_selected" binds= [4]]
+[connection signal="pressed" from="User Interface/Mode Buttons/Mode F" to="Demo" method="_on_mode_selected" binds= [5]]
+[connection signal="pressed" from="User Interface/Mode Buttons/Mode G" to="Demo" method="_on_mode_selected" binds= [6]]
