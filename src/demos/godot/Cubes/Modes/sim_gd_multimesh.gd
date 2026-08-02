@@ -30,26 +30,29 @@ func UpdateSim(time: float, amplitude: Vector3, cube_count: float, dt: float) ->
 	var visible_count := int(cube_count)
 	var s := CubeMotion.cube_scale(cube_count)
 
-	# Simulate all cubes; write a 3x4 transform (12 floats) per visible instance.
+	# Simulate all cubes and write a 3x4 transform (12 floats) each; only the visible
+	# prefix of the buffer is submitted below.
 	for i in _positions.size():
 		var pos := CubeMotion.simulate(i, time, cube_count, dt, _positions[i])
 		_positions[i] = pos
 
-		if i < visible_count:
-			pos *= amplitude
-			var o := i * 12
-			_buffer[o + 0] = s
-			_buffer[o + 1] = 0.0
-			_buffer[o + 2] = 0.0
-			_buffer[o + 3] = pos.x
-			_buffer[o + 4] = 0.0
-			_buffer[o + 5] = s
-			_buffer[o + 6] = 0.0
-			_buffer[o + 7] = pos.y
-			_buffer[o + 8] = 0.0
-			_buffer[o + 9] = 0.0
-			_buffer[o + 10] = s
-			_buffer[o + 11] = pos.z
+		pos *= amplitude
+		var o := i * 12
+		_buffer[o + 0] = s
+		_buffer[o + 1] = 0.0
+		_buffer[o + 2] = 0.0
+		_buffer[o + 3] = pos.x
+		_buffer[o + 4] = 0.0
+		_buffer[o + 5] = s
+		_buffer[o + 6] = 0.0
+		_buffer[o + 7] = pos.y
+		_buffer[o + 8] = 0.0
+		_buffer[o + 9] = 0.0
+		_buffer[o + 10] = s
+		_buffer[o + 11] = pos.z
 
 	mesh_instance.multimesh.instance_count = visible_count
-	RenderingServer.multimesh_set_buffer(mesh_instance.multimesh.get_rid(), _buffer.slice(0, visible_count * 12))
+
+	# Submitting an empty buffer is illegal in the Godot API.
+	if visible_count > 0:
+		RenderingServer.multimesh_set_buffer(mesh_instance.multimesh.get_rid(), _buffer.slice(0, visible_count * 12))

@@ -41,15 +41,15 @@ func UpdateSim(time: float, amplitude: Vector3, cube_count: float, dt: float) ->
 	var visible_count := int(cube_count)
 	var cube_basis := Basis.IDENTITY.scaled(Vector3.ONE * CubeMotion.cube_scale(cube_count))
 
-	# Simulate all cubes (visible or not), but only touch the nodes that are on screen.
+	# Every node gets simulated and positioned; visibility only toggles across the threshold.
 	for i in _nodes.size():
 		var pos := CubeMotion.simulate(i, time, cube_count, dt, _positions[i])
 		_positions[i] = pos
 
+		var node := _nodes[i]
 		var shown := i < visible_count
 		if shown != (i < _prev_visible):
-			_nodes[i].visible = shown
-		if shown:
-			_nodes[i].transform = Transform3D(cube_basis, pos * amplitude)
+			node.visible = shown
+		node.transform = Transform3D(cube_basis, pos * amplitude)
 
 	_prev_visible = visible_count

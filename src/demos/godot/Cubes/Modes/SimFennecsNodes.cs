@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 
+using System;
 using Godot;
 using Vector3 = System.Numerics.Vector3;
 
@@ -58,24 +59,26 @@ public partial class SimFennecsNodes : Node3D
             });
         }
 
-        _prevVisible = Mathf.Min(_prevVisible, count);
+        _prevVisible = Math.Min(_prevVisible, count);
     }
 
 
     public void UpdateSim(float time, Godot.Vector3 amplitude, float cubeCount, float dt)
     {
+        var visibleCount = (int) cubeCount;
+
         // Godot nodes are not thread-safe, so this mode runs a single-threaded For (never a Job).
         _stream.For(
             uniform: (time,
                 new Vector3(amplitude.X, amplitude.Y, amplitude.Z),
                 cubeCount,
                 Basis.FromScale(Godot.Vector3.One * CubeMotion.CubeScale(cubeCount)),
-                (int) cubeCount,
+                visibleCount,
                 _prevVisible,
                 dt),
             action: UpdateCube);
 
-        _prevVisible = (int) cubeCount;
+        _prevVisible = visibleCount;
     }
 
 
@@ -87,10 +90,9 @@ public partial class SimFennecsNodes : Node3D
     {
         CubeMotion.Simulate(index, uniform.Time, uniform.CubeCount, uniform.Dt, ref position);
 
-        // Simulate all cubes (visible or not), but only touch the nodes that are on screen.
+        // Every node gets simulated and positioned; visibility only toggles across the threshold.
         var show = index < uniform.Visible;
         if (show != index < uniform.PrevVisible) node.Visible = show;
-        if (!show) return;
 
         var translated = position * uniform.Amplitude;
         node.Transform = new Transform3D(uniform.Basis, new Godot.Vector3(translated.X, translated.Y, translated.Z));

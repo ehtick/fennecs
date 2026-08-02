@@ -4,11 +4,14 @@ class_name CubeMotion extends RefCounted
 ## The cube motion math for the GDScript demo modes.
 ## Identical port of ../CubeMotion.cs — keep both in sync!
 
-const MAX_ENTITIES := 313370
+const MAX_ENTITIES := 100_000
 
 
 ## Advance one cube's smoothed position by one frame of chaotic Lissajous-like motion.
 static func simulate(index: int, time: float, cube_count: float, dt: float, position: Vector3) -> Vector3:
+	# The motion equations divide by cube_count; clamp so the sim stays finite with 0 visible.
+	cube_count = maxf(cube_count, 1.0)
+
 	var motion_index := fmod(index + time * TAU * 69.0, cube_count) - cube_count / 2.0
 
 	var entity_ratio := cube_count / MAX_ENTITIES

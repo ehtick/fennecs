@@ -53,6 +53,9 @@ public partial class SimCsMultimesh : Node
         var visibleCount = (int) cubeCount;
         MeshInstance.Multimesh.InstanceCount = visibleCount;
 
+        // Submitting an empty buffer is illegal in the Godot API.
+        if (visibleCount == 0) return;
+
         var floatSpan = MemoryMarshal.Cast<Matrix4X3, float>(_transforms.AsSpan());
         RenderingServer.MultimeshSetBuffer(MeshInstance.Multimesh.GetRid(), floatSpan[..(visibleCount * Matrix4X3.SizeInFloats)]);
     }

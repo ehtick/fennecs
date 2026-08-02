@@ -93,6 +93,9 @@ public partial class SimFennecsMultimesh : Node
         var visibleCount = (int) cubeCount;
         MeshInstance.Multimesh.InstanceCount = visibleCount;
 
+        // Submitting an empty buffer is illegal in the Godot API.
+        if (visibleCount == 0) return;
+
         // ------------------------ HERE IS WHERE THE DATA IS SENT TO GODOT -----------------------
         // Copy transforms into the MultiMesh in bulk, one contiguous memory block per Archetype.
         // Note the static anonymous method: it has no allocation baggage of a lambda's closure.

@@ -59,14 +59,13 @@ public partial class SimCsNodes : Node3D
         var visibleCount = (int) cubeCount;
         var cubeBasis = Basis.FromScale(Godot.Vector3.One * CubeMotion.CubeScale(cubeCount));
 
-        // Simulate all cubes (visible or not), but only touch the nodes that are on screen.
+        // Every node gets simulated and positioned; visibility only toggles across the threshold.
         for (var i = 0; i < _nodes.Count; i++)
         {
             CubeMotion.Simulate(i, time, cubeCount, dt, ref _positions[i]);
 
             var show = i < visibleCount;
             if (show != i < _prevVisible) _nodes[i].Visible = show;
-            if (!show) continue;
 
             var position = _positions[i] * amp;
             _nodes[i].Transform = new Transform3D(cubeBasis, new Godot.Vector3(position.X, position.Y, position.Z));
