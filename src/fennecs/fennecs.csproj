@@ -94,6 +94,21 @@
     </ItemGroup>
 
     <ItemGroup>
+        <None Update="generators\FilteredStream.tt">
+            <Generator>TextTemplatingFileGenerator</Generator>
+            <LastGenOutput>FilteredStream.generated.cs</LastGenOutput>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Update="generators\FilteredStream.generated.cs">
+            <AutoGen>True</AutoGen>
+            <DesignTime>True</DesignTime>
+            <DependentUpon>FilteredStream.tt</DependentUpon>
+        </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
         <None Update="generators\EntityTemplate.tt">
             <Generator>TextTemplatingFileGenerator</Generator>
             <LastGenOutput>EntityTemplate.generated.cs</LastGenOutput>

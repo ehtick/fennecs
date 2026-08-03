@@ -512,28 +512,28 @@ public class QueryTests
 
 
     [Fact]
-    public void Filtered_Enumerator_Filters()
+    public void Filtered_Stream_Filters_Archetypes_By_Expression()
     {
         using var world = new World();
-        var query = world.Query<EntityIndex, int>(Match.Plain, Match.Any).Compile();
+        var stream = world.Query<EntityIndex, int>(Match.Plain, Match.Any).Stream();
 
         var entity1 = world.Spawn().Add(444);
         var entity2 = world.Spawn().Add(555, entity1);
 
         //Partial miss
-        var tx = TypeExpression.Of<int>(Match.Plain);
-        Assert.Contains(entity1, query.Filtered(tx));
-        Assert.DoesNotContain(entity2, query.Filtered(tx));
+        var filtered = stream.Has(Comp<int>.Plain);
+        Assert.Contains(entity1, filtered.Select(r => r.Item1));
+        Assert.DoesNotContain(entity2, filtered.Select(r => r.Item1));
 
         //Complete miss
-        tx = TypeExpression.Of<string>(Match.Any);
-        Assert.DoesNotContain(entity1, query.Filtered(tx));
-        Assert.DoesNotContain(entity2, query.Filtered(tx));
+        filtered = stream.Has(Comp<string>.Matching(Match.Any));
+        Assert.DoesNotContain(entity1, filtered.Select(r => r.Item1));
+        Assert.DoesNotContain(entity2, filtered.Select(r => r.Item1));
 
         //No-op filter
-        tx = TypeExpression.Of<int>(Match.Any);
-        Assert.Contains(entity1, query.Filtered(tx));
-        Assert.Contains(entity2, query.Filtered(tx));
+        filtered = stream.Has(Comp<int>.Matching(Match.Any));
+        Assert.Contains(entity1, filtered.Select(r => r.Item1));
+        Assert.Contains(entity2, filtered.Select(r => r.Item1));
     }
 
 

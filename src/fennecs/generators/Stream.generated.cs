@@ -10,8 +10,6 @@ using fennecs.pools;
 using fennecs;
 using System.Runtime.Versioning;
 
-// Date: 07/11/2026 14:16:57
-
 namespace fennecs
 {
     /// <summary>
@@ -25,27 +23,12 @@ namespace fennecs
         #region Stream Fields
 
         // The component TypeExpressions that this Stream operates on.
-        private readonly ImmutableArray<TypeExpression> _streamTypes;
+        internal readonly ImmutableArray<TypeExpression> StreamTypes;
 
         /// <summary>
         /// The Query this Stream is associated with.
         /// </summary>
         public Query Query { get; }
-
-        /// <summary>
-        /// Subset Stream Filter - if not empty, only entities with these components 
-        /// will be included in the Stream. 
-        /// </summary>
-        public ImmutableSortedSet<Comp> Subset { get; init; } = [];
-        
-        /// <summary>
-        /// Exclude Stream Filter - any entities with these components 
-        /// will be excluded from the Stream. (none if empty)
-        /// </summary>
-        public ImmutableSortedSet<Comp> Exclude { get; init; } = [];
-        
-        // Countdown event used to track completion of jobs.
-        private readonly CountdownEvent _countdown = new(initialCount: 1);
 
         /// <summary>
         /// The Archetypes that the underlying Query matches.
@@ -55,20 +38,11 @@ namespace fennecs
         // The World that the contained Entities and underlying Query are associated with.
         private World World => Query.World;
 
-        private SortedSet<Archetype> Filtered =>
-            Subset.IsEmpty && Exclude.IsEmpty
-                ? Archetypes
-                : new SortedSet<Archetype>(Archetypes.Where(InclusionPredicate));
-
-        private bool InclusionPredicate(Archetype candidate) =>
-            (Subset.IsEmpty || candidate.MatchSignature.Matches(Subset)) &&
-            !candidate.MatchSignature.Matches(Exclude);
-
         /// <summary>
         /// The number of entities that match the underlying Query.
         /// </summary>
-        public int Count => Filtered.Sum(f => f.Count);
-        
+        public int Count => Query.Count;
+
         private static int Concurrency => Math.Max(1, Environment.ProcessorCount - 2);
         #endregion
 
@@ -78,29 +52,35 @@ namespace fennecs
         /// </summary>
         public Stream(Query query, Match match0)
         {
-            _streamTypes = ImmutableArray.Create(
+            StreamTypes = ImmutableArray.Create(
                 TypeExpression.Of<C0>(match0)
 );
             Query = query;
         }
         #endregion
 
-        #region Filter State
-        /// <summary>
-        /// Filter for component C0.             
-        /// </summary>
-        /// <remarks> Return true to include the Entity in the Stream, false to skip it. </remarks>
-        public ComponentFilter<C0> Filter0 { private get; init; } = (in C0 _) => true;
-        // Internally used default filter that lets all entities pass.
-        private bool Pass(in C0 c0) =>
-            Filter0(c0);
+        #region Filtering
 
         /// <summary>
-        /// Creates a new Stream with the same Query and Filters, but replacing the 
-        /// filter for Component <c>C0</c> with the provided predicate. 
+        /// Creates a <see cref="FilteredStream{C0}"/> narrowed to Archetypes
+        /// that have ALL of the given components.
         /// </summary>
-        public Stream<C0> Where(ComponentFilter<C0> filter0) =>
-            this with { Filter0 = filter0 };
+        public FilteredStream<C0> Has(params Comp[] components) =>
+            new(this, [.. components], [], null);
+
+        /// <summary>
+        /// Creates a <see cref="FilteredStream{C0}"/> narrowed to Archetypes
+        /// that have NONE of the given components.
+        /// </summary>
+        public FilteredStream<C0> Not(params Comp[] components) =>
+            new(this, [], [.. components], null);
+
+        /// <summary>
+        /// Creates a <see cref="FilteredStream{C0}"/> with a per-entity
+        /// predicate for Component <c>C0</c>.
+        /// </summary>
+        public FilteredStream<C0> Where(ComponentFilter<C0> filter0) =>
+            new(this, [], [], filter0);
         #endregion
 
         #region For
@@ -108,9 +88,9 @@ namespace fennecs
         public void For(ComponentAction<C0> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 do
                 {
@@ -125,9 +105,9 @@ namespace fennecs
         public void For<U>(U uniform, UniformComponentAction<U, C0> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 do
                 {
@@ -142,9 +122,9 @@ namespace fennecs
         public void For(EntityComponentAction<C0> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 do
                 {
@@ -159,9 +139,9 @@ namespace fennecs
         public void For<U>(U uniform, UniformEntityComponentAction<U, C0> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 do
                 {
@@ -178,16 +158,16 @@ namespace fennecs
         [UnsupportedOSPlatform("browser", "browser-wasm runtime is single-threaded")]
         public void Job(ComponentAction<C0> action)
         {
-            AssertNoWildcards(_streamTypes);
+            AssertNoWildcards(StreamTypes);
             using var worldLock = World.Lock();
             var chunkSize = Math.Max(1, Count / Concurrency);
 
-            _countdown.Reset();
+            using var countdown = new CountdownEvent(initialCount: 1);
             using var jobs = PooledList<Work<C0>>.Rent();
 
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 var count = table.Count;
                 var partitions = count / chunkSize + Math.Sign(count % chunkSize);
@@ -196,7 +176,7 @@ namespace fennecs
                 {
                     for (var chunk = 0; chunk < partitions; chunk++)
                     {
-                        _countdown.AddCount();
+                        countdown.AddCount();
                         var start = chunk * chunkSize;
                         var length = Math.Min(chunkSize, count - start);
 
@@ -204,16 +184,15 @@ namespace fennecs
                         var job = JobPool<Work<C0>>.Rent();
                         job.Memory1 = s0.AsMemory(start,length);
                         job.Action = action;
-                        job.Pass = Pass;
-                        job.CountDown = _countdown;
+                        job.CountDown = countdown;
                         jobs.Add(job);
 
                         ThreadPool.UnsafeQueueUserWorkItem(job, true);
                     }
                 } while (join.Iterate());
             }
-            _countdown.Signal();
-            _countdown.Wait();
+            countdown.Signal();
+            countdown.Wait();
             JobPool<Work<C0>>.Return(jobs);
         }
 
@@ -221,16 +200,16 @@ namespace fennecs
         [UnsupportedOSPlatform("browser", "browser-wasm runtime is single-threaded")]
         public void Job<U>(U uniform, UniformComponentAction<U, C0> action)
         {
-            AssertNoWildcards(_streamTypes);
+            AssertNoWildcards(StreamTypes);
             using var worldLock = World.Lock();
             var chunkSize = Math.Max(1, Count / Concurrency);
 
-            _countdown.Reset();
+            using var countdown = new CountdownEvent(initialCount: 1);
             using var jobs = PooledList<UniformWork<U, C0>>.Rent();
 
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 var count = table.Count;
                 var partitions = count / chunkSize + Math.Sign(count % chunkSize);
@@ -239,7 +218,7 @@ namespace fennecs
                 {
                     for (var chunk = 0; chunk < partitions; chunk++)
                     {
-                        _countdown.AddCount();
+                        countdown.AddCount();
                         var start = chunk * chunkSize;
                         var length = Math.Min(chunkSize, count - start);
 
@@ -248,16 +227,15 @@ namespace fennecs
                         job.Memory1 = s0.AsMemory(start,length);
                         job.Action = action;
                         job.Uniform = uniform;
-                        job.Pass = Pass;
-                        job.CountDown = _countdown;
+                        job.CountDown = countdown;
                         jobs.Add(job);
 
                         ThreadPool.UnsafeQueueUserWorkItem(job, true);
                     }
                 } while (join.Iterate());
             }
-            _countdown.Signal();
-            _countdown.Wait();
+            countdown.Signal();
+            countdown.Wait();
             JobPool<UniformWork<U, C0>>.Return(jobs);
         }
         #endregion
@@ -267,9 +245,9 @@ namespace fennecs
         public void Raw(MemoryAction<C0> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 var count = table.Count;
                 do
@@ -285,9 +263,9 @@ namespace fennecs
         public void Raw<U>(U uniform, MemoryUniformAction<U, C0> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 var count = table.Count;
                 do
@@ -305,9 +283,9 @@ namespace fennecs
         /// <inheritdoc />
         public IEnumerator<(Entity, C0)> GetEnumerator()
         {
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 var snapshot = table.Version;
                 do
@@ -332,7 +310,7 @@ namespace fennecs
         public void Blit(C0 value, Match match = default)
         {
             var typeExpression = TypeExpression.Of<C0>(match);
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
                 table.Fill(typeExpression, value);
         }
         #endregion
@@ -343,7 +321,6 @@ namespace fennecs
             var length = span0.Length;
             for (var i=0;i<length;i++)
             {
-                if (!Pass(in span0[i])) continue;
                 action(ref span0[i]);
             }
         }
@@ -353,7 +330,6 @@ namespace fennecs
             var length = span0.Length;
             for (var i=0;i<length;i++)
             {
-                if (!Pass(in span0[i])) continue;
                 action(new EntityRef(table, i), ref span0[i]);
             }
         }
@@ -363,7 +339,6 @@ namespace fennecs
             var length = span0.Length;
             for (var i=0;i<length;i++)
             {
-                if (!Pass(in span0[i])) continue;
                 action(uniform, ref span0[i]);
             }
         }
@@ -373,7 +348,6 @@ namespace fennecs
             var length = span0.Length;
             for (var i=0;i<length;i++)
             {
-                if (!Pass(in span0[i])) continue;
                 action(uniform, new EntityRef(table, i), ref span0[i]);
             }
         }
@@ -399,7 +373,7 @@ namespace fennecs
         /// <inheritdoc cref="fennecs.Query.Despawn"/>
         public void Despawn()
         {
-            foreach (var archetype in Filtered) archetype.Truncate(0);
+            Query.Despawn();
         }
 
         #endregion
@@ -416,27 +390,12 @@ namespace fennecs
         #region Stream Fields
 
         // The component TypeExpressions that this Stream operates on.
-        private readonly ImmutableArray<TypeExpression> _streamTypes;
+        internal readonly ImmutableArray<TypeExpression> StreamTypes;
 
         /// <summary>
         /// The Query this Stream is associated with.
         /// </summary>
         public Query Query { get; }
-
-        /// <summary>
-        /// Subset Stream Filter - if not empty, only entities with these components 
-        /// will be included in the Stream. 
-        /// </summary>
-        public ImmutableSortedSet<Comp> Subset { get; init; } = [];
-        
-        /// <summary>
-        /// Exclude Stream Filter - any entities with these components 
-        /// will be excluded from the Stream. (none if empty)
-        /// </summary>
-        public ImmutableSortedSet<Comp> Exclude { get; init; } = [];
-        
-        // Countdown event used to track completion of jobs.
-        private readonly CountdownEvent _countdown = new(initialCount: 1);
 
         /// <summary>
         /// The Archetypes that the underlying Query matches.
@@ -446,20 +405,11 @@ namespace fennecs
         // The World that the contained Entities and underlying Query are associated with.
         private World World => Query.World;
 
-        private SortedSet<Archetype> Filtered =>
-            Subset.IsEmpty && Exclude.IsEmpty
-                ? Archetypes
-                : new SortedSet<Archetype>(Archetypes.Where(InclusionPredicate));
-
-        private bool InclusionPredicate(Archetype candidate) =>
-            (Subset.IsEmpty || candidate.MatchSignature.Matches(Subset)) &&
-            !candidate.MatchSignature.Matches(Exclude);
-
         /// <summary>
         /// The number of entities that match the underlying Query.
         /// </summary>
-        public int Count => Filtered.Sum(f => f.Count);
-        
+        public int Count => Query.Count;
+
         private static int Concurrency => Math.Max(1, Environment.ProcessorCount - 2);
         #endregion
 
@@ -469,7 +419,7 @@ namespace fennecs
         /// </summary>
         public Stream(Query query, Match match0, Match match1)
         {
-            _streamTypes = ImmutableArray.Create(
+            StreamTypes = ImmutableArray.Create(
                 TypeExpression.Of<C0>(match0),
                 TypeExpression.Of<C1>(match1)
 );
@@ -477,33 +427,35 @@ namespace fennecs
         }
         #endregion
 
-        #region Filter State
-        /// <summary>
-        /// Filter for component C0.             
-        /// </summary>
-        /// <remarks> Return true to include the Entity in the Stream, false to skip it. </remarks>
-        public ComponentFilter<C0> Filter0 { private get; init; } = (in C0 _) => true;
-        /// <summary>
-        /// Filter for component C1.             
-        /// </summary>
-        /// <remarks> Return true to include the Entity in the Stream, false to skip it. </remarks>
-        public ComponentFilter<C1> Filter1 { private get; init; } = (in C1 _) => true;
-        // Internally used default filter that lets all entities pass.
-        private bool Pass(in C0 c0, in C1 c1) =>
-            Filter0(c0) && Filter1(c1);
+        #region Filtering
 
         /// <summary>
-        /// Creates a new Stream with the same Query and Filters, but replacing the 
-        /// filter for Component <c>C0</c> with the provided predicate. 
+        /// Creates a <see cref="FilteredStream{C0, C1}"/> narrowed to Archetypes
+        /// that have ALL of the given components.
         /// </summary>
-        public Stream<C0, C1> Where(ComponentFilter<C0> filter0) =>
-            this with { Filter0 = filter0 };
+        public FilteredStream<C0, C1> Has(params Comp[] components) =>
+            new(this, [.. components], [], null, null);
+
         /// <summary>
-        /// Creates a new Stream with the same Query and Filters, but replacing the 
-        /// filter for Component <c>C1</c> with the provided predicate. 
+        /// Creates a <see cref="FilteredStream{C0, C1}"/> narrowed to Archetypes
+        /// that have NONE of the given components.
         /// </summary>
-        public Stream<C0, C1> Where(ComponentFilter<C1> filter1) =>
-            this with { Filter1 = filter1 };
+        public FilteredStream<C0, C1> Not(params Comp[] components) =>
+            new(this, [], [.. components], null, null);
+
+        /// <summary>
+        /// Creates a <see cref="FilteredStream{C0, C1}"/> with a per-entity
+        /// predicate for Component <c>C0</c>.
+        /// </summary>
+        public FilteredStream<C0, C1> Where(ComponentFilter<C0> filter0) =>
+            new(this, [], [], filter0, null);
+
+        /// <summary>
+        /// Creates a <see cref="FilteredStream{C0, C1}"/> with a per-entity
+        /// predicate for Component <c>C1</c>.
+        /// </summary>
+        public FilteredStream<C0, C1> Where(ComponentFilter<C1> filter1) =>
+            new(this, [], [], null, filter1);
         #endregion
 
         #region For
@@ -511,9 +463,9 @@ namespace fennecs
         public void For(ComponentAction<C0, C1> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 do
                 {
@@ -528,9 +480,9 @@ namespace fennecs
         public void For<U>(U uniform, UniformComponentAction<U, C0, C1> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 do
                 {
@@ -545,9 +497,9 @@ namespace fennecs
         public void For(EntityComponentAction<C0, C1> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 do
                 {
@@ -562,9 +514,9 @@ namespace fennecs
         public void For<U>(U uniform, UniformEntityComponentAction<U, C0, C1> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 do
                 {
@@ -581,16 +533,16 @@ namespace fennecs
         [UnsupportedOSPlatform("browser", "browser-wasm runtime is single-threaded")]
         public void Job(ComponentAction<C0, C1> action)
         {
-            AssertNoWildcards(_streamTypes);
+            AssertNoWildcards(StreamTypes);
             using var worldLock = World.Lock();
             var chunkSize = Math.Max(1, Count / Concurrency);
 
-            _countdown.Reset();
+            using var countdown = new CountdownEvent(initialCount: 1);
             using var jobs = PooledList<Work<C0, C1>>.Rent();
 
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 var count = table.Count;
                 var partitions = count / chunkSize + Math.Sign(count % chunkSize);
@@ -599,7 +551,7 @@ namespace fennecs
                 {
                     for (var chunk = 0; chunk < partitions; chunk++)
                     {
-                        _countdown.AddCount();
+                        countdown.AddCount();
                         var start = chunk * chunkSize;
                         var length = Math.Min(chunkSize, count - start);
 
@@ -608,16 +560,15 @@ namespace fennecs
                         job.Memory1 = s0.AsMemory(start,length);
                         job.Memory2 = s1.AsMemory(start,length);
                         job.Action = action;
-                        job.Pass = Pass;
-                        job.CountDown = _countdown;
+                        job.CountDown = countdown;
                         jobs.Add(job);
 
                         ThreadPool.UnsafeQueueUserWorkItem(job, true);
                     }
                 } while (join.Iterate());
             }
-            _countdown.Signal();
-            _countdown.Wait();
+            countdown.Signal();
+            countdown.Wait();
             JobPool<Work<C0, C1>>.Return(jobs);
         }
 
@@ -625,16 +576,16 @@ namespace fennecs
         [UnsupportedOSPlatform("browser", "browser-wasm runtime is single-threaded")]
         public void Job<U>(U uniform, UniformComponentAction<U, C0, C1> action)
         {
-            AssertNoWildcards(_streamTypes);
+            AssertNoWildcards(StreamTypes);
             using var worldLock = World.Lock();
             var chunkSize = Math.Max(1, Count / Concurrency);
 
-            _countdown.Reset();
+            using var countdown = new CountdownEvent(initialCount: 1);
             using var jobs = PooledList<UniformWork<U, C0, C1>>.Rent();
 
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 var count = table.Count;
                 var partitions = count / chunkSize + Math.Sign(count % chunkSize);
@@ -643,7 +594,7 @@ namespace fennecs
                 {
                     for (var chunk = 0; chunk < partitions; chunk++)
                     {
-                        _countdown.AddCount();
+                        countdown.AddCount();
                         var start = chunk * chunkSize;
                         var length = Math.Min(chunkSize, count - start);
 
@@ -653,16 +604,15 @@ namespace fennecs
                         job.Memory2 = s1.AsMemory(start,length);
                         job.Action = action;
                         job.Uniform = uniform;
-                        job.Pass = Pass;
-                        job.CountDown = _countdown;
+                        job.CountDown = countdown;
                         jobs.Add(job);
 
                         ThreadPool.UnsafeQueueUserWorkItem(job, true);
                     }
                 } while (join.Iterate());
             }
-            _countdown.Signal();
-            _countdown.Wait();
+            countdown.Signal();
+            countdown.Wait();
             JobPool<UniformWork<U, C0, C1>>.Return(jobs);
         }
         #endregion
@@ -672,9 +622,9 @@ namespace fennecs
         public void Raw(MemoryAction<C0, C1> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 var count = table.Count;
                 do
@@ -691,9 +641,9 @@ namespace fennecs
         public void Raw<U>(U uniform, MemoryUniformAction<U, C0, C1> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 var count = table.Count;
                 do
@@ -713,9 +663,9 @@ namespace fennecs
         /// <inheritdoc />
         public IEnumerator<(Entity, C0, C1)> GetEnumerator()
         {
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 var snapshot = table.Version;
                 do
@@ -740,7 +690,7 @@ namespace fennecs
         public void Blit(C0 value, Match match = default)
         {
             var typeExpression = TypeExpression.Of<C0>(match);
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
                 table.Fill(typeExpression, value);
         }
         /// <summary>
@@ -750,7 +700,7 @@ namespace fennecs
         public void Blit(C1 value, Match match = default)
         {
             var typeExpression = TypeExpression.Of<C1>(match);
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
                 table.Fill(typeExpression, value);
         }
         #endregion
@@ -761,7 +711,6 @@ namespace fennecs
             var length = span0.Length;
             for (var i=0;i<length;i++)
             {
-                if (!Pass(in span0[i], in span1[i])) continue;
                 action(ref span0[i], ref span1[i]);
             }
         }
@@ -771,7 +720,6 @@ namespace fennecs
             var length = span0.Length;
             for (var i=0;i<length;i++)
             {
-                if (!Pass(in span0[i], in span1[i])) continue;
                 action(new EntityRef(table, i), ref span0[i], ref span1[i]);
             }
         }
@@ -781,7 +729,6 @@ namespace fennecs
             var length = span0.Length;
             for (var i=0;i<length;i++)
             {
-                if (!Pass(in span0[i], in span1[i])) continue;
                 action(uniform, ref span0[i], ref span1[i]);
             }
         }
@@ -791,7 +738,6 @@ namespace fennecs
             var length = span0.Length;
             for (var i=0;i<length;i++)
             {
-                if (!Pass(in span0[i], in span1[i])) continue;
                 action(uniform, new EntityRef(table, i), ref span0[i], ref span1[i]);
             }
         }
@@ -817,7 +763,7 @@ namespace fennecs
         /// <inheritdoc cref="fennecs.Query.Despawn"/>
         public void Despawn()
         {
-            foreach (var archetype in Filtered) archetype.Truncate(0);
+            Query.Despawn();
         }
 
         #endregion
@@ -835,27 +781,12 @@ namespace fennecs
         #region Stream Fields
 
         // The component TypeExpressions that this Stream operates on.
-        private readonly ImmutableArray<TypeExpression> _streamTypes;
+        internal readonly ImmutableArray<TypeExpression> StreamTypes;
 
         /// <summary>
         /// The Query this Stream is associated with.
         /// </summary>
         public Query Query { get; }
-
-        /// <summary>
-        /// Subset Stream Filter - if not empty, only entities with these components 
-        /// will be included in the Stream. 
-        /// </summary>
-        public ImmutableSortedSet<Comp> Subset { get; init; } = [];
-        
-        /// <summary>
-        /// Exclude Stream Filter - any entities with these components 
-        /// will be excluded from the Stream. (none if empty)
-        /// </summary>
-        public ImmutableSortedSet<Comp> Exclude { get; init; } = [];
-        
-        // Countdown event used to track completion of jobs.
-        private readonly CountdownEvent _countdown = new(initialCount: 1);
 
         /// <summary>
         /// The Archetypes that the underlying Query matches.
@@ -865,20 +796,11 @@ namespace fennecs
         // The World that the contained Entities and underlying Query are associated with.
         private World World => Query.World;
 
-        private SortedSet<Archetype> Filtered =>
-            Subset.IsEmpty && Exclude.IsEmpty
-                ? Archetypes
-                : new SortedSet<Archetype>(Archetypes.Where(InclusionPredicate));
-
-        private bool InclusionPredicate(Archetype candidate) =>
-            (Subset.IsEmpty || candidate.MatchSignature.Matches(Subset)) &&
-            !candidate.MatchSignature.Matches(Exclude);
-
         /// <summary>
         /// The number of entities that match the underlying Query.
         /// </summary>
-        public int Count => Filtered.Sum(f => f.Count);
-        
+        public int Count => Query.Count;
+
         private static int Concurrency => Math.Max(1, Environment.ProcessorCount - 2);
         #endregion
 
@@ -888,7 +810,7 @@ namespace fennecs
         /// </summary>
         public Stream(Query query, Match match0, Match match1, Match match2)
         {
-            _streamTypes = ImmutableArray.Create(
+            StreamTypes = ImmutableArray.Create(
                 TypeExpression.Of<C0>(match0),
                 TypeExpression.Of<C1>(match1),
                 TypeExpression.Of<C2>(match2)
@@ -897,44 +819,42 @@ namespace fennecs
         }
         #endregion
 
-        #region Filter State
-        /// <summary>
-        /// Filter for component C0.             
-        /// </summary>
-        /// <remarks> Return true to include the Entity in the Stream, false to skip it. </remarks>
-        public ComponentFilter<C0> Filter0 { private get; init; } = (in C0 _) => true;
-        /// <summary>
-        /// Filter for component C1.             
-        /// </summary>
-        /// <remarks> Return true to include the Entity in the Stream, false to skip it. </remarks>
-        public ComponentFilter<C1> Filter1 { private get; init; } = (in C1 _) => true;
-        /// <summary>
-        /// Filter for component C2.             
-        /// </summary>
-        /// <remarks> Return true to include the Entity in the Stream, false to skip it. </remarks>
-        public ComponentFilter<C2> Filter2 { private get; init; } = (in C2 _) => true;
-        // Internally used default filter that lets all entities pass.
-        private bool Pass(in C0 c0, in C1 c1, in C2 c2) =>
-            Filter0(c0) && Filter1(c1) && Filter2(c2);
+        #region Filtering
 
         /// <summary>
-        /// Creates a new Stream with the same Query and Filters, but replacing the 
-        /// filter for Component <c>C0</c> with the provided predicate. 
+        /// Creates a <see cref="FilteredStream{C0, C1, C2}"/> narrowed to Archetypes
+        /// that have ALL of the given components.
         /// </summary>
-        public Stream<C0, C1, C2> Where(ComponentFilter<C0> filter0) =>
-            this with { Filter0 = filter0 };
+        public FilteredStream<C0, C1, C2> Has(params Comp[] components) =>
+            new(this, [.. components], [], null, null, null);
+
         /// <summary>
-        /// Creates a new Stream with the same Query and Filters, but replacing the 
-        /// filter for Component <c>C1</c> with the provided predicate. 
+        /// Creates a <see cref="FilteredStream{C0, C1, C2}"/> narrowed to Archetypes
+        /// that have NONE of the given components.
         /// </summary>
-        public Stream<C0, C1, C2> Where(ComponentFilter<C1> filter1) =>
-            this with { Filter1 = filter1 };
+        public FilteredStream<C0, C1, C2> Not(params Comp[] components) =>
+            new(this, [], [.. components], null, null, null);
+
         /// <summary>
-        /// Creates a new Stream with the same Query and Filters, but replacing the 
-        /// filter for Component <c>C2</c> with the provided predicate. 
+        /// Creates a <see cref="FilteredStream{C0, C1, C2}"/> with a per-entity
+        /// predicate for Component <c>C0</c>.
         /// </summary>
-        public Stream<C0, C1, C2> Where(ComponentFilter<C2> filter2) =>
-            this with { Filter2 = filter2 };
+        public FilteredStream<C0, C1, C2> Where(ComponentFilter<C0> filter0) =>
+            new(this, [], [], filter0, null, null);
+
+        /// <summary>
+        /// Creates a <see cref="FilteredStream{C0, C1, C2}"/> with a per-entity
+        /// predicate for Component <c>C1</c>.
+        /// </summary>
+        public FilteredStream<C0, C1, C2> Where(ComponentFilter<C1> filter1) =>
+            new(this, [], [], null, filter1, null);
+
+        /// <summary>
+        /// Creates a <see cref="FilteredStream{C0, C1, C2}"/> with a per-entity
+        /// predicate for Component <c>C2</c>.
+        /// </summary>
+        public FilteredStream<C0, C1, C2> Where(ComponentFilter<C2> filter2) =>
+            new(this, [], [], null, null, filter2);
         #endregion
 
         #region For
@@ -942,9 +862,9 @@ namespace fennecs
         public void For(ComponentAction<C0, C1, C2> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 do
                 {
@@ -959,9 +879,9 @@ namespace fennecs
         public void For<U>(U uniform, UniformComponentAction<U, C0, C1, C2> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 do
                 {
@@ -976,9 +896,9 @@ namespace fennecs
         public void For(EntityComponentAction<C0, C1, C2> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 do
                 {
@@ -993,9 +913,9 @@ namespace fennecs
         public void For<U>(U uniform, UniformEntityComponentAction<U, C0, C1, C2> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 do
                 {
@@ -1012,16 +932,16 @@ namespace fennecs
         [UnsupportedOSPlatform("browser", "browser-wasm runtime is single-threaded")]
         public void Job(ComponentAction<C0, C1, C2> action)
         {
-            AssertNoWildcards(_streamTypes);
+            AssertNoWildcards(StreamTypes);
             using var worldLock = World.Lock();
             var chunkSize = Math.Max(1, Count / Concurrency);
 
-            _countdown.Reset();
+            using var countdown = new CountdownEvent(initialCount: 1);
             using var jobs = PooledList<Work<C0, C1, C2>>.Rent();
 
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 var count = table.Count;
                 var partitions = count / chunkSize + Math.Sign(count % chunkSize);
@@ -1030,7 +950,7 @@ namespace fennecs
                 {
                     for (var chunk = 0; chunk < partitions; chunk++)
                     {
-                        _countdown.AddCount();
+                        countdown.AddCount();
                         var start = chunk * chunkSize;
                         var length = Math.Min(chunkSize, count - start);
 
@@ -1040,16 +960,15 @@ namespace fennecs
                         job.Memory2 = s1.AsMemory(start,length);
                         job.Memory3 = s2.AsMemory(start,length);
                         job.Action = action;
-                        job.Pass = Pass;
-                        job.CountDown = _countdown;
+                        job.CountDown = countdown;
                         jobs.Add(job);
 
                         ThreadPool.UnsafeQueueUserWorkItem(job, true);
                     }
                 } while (join.Iterate());
             }
-            _countdown.Signal();
-            _countdown.Wait();
+            countdown.Signal();
+            countdown.Wait();
             JobPool<Work<C0, C1, C2>>.Return(jobs);
         }
 
@@ -1057,16 +976,16 @@ namespace fennecs
         [UnsupportedOSPlatform("browser", "browser-wasm runtime is single-threaded")]
         public void Job<U>(U uniform, UniformComponentAction<U, C0, C1, C2> action)
         {
-            AssertNoWildcards(_streamTypes);
+            AssertNoWildcards(StreamTypes);
             using var worldLock = World.Lock();
             var chunkSize = Math.Max(1, Count / Concurrency);
 
-            _countdown.Reset();
+            using var countdown = new CountdownEvent(initialCount: 1);
             using var jobs = PooledList<UniformWork<U, C0, C1, C2>>.Rent();
 
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 var count = table.Count;
                 var partitions = count / chunkSize + Math.Sign(count % chunkSize);
@@ -1075,7 +994,7 @@ namespace fennecs
                 {
                     for (var chunk = 0; chunk < partitions; chunk++)
                     {
-                        _countdown.AddCount();
+                        countdown.AddCount();
                         var start = chunk * chunkSize;
                         var length = Math.Min(chunkSize, count - start);
 
@@ -1086,16 +1005,15 @@ namespace fennecs
                         job.Memory3 = s2.AsMemory(start,length);
                         job.Action = action;
                         job.Uniform = uniform;
-                        job.Pass = Pass;
-                        job.CountDown = _countdown;
+                        job.CountDown = countdown;
                         jobs.Add(job);
 
                         ThreadPool.UnsafeQueueUserWorkItem(job, true);
                     }
                 } while (join.Iterate());
             }
-            _countdown.Signal();
-            _countdown.Wait();
+            countdown.Signal();
+            countdown.Wait();
             JobPool<UniformWork<U, C0, C1, C2>>.Return(jobs);
         }
         #endregion
@@ -1105,9 +1023,9 @@ namespace fennecs
         public void Raw(MemoryAction<C0, C1, C2> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 var count = table.Count;
                 do
@@ -1125,9 +1043,9 @@ namespace fennecs
         public void Raw<U>(U uniform, MemoryUniformAction<U, C0, C1, C2> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 var count = table.Count;
                 do
@@ -1149,9 +1067,9 @@ namespace fennecs
         /// <inheritdoc />
         public IEnumerator<(Entity, C0, C1, C2)> GetEnumerator()
         {
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 var snapshot = table.Version;
                 do
@@ -1176,7 +1094,7 @@ namespace fennecs
         public void Blit(C0 value, Match match = default)
         {
             var typeExpression = TypeExpression.Of<C0>(match);
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
                 table.Fill(typeExpression, value);
         }
         /// <summary>
@@ -1186,7 +1104,7 @@ namespace fennecs
         public void Blit(C1 value, Match match = default)
         {
             var typeExpression = TypeExpression.Of<C1>(match);
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
                 table.Fill(typeExpression, value);
         }
         /// <summary>
@@ -1196,7 +1114,7 @@ namespace fennecs
         public void Blit(C2 value, Match match = default)
         {
             var typeExpression = TypeExpression.Of<C2>(match);
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
                 table.Fill(typeExpression, value);
         }
         #endregion
@@ -1207,7 +1125,6 @@ namespace fennecs
             var length = span0.Length;
             for (var i=0;i<length;i++)
             {
-                if (!Pass(in span0[i], in span1[i], in span2[i])) continue;
                 action(ref span0[i], ref span1[i], ref span2[i]);
             }
         }
@@ -1217,7 +1134,6 @@ namespace fennecs
             var length = span0.Length;
             for (var i=0;i<length;i++)
             {
-                if (!Pass(in span0[i], in span1[i], in span2[i])) continue;
                 action(new EntityRef(table, i), ref span0[i], ref span1[i], ref span2[i]);
             }
         }
@@ -1227,7 +1143,6 @@ namespace fennecs
             var length = span0.Length;
             for (var i=0;i<length;i++)
             {
-                if (!Pass(in span0[i], in span1[i], in span2[i])) continue;
                 action(uniform, ref span0[i], ref span1[i], ref span2[i]);
             }
         }
@@ -1237,7 +1152,6 @@ namespace fennecs
             var length = span0.Length;
             for (var i=0;i<length;i++)
             {
-                if (!Pass(in span0[i], in span1[i], in span2[i])) continue;
                 action(uniform, new EntityRef(table, i), ref span0[i], ref span1[i], ref span2[i]);
             }
         }
@@ -1263,7 +1177,7 @@ namespace fennecs
         /// <inheritdoc cref="fennecs.Query.Despawn"/>
         public void Despawn()
         {
-            foreach (var archetype in Filtered) archetype.Truncate(0);
+            Query.Despawn();
         }
 
         #endregion
@@ -1282,27 +1196,12 @@ namespace fennecs
         #region Stream Fields
 
         // The component TypeExpressions that this Stream operates on.
-        private readonly ImmutableArray<TypeExpression> _streamTypes;
+        internal readonly ImmutableArray<TypeExpression> StreamTypes;
 
         /// <summary>
         /// The Query this Stream is associated with.
         /// </summary>
         public Query Query { get; }
-
-        /// <summary>
-        /// Subset Stream Filter - if not empty, only entities with these components 
-        /// will be included in the Stream. 
-        /// </summary>
-        public ImmutableSortedSet<Comp> Subset { get; init; } = [];
-        
-        /// <summary>
-        /// Exclude Stream Filter - any entities with these components 
-        /// will be excluded from the Stream. (none if empty)
-        /// </summary>
-        public ImmutableSortedSet<Comp> Exclude { get; init; } = [];
-        
-        // Countdown event used to track completion of jobs.
-        private readonly CountdownEvent _countdown = new(initialCount: 1);
 
         /// <summary>
         /// The Archetypes that the underlying Query matches.
@@ -1312,20 +1211,11 @@ namespace fennecs
         // The World that the contained Entities and underlying Query are associated with.
         private World World => Query.World;
 
-        private SortedSet<Archetype> Filtered =>
-            Subset.IsEmpty && Exclude.IsEmpty
-                ? Archetypes
-                : new SortedSet<Archetype>(Archetypes.Where(InclusionPredicate));
-
-        private bool InclusionPredicate(Archetype candidate) =>
-            (Subset.IsEmpty || candidate.MatchSignature.Matches(Subset)) &&
-            !candidate.MatchSignature.Matches(Exclude);
-
         /// <summary>
         /// The number of entities that match the underlying Query.
         /// </summary>
-        public int Count => Filtered.Sum(f => f.Count);
-        
+        public int Count => Query.Count;
+
         private static int Concurrency => Math.Max(1, Environment.ProcessorCount - 2);
         #endregion
 
@@ -1335,7 +1225,7 @@ namespace fennecs
         /// </summary>
         public Stream(Query query, Match match0, Match match1, Match match2, Match match3)
         {
-            _streamTypes = ImmutableArray.Create(
+            StreamTypes = ImmutableArray.Create(
                 TypeExpression.Of<C0>(match0),
                 TypeExpression.Of<C1>(match1),
                 TypeExpression.Of<C2>(match2),
@@ -1345,55 +1235,49 @@ namespace fennecs
         }
         #endregion
 
-        #region Filter State
-        /// <summary>
-        /// Filter for component C0.             
-        /// </summary>
-        /// <remarks> Return true to include the Entity in the Stream, false to skip it. </remarks>
-        public ComponentFilter<C0> Filter0 { private get; init; } = (in C0 _) => true;
-        /// <summary>
-        /// Filter for component C1.             
-        /// </summary>
-        /// <remarks> Return true to include the Entity in the Stream, false to skip it. </remarks>
-        public ComponentFilter<C1> Filter1 { private get; init; } = (in C1 _) => true;
-        /// <summary>
-        /// Filter for component C2.             
-        /// </summary>
-        /// <remarks> Return true to include the Entity in the Stream, false to skip it. </remarks>
-        public ComponentFilter<C2> Filter2 { private get; init; } = (in C2 _) => true;
-        /// <summary>
-        /// Filter for component C3.             
-        /// </summary>
-        /// <remarks> Return true to include the Entity in the Stream, false to skip it. </remarks>
-        public ComponentFilter<C3> Filter3 { private get; init; } = (in C3 _) => true;
-        // Internally used default filter that lets all entities pass.
-        private bool Pass(in C0 c0, in C1 c1, in C2 c2, in C3 c3) =>
-            Filter0(c0) && Filter1(c1) && Filter2(c2) && Filter3(c3);
+        #region Filtering
 
         /// <summary>
-        /// Creates a new Stream with the same Query and Filters, but replacing the 
-        /// filter for Component <c>C0</c> with the provided predicate. 
+        /// Creates a <see cref="FilteredStream{C0, C1, C2, C3}"/> narrowed to Archetypes
+        /// that have ALL of the given components.
         /// </summary>
-        public Stream<C0, C1, C2, C3> Where(ComponentFilter<C0> filter0) =>
-            this with { Filter0 = filter0 };
+        public FilteredStream<C0, C1, C2, C3> Has(params Comp[] components) =>
+            new(this, [.. components], [], null, null, null, null);
+
         /// <summary>
-        /// Creates a new Stream with the same Query and Filters, but replacing the 
-        /// filter for Component <c>C1</c> with the provided predicate. 
+        /// Creates a <see cref="FilteredStream{C0, C1, C2, C3}"/> narrowed to Archetypes
+        /// that have NONE of the given components.
         /// </summary>
-        public Stream<C0, C1, C2, C3> Where(ComponentFilter<C1> filter1) =>
-            this with { Filter1 = filter1 };
+        public FilteredStream<C0, C1, C2, C3> Not(params Comp[] components) =>
+            new(this, [], [.. components], null, null, null, null);
+
         /// <summary>
-        /// Creates a new Stream with the same Query and Filters, but replacing the 
-        /// filter for Component <c>C2</c> with the provided predicate. 
+        /// Creates a <see cref="FilteredStream{C0, C1, C2, C3}"/> with a per-entity
+        /// predicate for Component <c>C0</c>.
         /// </summary>
-        public Stream<C0, C1, C2, C3> Where(ComponentFilter<C2> filter2) =>
-            this with { Filter2 = filter2 };
+        public FilteredStream<C0, C1, C2, C3> Where(ComponentFilter<C0> filter0) =>
+            new(this, [], [], filter0, null, null, null);
+
         /// <summary>
-        /// Creates a new Stream with the same Query and Filters, but replacing the 
-        /// filter for Component <c>C3</c> with the provided predicate. 
+        /// Creates a <see cref="FilteredStream{C0, C1, C2, C3}"/> with a per-entity
+        /// predicate for Component <c>C1</c>.
         /// </summary>
-        public Stream<C0, C1, C2, C3> Where(ComponentFilter<C3> filter3) =>
-            this with { Filter3 = filter3 };
+        public FilteredStream<C0, C1, C2, C3> Where(ComponentFilter<C1> filter1) =>
+            new(this, [], [], null, filter1, null, null);
+
+        /// <summary>
+        /// Creates a <see cref="FilteredStream{C0, C1, C2, C3}"/> with a per-entity
+        /// predicate for Component <c>C2</c>.
+        /// </summary>
+        public FilteredStream<C0, C1, C2, C3> Where(ComponentFilter<C2> filter2) =>
+            new(this, [], [], null, null, filter2, null);
+
+        /// <summary>
+        /// Creates a <see cref="FilteredStream{C0, C1, C2, C3}"/> with a per-entity
+        /// predicate for Component <c>C3</c>.
+        /// </summary>
+        public FilteredStream<C0, C1, C2, C3> Where(ComponentFilter<C3> filter3) =>
+            new(this, [], [], null, null, null, filter3);
         #endregion
 
         #region For
@@ -1401,9 +1285,9 @@ namespace fennecs
         public void For(ComponentAction<C0, C1, C2, C3> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2, C3>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2, C3>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 do
                 {
@@ -1418,9 +1302,9 @@ namespace fennecs
         public void For<U>(U uniform, UniformComponentAction<U, C0, C1, C2, C3> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2, C3>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2, C3>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 do
                 {
@@ -1435,9 +1319,9 @@ namespace fennecs
         public void For(EntityComponentAction<C0, C1, C2, C3> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2, C3>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2, C3>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 do
                 {
@@ -1452,9 +1336,9 @@ namespace fennecs
         public void For<U>(U uniform, UniformEntityComponentAction<U, C0, C1, C2, C3> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2, C3>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2, C3>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 do
                 {
@@ -1471,16 +1355,16 @@ namespace fennecs
         [UnsupportedOSPlatform("browser", "browser-wasm runtime is single-threaded")]
         public void Job(ComponentAction<C0, C1, C2, C3> action)
         {
-            AssertNoWildcards(_streamTypes);
+            AssertNoWildcards(StreamTypes);
             using var worldLock = World.Lock();
             var chunkSize = Math.Max(1, Count / Concurrency);
 
-            _countdown.Reset();
+            using var countdown = new CountdownEvent(initialCount: 1);
             using var jobs = PooledList<Work<C0, C1, C2, C3>>.Rent();
 
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2, C3>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2, C3>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 var count = table.Count;
                 var partitions = count / chunkSize + Math.Sign(count % chunkSize);
@@ -1489,7 +1373,7 @@ namespace fennecs
                 {
                     for (var chunk = 0; chunk < partitions; chunk++)
                     {
-                        _countdown.AddCount();
+                        countdown.AddCount();
                         var start = chunk * chunkSize;
                         var length = Math.Min(chunkSize, count - start);
 
@@ -1500,16 +1384,15 @@ namespace fennecs
                         job.Memory3 = s2.AsMemory(start,length);
                         job.Memory4 = s3.AsMemory(start,length);
                         job.Action = action;
-                        job.Pass = Pass;
-                        job.CountDown = _countdown;
+                        job.CountDown = countdown;
                         jobs.Add(job);
 
                         ThreadPool.UnsafeQueueUserWorkItem(job, true);
                     }
                 } while (join.Iterate());
             }
-            _countdown.Signal();
-            _countdown.Wait();
+            countdown.Signal();
+            countdown.Wait();
             JobPool<Work<C0, C1, C2, C3>>.Return(jobs);
         }
 
@@ -1517,16 +1400,16 @@ namespace fennecs
         [UnsupportedOSPlatform("browser", "browser-wasm runtime is single-threaded")]
         public void Job<U>(U uniform, UniformComponentAction<U, C0, C1, C2, C3> action)
         {
-            AssertNoWildcards(_streamTypes);
+            AssertNoWildcards(StreamTypes);
             using var worldLock = World.Lock();
             var chunkSize = Math.Max(1, Count / Concurrency);
 
-            _countdown.Reset();
+            using var countdown = new CountdownEvent(initialCount: 1);
             using var jobs = PooledList<UniformWork<U, C0, C1, C2, C3>>.Rent();
 
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2, C3>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2, C3>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 var count = table.Count;
                 var partitions = count / chunkSize + Math.Sign(count % chunkSize);
@@ -1535,7 +1418,7 @@ namespace fennecs
                 {
                     for (var chunk = 0; chunk < partitions; chunk++)
                     {
-                        _countdown.AddCount();
+                        countdown.AddCount();
                         var start = chunk * chunkSize;
                         var length = Math.Min(chunkSize, count - start);
 
@@ -1547,16 +1430,15 @@ namespace fennecs
                         job.Memory4 = s3.AsMemory(start,length);
                         job.Action = action;
                         job.Uniform = uniform;
-                        job.Pass = Pass;
-                        job.CountDown = _countdown;
+                        job.CountDown = countdown;
                         jobs.Add(job);
 
                         ThreadPool.UnsafeQueueUserWorkItem(job, true);
                     }
                 } while (join.Iterate());
             }
-            _countdown.Signal();
-            _countdown.Wait();
+            countdown.Signal();
+            countdown.Wait();
             JobPool<UniformWork<U, C0, C1, C2, C3>>.Return(jobs);
         }
         #endregion
@@ -1566,9 +1448,9 @@ namespace fennecs
         public void Raw(MemoryAction<C0, C1, C2, C3> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2, C3>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2, C3>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 var count = table.Count;
                 do
@@ -1587,9 +1469,9 @@ namespace fennecs
         public void Raw<U>(U uniform, MemoryUniformAction<U, C0, C1, C2, C3> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2, C3>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2, C3>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 var count = table.Count;
                 do
@@ -1613,9 +1495,9 @@ namespace fennecs
         /// <inheritdoc />
         public IEnumerator<(Entity, C0, C1, C2, C3)> GetEnumerator()
         {
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2, C3>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2, C3>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 var snapshot = table.Version;
                 do
@@ -1640,7 +1522,7 @@ namespace fennecs
         public void Blit(C0 value, Match match = default)
         {
             var typeExpression = TypeExpression.Of<C0>(match);
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
                 table.Fill(typeExpression, value);
         }
         /// <summary>
@@ -1650,7 +1532,7 @@ namespace fennecs
         public void Blit(C1 value, Match match = default)
         {
             var typeExpression = TypeExpression.Of<C1>(match);
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
                 table.Fill(typeExpression, value);
         }
         /// <summary>
@@ -1660,7 +1542,7 @@ namespace fennecs
         public void Blit(C2 value, Match match = default)
         {
             var typeExpression = TypeExpression.Of<C2>(match);
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
                 table.Fill(typeExpression, value);
         }
         /// <summary>
@@ -1670,7 +1552,7 @@ namespace fennecs
         public void Blit(C3 value, Match match = default)
         {
             var typeExpression = TypeExpression.Of<C3>(match);
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
                 table.Fill(typeExpression, value);
         }
         #endregion
@@ -1681,7 +1563,6 @@ namespace fennecs
             var length = span0.Length;
             for (var i=0;i<length;i++)
             {
-                if (!Pass(in span0[i], in span1[i], in span2[i], in span3[i])) continue;
                 action(ref span0[i], ref span1[i], ref span2[i], ref span3[i]);
             }
         }
@@ -1691,7 +1572,6 @@ namespace fennecs
             var length = span0.Length;
             for (var i=0;i<length;i++)
             {
-                if (!Pass(in span0[i], in span1[i], in span2[i], in span3[i])) continue;
                 action(new EntityRef(table, i), ref span0[i], ref span1[i], ref span2[i], ref span3[i]);
             }
         }
@@ -1701,7 +1581,6 @@ namespace fennecs
             var length = span0.Length;
             for (var i=0;i<length;i++)
             {
-                if (!Pass(in span0[i], in span1[i], in span2[i], in span3[i])) continue;
                 action(uniform, ref span0[i], ref span1[i], ref span2[i], ref span3[i]);
             }
         }
@@ -1711,7 +1590,6 @@ namespace fennecs
             var length = span0.Length;
             for (var i=0;i<length;i++)
             {
-                if (!Pass(in span0[i], in span1[i], in span2[i], in span3[i])) continue;
                 action(uniform, new EntityRef(table, i), ref span0[i], ref span1[i], ref span2[i], ref span3[i]);
             }
         }
@@ -1737,7 +1615,7 @@ namespace fennecs
         /// <inheritdoc cref="fennecs.Query.Despawn"/>
         public void Despawn()
         {
-            foreach (var archetype in Filtered) archetype.Truncate(0);
+            Query.Despawn();
         }
 
         #endregion
@@ -1757,27 +1635,12 @@ namespace fennecs
         #region Stream Fields
 
         // The component TypeExpressions that this Stream operates on.
-        private readonly ImmutableArray<TypeExpression> _streamTypes;
+        internal readonly ImmutableArray<TypeExpression> StreamTypes;
 
         /// <summary>
         /// The Query this Stream is associated with.
         /// </summary>
         public Query Query { get; }
-
-        /// <summary>
-        /// Subset Stream Filter - if not empty, only entities with these components 
-        /// will be included in the Stream. 
-        /// </summary>
-        public ImmutableSortedSet<Comp> Subset { get; init; } = [];
-        
-        /// <summary>
-        /// Exclude Stream Filter - any entities with these components 
-        /// will be excluded from the Stream. (none if empty)
-        /// </summary>
-        public ImmutableSortedSet<Comp> Exclude { get; init; } = [];
-        
-        // Countdown event used to track completion of jobs.
-        private readonly CountdownEvent _countdown = new(initialCount: 1);
 
         /// <summary>
         /// The Archetypes that the underlying Query matches.
@@ -1787,20 +1650,11 @@ namespace fennecs
         // The World that the contained Entities and underlying Query are associated with.
         private World World => Query.World;
 
-        private SortedSet<Archetype> Filtered =>
-            Subset.IsEmpty && Exclude.IsEmpty
-                ? Archetypes
-                : new SortedSet<Archetype>(Archetypes.Where(InclusionPredicate));
-
-        private bool InclusionPredicate(Archetype candidate) =>
-            (Subset.IsEmpty || candidate.MatchSignature.Matches(Subset)) &&
-            !candidate.MatchSignature.Matches(Exclude);
-
         /// <summary>
         /// The number of entities that match the underlying Query.
         /// </summary>
-        public int Count => Filtered.Sum(f => f.Count);
-        
+        public int Count => Query.Count;
+
         private static int Concurrency => Math.Max(1, Environment.ProcessorCount - 2);
         #endregion
 
@@ -1810,7 +1664,7 @@ namespace fennecs
         /// </summary>
         public Stream(Query query, Match match0, Match match1, Match match2, Match match3, Match match4)
         {
-            _streamTypes = ImmutableArray.Create(
+            StreamTypes = ImmutableArray.Create(
                 TypeExpression.Of<C0>(match0),
                 TypeExpression.Of<C1>(match1),
                 TypeExpression.Of<C2>(match2),
@@ -1821,66 +1675,56 @@ namespace fennecs
         }
         #endregion
 
-        #region Filter State
-        /// <summary>
-        /// Filter for component C0.             
-        /// </summary>
-        /// <remarks> Return true to include the Entity in the Stream, false to skip it. </remarks>
-        public ComponentFilter<C0> Filter0 { private get; init; } = (in C0 _) => true;
-        /// <summary>
-        /// Filter for component C1.             
-        /// </summary>
-        /// <remarks> Return true to include the Entity in the Stream, false to skip it. </remarks>
-        public ComponentFilter<C1> Filter1 { private get; init; } = (in C1 _) => true;
-        /// <summary>
-        /// Filter for component C2.             
-        /// </summary>
-        /// <remarks> Return true to include the Entity in the Stream, false to skip it. </remarks>
-        public ComponentFilter<C2> Filter2 { private get; init; } = (in C2 _) => true;
-        /// <summary>
-        /// Filter for component C3.             
-        /// </summary>
-        /// <remarks> Return true to include the Entity in the Stream, false to skip it. </remarks>
-        public ComponentFilter<C3> Filter3 { private get; init; } = (in C3 _) => true;
-        /// <summary>
-        /// Filter for component C4.             
-        /// </summary>
-        /// <remarks> Return true to include the Entity in the Stream, false to skip it. </remarks>
-        public ComponentFilter<C4> Filter4 { private get; init; } = (in C4 _) => true;
-        // Internally used default filter that lets all entities pass.
-        private bool Pass(in C0 c0, in C1 c1, in C2 c2, in C3 c3, in C4 c4) =>
-            Filter0(c0) && Filter1(c1) && Filter2(c2) && Filter3(c3) && Filter4(c4);
+        #region Filtering
 
         /// <summary>
-        /// Creates a new Stream with the same Query and Filters, but replacing the 
-        /// filter for Component <c>C0</c> with the provided predicate. 
+        /// Creates a <see cref="FilteredStream{C0, C1, C2, C3, C4}"/> narrowed to Archetypes
+        /// that have ALL of the given components.
         /// </summary>
-        public Stream<C0, C1, C2, C3, C4> Where(ComponentFilter<C0> filter0) =>
-            this with { Filter0 = filter0 };
+        public FilteredStream<C0, C1, C2, C3, C4> Has(params Comp[] components) =>
+            new(this, [.. components], [], null, null, null, null, null);
+
         /// <summary>
-        /// Creates a new Stream with the same Query and Filters, but replacing the 
-        /// filter for Component <c>C1</c> with the provided predicate. 
+        /// Creates a <see cref="FilteredStream{C0, C1, C2, C3, C4}"/> narrowed to Archetypes
+        /// that have NONE of the given components.
         /// </summary>
-        public Stream<C0, C1, C2, C3, C4> Where(ComponentFilter<C1> filter1) =>
-            this with { Filter1 = filter1 };
+        public FilteredStream<C0, C1, C2, C3, C4> Not(params Comp[] components) =>
+            new(this, [], [.. components], null, null, null, null, null);
+
         /// <summary>
-        /// Creates a new Stream with the same Query and Filters, but replacing the 
-        /// filter for Component <c>C2</c> with the provided predicate. 
+        /// Creates a <see cref="FilteredStream{C0, C1, C2, C3, C4}"/> with a per-entity
+        /// predicate for Component <c>C0</c>.
         /// </summary>
-        public Stream<C0, C1, C2, C3, C4> Where(ComponentFilter<C2> filter2) =>
-            this with { Filter2 = filter2 };
+        public FilteredStream<C0, C1, C2, C3, C4> Where(ComponentFilter<C0> filter0) =>
+            new(this, [], [], filter0, null, null, null, null);
+
         /// <summary>
-        /// Creates a new Stream with the same Query and Filters, but replacing the 
-        /// filter for Component <c>C3</c> with the provided predicate. 
+        /// Creates a <see cref="FilteredStream{C0, C1, C2, C3, C4}"/> with a per-entity
+        /// predicate for Component <c>C1</c>.
         /// </summary>
-        public Stream<C0, C1, C2, C3, C4> Where(ComponentFilter<C3> filter3) =>
-            this with { Filter3 = filter3 };
+        public FilteredStream<C0, C1, C2, C3, C4> Where(ComponentFilter<C1> filter1) =>
+            new(this, [], [], null, filter1, null, null, null);
+
         /// <summary>
-        /// Creates a new Stream with the same Query and Filters, but replacing the 
-        /// filter for Component <c>C4</c> with the provided predicate. 
+        /// Creates a <see cref="FilteredStream{C0, C1, C2, C3, C4}"/> with a per-entity
+        /// predicate for Component <c>C2</c>.
         /// </summary>
-        public Stream<C0, C1, C2, C3, C4> Where(ComponentFilter<C4> filter4) =>
-            this with { Filter4 = filter4 };
+        public FilteredStream<C0, C1, C2, C3, C4> Where(ComponentFilter<C2> filter2) =>
+            new(this, [], [], null, null, filter2, null, null);
+
+        /// <summary>
+        /// Creates a <see cref="FilteredStream{C0, C1, C2, C3, C4}"/> with a per-entity
+        /// predicate for Component <c>C3</c>.
+        /// </summary>
+        public FilteredStream<C0, C1, C2, C3, C4> Where(ComponentFilter<C3> filter3) =>
+            new(this, [], [], null, null, null, filter3, null);
+
+        /// <summary>
+        /// Creates a <see cref="FilteredStream{C0, C1, C2, C3, C4}"/> with a per-entity
+        /// predicate for Component <c>C4</c>.
+        /// </summary>
+        public FilteredStream<C0, C1, C2, C3, C4> Where(ComponentFilter<C4> filter4) =>
+            new(this, [], [], null, null, null, null, filter4);
         #endregion
 
         #region For
@@ -1888,9 +1732,9 @@ namespace fennecs
         public void For(ComponentAction<C0, C1, C2, C3, C4> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2, C3, C4>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2, C3, C4>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 do
                 {
@@ -1905,9 +1749,9 @@ namespace fennecs
         public void For<U>(U uniform, UniformComponentAction<U, C0, C1, C2, C3, C4> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2, C3, C4>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2, C3, C4>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 do
                 {
@@ -1922,9 +1766,9 @@ namespace fennecs
         public void For(EntityComponentAction<C0, C1, C2, C3, C4> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2, C3, C4>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2, C3, C4>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 do
                 {
@@ -1939,9 +1783,9 @@ namespace fennecs
         public void For<U>(U uniform, UniformEntityComponentAction<U, C0, C1, C2, C3, C4> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2, C3, C4>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2, C3, C4>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 do
                 {
@@ -1958,16 +1802,16 @@ namespace fennecs
         [UnsupportedOSPlatform("browser", "browser-wasm runtime is single-threaded")]
         public void Job(ComponentAction<C0, C1, C2, C3, C4> action)
         {
-            AssertNoWildcards(_streamTypes);
+            AssertNoWildcards(StreamTypes);
             using var worldLock = World.Lock();
             var chunkSize = Math.Max(1, Count / Concurrency);
 
-            _countdown.Reset();
+            using var countdown = new CountdownEvent(initialCount: 1);
             using var jobs = PooledList<Work<C0, C1, C2, C3, C4>>.Rent();
 
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2, C3, C4>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2, C3, C4>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 var count = table.Count;
                 var partitions = count / chunkSize + Math.Sign(count % chunkSize);
@@ -1976,7 +1820,7 @@ namespace fennecs
                 {
                     for (var chunk = 0; chunk < partitions; chunk++)
                     {
-                        _countdown.AddCount();
+                        countdown.AddCount();
                         var start = chunk * chunkSize;
                         var length = Math.Min(chunkSize, count - start);
 
@@ -1988,16 +1832,15 @@ namespace fennecs
                         job.Memory4 = s3.AsMemory(start,length);
                         job.Memory5 = s4.AsMemory(start,length);
                         job.Action = action;
-                        job.Pass = Pass;
-                        job.CountDown = _countdown;
+                        job.CountDown = countdown;
                         jobs.Add(job);
 
                         ThreadPool.UnsafeQueueUserWorkItem(job, true);
                     }
                 } while (join.Iterate());
             }
-            _countdown.Signal();
-            _countdown.Wait();
+            countdown.Signal();
+            countdown.Wait();
             JobPool<Work<C0, C1, C2, C3, C4>>.Return(jobs);
         }
 
@@ -2005,16 +1848,16 @@ namespace fennecs
         [UnsupportedOSPlatform("browser", "browser-wasm runtime is single-threaded")]
         public void Job<U>(U uniform, UniformComponentAction<U, C0, C1, C2, C3, C4> action)
         {
-            AssertNoWildcards(_streamTypes);
+            AssertNoWildcards(StreamTypes);
             using var worldLock = World.Lock();
             var chunkSize = Math.Max(1, Count / Concurrency);
 
-            _countdown.Reset();
+            using var countdown = new CountdownEvent(initialCount: 1);
             using var jobs = PooledList<UniformWork<U, C0, C1, C2, C3, C4>>.Rent();
 
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2, C3, C4>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2, C3, C4>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 var count = table.Count;
                 var partitions = count / chunkSize + Math.Sign(count % chunkSize);
@@ -2023,7 +1866,7 @@ namespace fennecs
                 {
                     for (var chunk = 0; chunk < partitions; chunk++)
                     {
-                        _countdown.AddCount();
+                        countdown.AddCount();
                         var start = chunk * chunkSize;
                         var length = Math.Min(chunkSize, count - start);
 
@@ -2036,16 +1879,15 @@ namespace fennecs
                         job.Memory5 = s4.AsMemory(start,length);
                         job.Action = action;
                         job.Uniform = uniform;
-                        job.Pass = Pass;
-                        job.CountDown = _countdown;
+                        job.CountDown = countdown;
                         jobs.Add(job);
 
                         ThreadPool.UnsafeQueueUserWorkItem(job, true);
                     }
                 } while (join.Iterate());
             }
-            _countdown.Signal();
-            _countdown.Wait();
+            countdown.Signal();
+            countdown.Wait();
             JobPool<UniformWork<U, C0, C1, C2, C3, C4>>.Return(jobs);
         }
         #endregion
@@ -2055,9 +1897,9 @@ namespace fennecs
         public void Raw(MemoryAction<C0, C1, C2, C3, C4> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2, C3, C4>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2, C3, C4>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 var count = table.Count;
                 do
@@ -2077,9 +1919,9 @@ namespace fennecs
         public void Raw<U>(U uniform, MemoryUniformAction<U, C0, C1, C2, C3, C4> action)
         {
             using var worldLock = World.Lock();
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2, C3, C4>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2, C3, C4>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 var count = table.Count;
                 do
@@ -2105,9 +1947,9 @@ namespace fennecs
         /// <inheritdoc />
         public IEnumerator<(Entity, C0, C1, C2, C3, C4)> GetEnumerator()
         {
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
             {
-                using var join = table.CrossJoin<C0, C1, C2, C3, C4>(_streamTypes.AsSpan());
+                using var join = table.CrossJoin<C0, C1, C2, C3, C4>(StreamTypes.AsSpan());
                 if (join.Empty) continue;
                 var snapshot = table.Version;
                 do
@@ -2132,7 +1974,7 @@ namespace fennecs
         public void Blit(C0 value, Match match = default)
         {
             var typeExpression = TypeExpression.Of<C0>(match);
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
                 table.Fill(typeExpression, value);
         }
         /// <summary>
@@ -2142,7 +1984,7 @@ namespace fennecs
         public void Blit(C1 value, Match match = default)
         {
             var typeExpression = TypeExpression.Of<C1>(match);
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
                 table.Fill(typeExpression, value);
         }
         /// <summary>
@@ -2152,7 +1994,7 @@ namespace fennecs
         public void Blit(C2 value, Match match = default)
         {
             var typeExpression = TypeExpression.Of<C2>(match);
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
                 table.Fill(typeExpression, value);
         }
         /// <summary>
@@ -2162,7 +2004,7 @@ namespace fennecs
         public void Blit(C3 value, Match match = default)
         {
             var typeExpression = TypeExpression.Of<C3>(match);
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
                 table.Fill(typeExpression, value);
         }
         /// <summary>
@@ -2172,7 +2014,7 @@ namespace fennecs
         public void Blit(C4 value, Match match = default)
         {
             var typeExpression = TypeExpression.Of<C4>(match);
-            foreach (var table in Filtered)
+            foreach (var table in Archetypes)
                 table.Fill(typeExpression, value);
         }
         #endregion
@@ -2183,7 +2025,6 @@ namespace fennecs
             var length = span0.Length;
             for (var i=0;i<length;i++)
             {
-                if (!Pass(in span0[i], in span1[i], in span2[i], in span3[i], in span4[i])) continue;
                 action(ref span0[i], ref span1[i], ref span2[i], ref span3[i], ref span4[i]);
             }
         }
@@ -2193,7 +2034,6 @@ namespace fennecs
             var length = span0.Length;
             for (var i=0;i<length;i++)
             {
-                if (!Pass(in span0[i], in span1[i], in span2[i], in span3[i], in span4[i])) continue;
                 action(new EntityRef(table, i), ref span0[i], ref span1[i], ref span2[i], ref span3[i], ref span4[i]);
             }
         }
@@ -2203,7 +2043,6 @@ namespace fennecs
             var length = span0.Length;
             for (var i=0;i<length;i++)
             {
-                if (!Pass(in span0[i], in span1[i], in span2[i], in span3[i], in span4[i])) continue;
                 action(uniform, ref span0[i], ref span1[i], ref span2[i], ref span3[i], ref span4[i]);
             }
         }
@@ -2213,7 +2052,6 @@ namespace fennecs
             var length = span0.Length;
             for (var i=0;i<length;i++)
             {
-                if (!Pass(in span0[i], in span1[i], in span2[i], in span3[i], in span4[i])) continue;
                 action(uniform, new EntityRef(table, i), ref span0[i], ref span1[i], ref span2[i], ref span3[i], ref span4[i]);
             }
         }
@@ -2239,7 +2077,7 @@ namespace fennecs
         /// <inheritdoc cref="fennecs.Query.Despawn"/>
         public void Despawn()
         {
-            foreach (var archetype in Filtered) archetype.Truncate(0);
+            Query.Despawn();
         }
 
         #endregion

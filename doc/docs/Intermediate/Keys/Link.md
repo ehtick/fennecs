@@ -72,10 +72,8 @@ var unbankedEntities = world
 // Wildcard target, specific exclusion, stream filter
 var entitiesExceptCustomersOfChase = world
     .Query<Bank>(Link.Any)
-    .Stream() with // do this on-the-fly where needed
-    {
-        Exclude = [Comp<Bank>.Matching(chase)]
-    };
+    .Stream() // do this on-the-fly where needed
+    .Not(Comp<Bank>.Matching(chase));
 ```
 
 ## Removing Links

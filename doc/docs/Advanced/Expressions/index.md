@@ -30,7 +30,7 @@ Creates an expression for a "plain" component – one with no relation target.
 var posExpr = Comp<Position>.Plain;
 
 // Use in stream filters
-stream.Subset = [Comp<Position>.Plain];
+var filtered = stream.Has(Comp<Position>.Plain);
 ```
 
 ### `Comp<R>.Matching(Entity relation)`

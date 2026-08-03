@@ -86,13 +86,11 @@ var partyGoers = world.Query<Name, PlayList>() // "()" means Match.Plain
     .Stream();
 
 // Last minute additions via stream filters!
-partyGoers = partyGoers with
-{
-    Subset = [Comp<Vaccinated>.Plain],
-    Exclude = [Comp<Sick>.Plain],
-};
+var checkedGoers = partyGoers
+    .Has(Comp<Vaccinated>.Plain)
+    .Not(Comp<Sick>.Plain);
 
-partyGoers.For((ref name, ref playlist) =>
+checkedGoers.For((ref name, ref playlist) =>
 {
     DeeJay.Instruct($"{name} is coming, play something from {playlist.entries}");
 });
@@ -104,7 +102,7 @@ partyGoers.For((ref name, ref playlist) =>
 From the start, a Query includes only Entities that match all of its [Stream Types](../Streams/). This applies regardless of whether it's a Plain Component, Entity-Entity Relation, or Object Link  –  unless expressly specified in the QueryBuilder.
 
 ::: details :neofox_magnify: BEHIND THE SCENES: What does a Query even DO?
-Each compiled Query maintains a collection of all Archetypes it matches (and a [filtered subset](/docs/Intermediate/Filters/Subset.md)). When iterating, the Query processes each Archetype in deterministic order.
+Each compiled Query maintains a collection of all Archetypes it matches (and a [filtered subset](/docs/Intermediate/Filters/Archetypes.md)). When iterating, the Query processes each Archetype in deterministic order.
 
 Whenever a new Archetype materializes, the World notifies _all matching Queries_ of its existence.
 :::
@@ -202,7 +200,7 @@ var friendsInNeed = world.Query<Friend>()
 
 ::: tip :neofox_thumbsup: USE FILTERS INSTEAD!
 Filters have similar performance but can be reconfigured on the fly. Streams
-are lightweight value types  –  `with` creates a filtered view, and the
+are lightweight value types  –  `Has`/`Not` create a filtered view, and the
 original stream stays around, unfiltered:
 
 ```cs
@@ -211,11 +209,9 @@ var friendsInNeed = world.Query<Friend>()
     .Stream();
 
 // Dynamic filtering!
-var owingBobNotMe = friendsInNeed with
-{
-    Subset = [Comp<Owes>.Matching(bob)],
-    Exclude = [Comp<Owes>.Matching(me)],
-};
+var owingBobNotMe = friendsInNeed
+    .Has(Comp<Owes>.Matching(bob))
+    .Not(Comp<Owes>.Matching(me));
 owingBobNotMe.For(PayOffDebt);
 
 // Reconfigure when needed - just make another filtered view!

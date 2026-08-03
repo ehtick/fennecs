@@ -32,14 +32,11 @@ using (var _ = world.Lock())
     }
 }
 
-var thanosStream = population.Stream<Alive>() with
-{
+var thanosStream = population.Stream<Alive>()
     // I'm the only one who knows that. The Unlucky must go! (mkay...)
-    Subset = [Comp<Unlucky>.Plain],
-    
+    .Has(Comp<Unlucky>.Plain)
     // ... the Lucky, I'll leave to chance. (uh oh!?)
-    Exclude = [Comp<Lucky>.Plain],
-};
+    .Not(Comp<Lucky>.Plain);
 
 
 // (Aside: Thanos flunked probabilistics. Here's what's truly going on!)

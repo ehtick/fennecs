@@ -134,9 +134,6 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
         return matchesHas && matchesNot && matchesAny;
     }
 
-
-    internal bool IsMatchSuperSet(IReadOnlyList<TypeExpression> matchTypes) => MatchSignature.IsSupersetOf(matchTypes);
-
     /// <summary>
     /// Remove one or more Entities and all associated Component data from the Archetype.
     /// </summary>

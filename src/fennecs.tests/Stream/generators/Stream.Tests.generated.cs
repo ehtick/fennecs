@@ -628,49 +628,6 @@ public class Stream1ValueTests(ITestOutputHelper output)
         Assert.Equal(0, stream.Count);
         Assert.True(outsider.Alive);
     }
-
-
-    [Fact]
-    public void Subset_and_Exclude_Filter_Archetypes()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(ValA.New(0));
-        world.Spawn().Add(ValA.New(1)).Add("extended");
-        world.Spawn().Add(ValA.New(2)).Add("extended");
-
-        var stream = world.Query<ValA>().Stream();
-        Assert.Equal(3, stream.Count);
-
-        var subset = stream with { Subset = [Comp<string>.Plain] };
-        Assert.Equal(2, subset.Count);
-
-        var exclude = stream with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, exclude.Count);
-
-        // runners iterate only the filtered archetypes
-        var visited = 0;
-        subset.For((ref _) => { visited++; });
-        Assert.Equal(2, visited);
-    }
-
-
-    [Fact]
-    public void Despawn_Honors_Exclude_Filter()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(ValA.New(0));
-        world.Spawn().Add(ValA.New(1)).Add("survivor");
-
-        var stream = world.Query<ValA>().Stream() with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, stream.Count);
-
-        stream.Despawn();
-
-        Assert.Equal(0, stream.Count);
-        Assert.Equal(1, world.Query<ValA>().Stream().Count);
-    }
 }
 
 /// <summary>
@@ -1295,49 +1252,6 @@ public class Stream2ValueTests(ITestOutputHelper output)
 
         Assert.Equal(0, stream.Count);
         Assert.True(outsider.Alive);
-    }
-
-
-    [Fact]
-    public void Subset_and_Exclude_Filter_Archetypes()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(ValA.New(0)).Add(ValB.New(0));
-        world.Spawn().Add(ValA.New(1)).Add(ValB.New(1)).Add("extended");
-        world.Spawn().Add(ValA.New(2)).Add(ValB.New(2)).Add("extended");
-
-        var stream = world.Query<ValA, ValB>().Stream();
-        Assert.Equal(3, stream.Count);
-
-        var subset = stream with { Subset = [Comp<string>.Plain] };
-        Assert.Equal(2, subset.Count);
-
-        var exclude = stream with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, exclude.Count);
-
-        // runners iterate only the filtered archetypes
-        var visited = 0;
-        subset.For((ref _, ref _) => { visited++; });
-        Assert.Equal(2, visited);
-    }
-
-
-    [Fact]
-    public void Despawn_Honors_Exclude_Filter()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(ValA.New(0)).Add(ValB.New(0));
-        world.Spawn().Add(ValA.New(1)).Add(ValB.New(1)).Add("survivor");
-
-        var stream = world.Query<ValA, ValB>().Stream() with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, stream.Count);
-
-        stream.Despawn();
-
-        Assert.Equal(0, stream.Count);
-        Assert.Equal(1, world.Query<ValA, ValB>().Stream().Count);
     }
 }
 
@@ -1969,49 +1883,6 @@ public class Stream3ValueTests(ITestOutputHelper output)
 
         Assert.Equal(0, stream.Count);
         Assert.True(outsider.Alive);
-    }
-
-
-    [Fact]
-    public void Subset_and_Exclude_Filter_Archetypes()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(ValA.New(0)).Add(ValB.New(0)).Add(ValC.New(0));
-        world.Spawn().Add(ValA.New(1)).Add(ValB.New(1)).Add(ValC.New(1)).Add("extended");
-        world.Spawn().Add(ValA.New(2)).Add(ValB.New(2)).Add(ValC.New(2)).Add("extended");
-
-        var stream = world.Query<ValA, ValB, ValC>().Stream();
-        Assert.Equal(3, stream.Count);
-
-        var subset = stream with { Subset = [Comp<string>.Plain] };
-        Assert.Equal(2, subset.Count);
-
-        var exclude = stream with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, exclude.Count);
-
-        // runners iterate only the filtered archetypes
-        var visited = 0;
-        subset.For((ref _, ref _, ref _) => { visited++; });
-        Assert.Equal(2, visited);
-    }
-
-
-    [Fact]
-    public void Despawn_Honors_Exclude_Filter()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(ValA.New(0)).Add(ValB.New(0)).Add(ValC.New(0));
-        world.Spawn().Add(ValA.New(1)).Add(ValB.New(1)).Add(ValC.New(1)).Add("survivor");
-
-        var stream = world.Query<ValA, ValB, ValC>().Stream() with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, stream.Count);
-
-        stream.Despawn();
-
-        Assert.Equal(0, stream.Count);
-        Assert.Equal(1, world.Query<ValA, ValB, ValC>().Stream().Count);
     }
 }
 
@@ -2649,49 +2520,6 @@ public class Stream4ValueTests(ITestOutputHelper output)
 
         Assert.Equal(0, stream.Count);
         Assert.True(outsider.Alive);
-    }
-
-
-    [Fact]
-    public void Subset_and_Exclude_Filter_Archetypes()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(ValA.New(0)).Add(ValB.New(0)).Add(ValC.New(0)).Add(ValD.New(0));
-        world.Spawn().Add(ValA.New(1)).Add(ValB.New(1)).Add(ValC.New(1)).Add(ValD.New(1)).Add("extended");
-        world.Spawn().Add(ValA.New(2)).Add(ValB.New(2)).Add(ValC.New(2)).Add(ValD.New(2)).Add("extended");
-
-        var stream = world.Query<ValA, ValB, ValC, ValD>().Stream();
-        Assert.Equal(3, stream.Count);
-
-        var subset = stream with { Subset = [Comp<string>.Plain] };
-        Assert.Equal(2, subset.Count);
-
-        var exclude = stream with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, exclude.Count);
-
-        // runners iterate only the filtered archetypes
-        var visited = 0;
-        subset.For((ref _, ref _, ref _, ref _) => { visited++; });
-        Assert.Equal(2, visited);
-    }
-
-
-    [Fact]
-    public void Despawn_Honors_Exclude_Filter()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(ValA.New(0)).Add(ValB.New(0)).Add(ValC.New(0)).Add(ValD.New(0));
-        world.Spawn().Add(ValA.New(1)).Add(ValB.New(1)).Add(ValC.New(1)).Add(ValD.New(1)).Add("survivor");
-
-        var stream = world.Query<ValA, ValB, ValC, ValD>().Stream() with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, stream.Count);
-
-        stream.Despawn();
-
-        Assert.Equal(0, stream.Count);
-        Assert.Equal(1, world.Query<ValA, ValB, ValC, ValD>().Stream().Count);
     }
 }
 
@@ -3336,49 +3164,6 @@ public class Stream5ValueTests(ITestOutputHelper output)
         Assert.Equal(0, stream.Count);
         Assert.True(outsider.Alive);
     }
-
-
-    [Fact]
-    public void Subset_and_Exclude_Filter_Archetypes()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(ValA.New(0)).Add(ValB.New(0)).Add(ValC.New(0)).Add(ValD.New(0)).Add(ValE.New(0));
-        world.Spawn().Add(ValA.New(1)).Add(ValB.New(1)).Add(ValC.New(1)).Add(ValD.New(1)).Add(ValE.New(1)).Add("extended");
-        world.Spawn().Add(ValA.New(2)).Add(ValB.New(2)).Add(ValC.New(2)).Add(ValD.New(2)).Add(ValE.New(2)).Add("extended");
-
-        var stream = world.Query<ValA, ValB, ValC, ValD, ValE>().Stream();
-        Assert.Equal(3, stream.Count);
-
-        var subset = stream with { Subset = [Comp<string>.Plain] };
-        Assert.Equal(2, subset.Count);
-
-        var exclude = stream with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, exclude.Count);
-
-        // runners iterate only the filtered archetypes
-        var visited = 0;
-        subset.For((ref _, ref _, ref _, ref _, ref _) => { visited++; });
-        Assert.Equal(2, visited);
-    }
-
-
-    [Fact]
-    public void Despawn_Honors_Exclude_Filter()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(ValA.New(0)).Add(ValB.New(0)).Add(ValC.New(0)).Add(ValD.New(0)).Add(ValE.New(0));
-        world.Spawn().Add(ValA.New(1)).Add(ValB.New(1)).Add(ValC.New(1)).Add(ValD.New(1)).Add(ValE.New(1)).Add("survivor");
-
-        var stream = world.Query<ValA, ValB, ValC, ValD, ValE>().Stream() with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, stream.Count);
-
-        stream.Despawn();
-
-        Assert.Equal(0, stream.Count);
-        Assert.Equal(1, world.Query<ValA, ValB, ValC, ValD, ValE>().Stream().Count);
-    }
 }
 
 /// <summary>
@@ -3991,49 +3776,6 @@ public class Stream1RefTests(ITestOutputHelper output)
 
         Assert.Equal(0, stream.Count);
         Assert.True(outsider.Alive);
-    }
-
-
-    [Fact]
-    public void Subset_and_Exclude_Filter_Archetypes()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(RefA.New(0));
-        world.Spawn().Add(RefA.New(1)).Add("extended");
-        world.Spawn().Add(RefA.New(2)).Add("extended");
-
-        var stream = world.Query<RefA>().Stream();
-        Assert.Equal(3, stream.Count);
-
-        var subset = stream with { Subset = [Comp<string>.Plain] };
-        Assert.Equal(2, subset.Count);
-
-        var exclude = stream with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, exclude.Count);
-
-        // runners iterate only the filtered archetypes
-        var visited = 0;
-        subset.For((ref _) => { visited++; });
-        Assert.Equal(2, visited);
-    }
-
-
-    [Fact]
-    public void Despawn_Honors_Exclude_Filter()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(RefA.New(0));
-        world.Spawn().Add(RefA.New(1)).Add("survivor");
-
-        var stream = world.Query<RefA>().Stream() with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, stream.Count);
-
-        stream.Despawn();
-
-        Assert.Equal(0, stream.Count);
-        Assert.Equal(1, world.Query<RefA>().Stream().Count);
     }
 }
 
@@ -4659,49 +4401,6 @@ public class Stream2RefTests(ITestOutputHelper output)
 
         Assert.Equal(0, stream.Count);
         Assert.True(outsider.Alive);
-    }
-
-
-    [Fact]
-    public void Subset_and_Exclude_Filter_Archetypes()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(RefA.New(0)).Add(RefB.New(0));
-        world.Spawn().Add(RefA.New(1)).Add(RefB.New(1)).Add("extended");
-        world.Spawn().Add(RefA.New(2)).Add(RefB.New(2)).Add("extended");
-
-        var stream = world.Query<RefA, RefB>().Stream();
-        Assert.Equal(3, stream.Count);
-
-        var subset = stream with { Subset = [Comp<string>.Plain] };
-        Assert.Equal(2, subset.Count);
-
-        var exclude = stream with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, exclude.Count);
-
-        // runners iterate only the filtered archetypes
-        var visited = 0;
-        subset.For((ref _, ref _) => { visited++; });
-        Assert.Equal(2, visited);
-    }
-
-
-    [Fact]
-    public void Despawn_Honors_Exclude_Filter()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(RefA.New(0)).Add(RefB.New(0));
-        world.Spawn().Add(RefA.New(1)).Add(RefB.New(1)).Add("survivor");
-
-        var stream = world.Query<RefA, RefB>().Stream() with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, stream.Count);
-
-        stream.Despawn();
-
-        Assert.Equal(0, stream.Count);
-        Assert.Equal(1, world.Query<RefA, RefB>().Stream().Count);
     }
 }
 
@@ -5333,49 +5032,6 @@ public class Stream3RefTests(ITestOutputHelper output)
 
         Assert.Equal(0, stream.Count);
         Assert.True(outsider.Alive);
-    }
-
-
-    [Fact]
-    public void Subset_and_Exclude_Filter_Archetypes()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(RefA.New(0)).Add(RefB.New(0)).Add(RefC.New(0));
-        world.Spawn().Add(RefA.New(1)).Add(RefB.New(1)).Add(RefC.New(1)).Add("extended");
-        world.Spawn().Add(RefA.New(2)).Add(RefB.New(2)).Add(RefC.New(2)).Add("extended");
-
-        var stream = world.Query<RefA, RefB, RefC>().Stream();
-        Assert.Equal(3, stream.Count);
-
-        var subset = stream with { Subset = [Comp<string>.Plain] };
-        Assert.Equal(2, subset.Count);
-
-        var exclude = stream with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, exclude.Count);
-
-        // runners iterate only the filtered archetypes
-        var visited = 0;
-        subset.For((ref _, ref _, ref _) => { visited++; });
-        Assert.Equal(2, visited);
-    }
-
-
-    [Fact]
-    public void Despawn_Honors_Exclude_Filter()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(RefA.New(0)).Add(RefB.New(0)).Add(RefC.New(0));
-        world.Spawn().Add(RefA.New(1)).Add(RefB.New(1)).Add(RefC.New(1)).Add("survivor");
-
-        var stream = world.Query<RefA, RefB, RefC>().Stream() with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, stream.Count);
-
-        stream.Despawn();
-
-        Assert.Equal(0, stream.Count);
-        Assert.Equal(1, world.Query<RefA, RefB, RefC>().Stream().Count);
     }
 }
 
@@ -6013,49 +5669,6 @@ public class Stream4RefTests(ITestOutputHelper output)
 
         Assert.Equal(0, stream.Count);
         Assert.True(outsider.Alive);
-    }
-
-
-    [Fact]
-    public void Subset_and_Exclude_Filter_Archetypes()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(RefA.New(0)).Add(RefB.New(0)).Add(RefC.New(0)).Add(RefD.New(0));
-        world.Spawn().Add(RefA.New(1)).Add(RefB.New(1)).Add(RefC.New(1)).Add(RefD.New(1)).Add("extended");
-        world.Spawn().Add(RefA.New(2)).Add(RefB.New(2)).Add(RefC.New(2)).Add(RefD.New(2)).Add("extended");
-
-        var stream = world.Query<RefA, RefB, RefC, RefD>().Stream();
-        Assert.Equal(3, stream.Count);
-
-        var subset = stream with { Subset = [Comp<string>.Plain] };
-        Assert.Equal(2, subset.Count);
-
-        var exclude = stream with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, exclude.Count);
-
-        // runners iterate only the filtered archetypes
-        var visited = 0;
-        subset.For((ref _, ref _, ref _, ref _) => { visited++; });
-        Assert.Equal(2, visited);
-    }
-
-
-    [Fact]
-    public void Despawn_Honors_Exclude_Filter()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(RefA.New(0)).Add(RefB.New(0)).Add(RefC.New(0)).Add(RefD.New(0));
-        world.Spawn().Add(RefA.New(1)).Add(RefB.New(1)).Add(RefC.New(1)).Add(RefD.New(1)).Add("survivor");
-
-        var stream = world.Query<RefA, RefB, RefC, RefD>().Stream() with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, stream.Count);
-
-        stream.Despawn();
-
-        Assert.Equal(0, stream.Count);
-        Assert.Equal(1, world.Query<RefA, RefB, RefC, RefD>().Stream().Count);
     }
 }
 
@@ -6700,49 +6313,6 @@ public class Stream5RefTests(ITestOutputHelper output)
         Assert.Equal(0, stream.Count);
         Assert.True(outsider.Alive);
     }
-
-
-    [Fact]
-    public void Subset_and_Exclude_Filter_Archetypes()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(RefA.New(0)).Add(RefB.New(0)).Add(RefC.New(0)).Add(RefD.New(0)).Add(RefE.New(0));
-        world.Spawn().Add(RefA.New(1)).Add(RefB.New(1)).Add(RefC.New(1)).Add(RefD.New(1)).Add(RefE.New(1)).Add("extended");
-        world.Spawn().Add(RefA.New(2)).Add(RefB.New(2)).Add(RefC.New(2)).Add(RefD.New(2)).Add(RefE.New(2)).Add("extended");
-
-        var stream = world.Query<RefA, RefB, RefC, RefD, RefE>().Stream();
-        Assert.Equal(3, stream.Count);
-
-        var subset = stream with { Subset = [Comp<string>.Plain] };
-        Assert.Equal(2, subset.Count);
-
-        var exclude = stream with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, exclude.Count);
-
-        // runners iterate only the filtered archetypes
-        var visited = 0;
-        subset.For((ref _, ref _, ref _, ref _, ref _) => { visited++; });
-        Assert.Equal(2, visited);
-    }
-
-
-    [Fact]
-    public void Despawn_Honors_Exclude_Filter()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(RefA.New(0)).Add(RefB.New(0)).Add(RefC.New(0)).Add(RefD.New(0)).Add(RefE.New(0));
-        world.Spawn().Add(RefA.New(1)).Add(RefB.New(1)).Add(RefC.New(1)).Add(RefD.New(1)).Add(RefE.New(1)).Add("survivor");
-
-        var stream = world.Query<RefA, RefB, RefC, RefD, RefE>().Stream() with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, stream.Count);
-
-        stream.Despawn();
-
-        Assert.Equal(0, stream.Count);
-        Assert.Equal(1, world.Query<RefA, RefB, RefC, RefD, RefE>().Stream().Count);
-    }
 }
 
 /// <summary>
@@ -7367,49 +6937,6 @@ public class Stream2MixedTests(ITestOutputHelper output)
 
         Assert.Equal(0, stream.Count);
         Assert.True(outsider.Alive);
-    }
-
-
-    [Fact]
-    public void Subset_and_Exclude_Filter_Archetypes()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(ValA.New(0)).Add(RefB.New(0));
-        world.Spawn().Add(ValA.New(1)).Add(RefB.New(1)).Add("extended");
-        world.Spawn().Add(ValA.New(2)).Add(RefB.New(2)).Add("extended");
-
-        var stream = world.Query<ValA, RefB>().Stream();
-        Assert.Equal(3, stream.Count);
-
-        var subset = stream with { Subset = [Comp<string>.Plain] };
-        Assert.Equal(2, subset.Count);
-
-        var exclude = stream with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, exclude.Count);
-
-        // runners iterate only the filtered archetypes
-        var visited = 0;
-        subset.For((ref _, ref _) => { visited++; });
-        Assert.Equal(2, visited);
-    }
-
-
-    [Fact]
-    public void Despawn_Honors_Exclude_Filter()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(ValA.New(0)).Add(RefB.New(0));
-        world.Spawn().Add(ValA.New(1)).Add(RefB.New(1)).Add("survivor");
-
-        var stream = world.Query<ValA, RefB>().Stream() with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, stream.Count);
-
-        stream.Despawn();
-
-        Assert.Equal(0, stream.Count);
-        Assert.Equal(1, world.Query<ValA, RefB>().Stream().Count);
     }
 }
 
@@ -8041,49 +7568,6 @@ public class Stream3MixedTests(ITestOutputHelper output)
 
         Assert.Equal(0, stream.Count);
         Assert.True(outsider.Alive);
-    }
-
-
-    [Fact]
-    public void Subset_and_Exclude_Filter_Archetypes()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(ValA.New(0)).Add(RefB.New(0)).Add(ValC.New(0));
-        world.Spawn().Add(ValA.New(1)).Add(RefB.New(1)).Add(ValC.New(1)).Add("extended");
-        world.Spawn().Add(ValA.New(2)).Add(RefB.New(2)).Add(ValC.New(2)).Add("extended");
-
-        var stream = world.Query<ValA, RefB, ValC>().Stream();
-        Assert.Equal(3, stream.Count);
-
-        var subset = stream with { Subset = [Comp<string>.Plain] };
-        Assert.Equal(2, subset.Count);
-
-        var exclude = stream with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, exclude.Count);
-
-        // runners iterate only the filtered archetypes
-        var visited = 0;
-        subset.For((ref _, ref _, ref _) => { visited++; });
-        Assert.Equal(2, visited);
-    }
-
-
-    [Fact]
-    public void Despawn_Honors_Exclude_Filter()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(ValA.New(0)).Add(RefB.New(0)).Add(ValC.New(0));
-        world.Spawn().Add(ValA.New(1)).Add(RefB.New(1)).Add(ValC.New(1)).Add("survivor");
-
-        var stream = world.Query<ValA, RefB, ValC>().Stream() with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, stream.Count);
-
-        stream.Despawn();
-
-        Assert.Equal(0, stream.Count);
-        Assert.Equal(1, world.Query<ValA, RefB, ValC>().Stream().Count);
     }
 }
 
@@ -8721,49 +8205,6 @@ public class Stream4MixedTests(ITestOutputHelper output)
 
         Assert.Equal(0, stream.Count);
         Assert.True(outsider.Alive);
-    }
-
-
-    [Fact]
-    public void Subset_and_Exclude_Filter_Archetypes()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(ValA.New(0)).Add(RefB.New(0)).Add(ValC.New(0)).Add(RefD.New(0));
-        world.Spawn().Add(ValA.New(1)).Add(RefB.New(1)).Add(ValC.New(1)).Add(RefD.New(1)).Add("extended");
-        world.Spawn().Add(ValA.New(2)).Add(RefB.New(2)).Add(ValC.New(2)).Add(RefD.New(2)).Add("extended");
-
-        var stream = world.Query<ValA, RefB, ValC, RefD>().Stream();
-        Assert.Equal(3, stream.Count);
-
-        var subset = stream with { Subset = [Comp<string>.Plain] };
-        Assert.Equal(2, subset.Count);
-
-        var exclude = stream with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, exclude.Count);
-
-        // runners iterate only the filtered archetypes
-        var visited = 0;
-        subset.For((ref _, ref _, ref _, ref _) => { visited++; });
-        Assert.Equal(2, visited);
-    }
-
-
-    [Fact]
-    public void Despawn_Honors_Exclude_Filter()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(ValA.New(0)).Add(RefB.New(0)).Add(ValC.New(0)).Add(RefD.New(0));
-        world.Spawn().Add(ValA.New(1)).Add(RefB.New(1)).Add(ValC.New(1)).Add(RefD.New(1)).Add("survivor");
-
-        var stream = world.Query<ValA, RefB, ValC, RefD>().Stream() with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, stream.Count);
-
-        stream.Despawn();
-
-        Assert.Equal(0, stream.Count);
-        Assert.Equal(1, world.Query<ValA, RefB, ValC, RefD>().Stream().Count);
     }
 }
 
@@ -9407,48 +8848,5 @@ public class Stream5MixedTests(ITestOutputHelper output)
 
         Assert.Equal(0, stream.Count);
         Assert.True(outsider.Alive);
-    }
-
-
-    [Fact]
-    public void Subset_and_Exclude_Filter_Archetypes()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(ValA.New(0)).Add(RefB.New(0)).Add(ValC.New(0)).Add(RefD.New(0)).Add(ValE.New(0));
-        world.Spawn().Add(ValA.New(1)).Add(RefB.New(1)).Add(ValC.New(1)).Add(RefD.New(1)).Add(ValE.New(1)).Add("extended");
-        world.Spawn().Add(ValA.New(2)).Add(RefB.New(2)).Add(ValC.New(2)).Add(RefD.New(2)).Add(ValE.New(2)).Add("extended");
-
-        var stream = world.Query<ValA, RefB, ValC, RefD, ValE>().Stream();
-        Assert.Equal(3, stream.Count);
-
-        var subset = stream with { Subset = [Comp<string>.Plain] };
-        Assert.Equal(2, subset.Count);
-
-        var exclude = stream with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, exclude.Count);
-
-        // runners iterate only the filtered archetypes
-        var visited = 0;
-        subset.For((ref _, ref _, ref _, ref _, ref _) => { visited++; });
-        Assert.Equal(2, visited);
-    }
-
-
-    [Fact]
-    public void Despawn_Honors_Exclude_Filter()
-    {
-        using var world = new World();
-
-        world.Spawn().Add(ValA.New(0)).Add(RefB.New(0)).Add(ValC.New(0)).Add(RefD.New(0)).Add(ValE.New(0));
-        world.Spawn().Add(ValA.New(1)).Add(RefB.New(1)).Add(ValC.New(1)).Add(RefD.New(1)).Add(ValE.New(1)).Add("survivor");
-
-        var stream = world.Query<ValA, RefB, ValC, RefD, ValE>().Stream() with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, stream.Count);
-
-        stream.Despawn();
-
-        Assert.Equal(0, stream.Count);
-        Assert.Equal(1, world.Query<ValA, RefB, ValC, RefD, ValE>().Stream().Count);
     }
 }

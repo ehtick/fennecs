@@ -673,49 +673,6 @@ public class Stream<#= n #><#= setName #>Tests(ITestOutputHelper output)
         Assert.Equal(0, stream.Count);
         Assert.True(outsider.Alive);
     }
-
-
-    [Fact]
-    public void Subset_and_Exclude_Filter_Archetypes()
-    {
-        using var world = new World();
-
-        world.Spawn()<#= AddChain(T, n, i => "0") #>;
-        world.Spawn()<#= AddChain(T, n, i => "1") #>.Add("extended");
-        world.Spawn()<#= AddChain(T, n, i => "2") #>.Add("extended");
-
-        var stream = world.Query<<#= types #>>().Stream();
-        Assert.Equal(3, stream.Count);
-
-        var subset = stream with { Subset = [Comp<string>.Plain] };
-        Assert.Equal(2, subset.Count);
-
-        var exclude = stream with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, exclude.Count);
-
-        // runners iterate only the filtered archetypes
-        var visited = 0;
-        subset.For((<#= RefArgs(n) #>) => { visited++; });
-        Assert.Equal(2, visited);
-    }
-
-
-    [Fact]
-    public void Despawn_Honors_Exclude_Filter()
-    {
-        using var world = new World();
-
-        world.Spawn()<#= AddChain(T, n, i => "0") #>;
-        world.Spawn()<#= AddChain(T, n, i => "1") #>.Add("survivor");
-
-        var stream = world.Query<<#= types #>>().Stream() with { Exclude = [Comp<string>.Plain] };
-        Assert.Equal(1, stream.Count);
-
-        stream.Despawn();
-
-        Assert.Equal(0, stream.Count);
-        Assert.Equal(1, world.Query<<#= types #>>().Stream().Count);
-    }
 }
 <#
     } // end for set / arity

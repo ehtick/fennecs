@@ -2,7 +2,7 @@
 title: 5. Thanos (Filters)
 outline: [2, 3]
 order: 5
-description: Teaches fennecs query filtering with Subset and Exclude, then uses Stream.Despawn to bulk-remove half the entity population in one call.
+description: Teaches fennecs stream filtering with Has and Not, then uses FilteredStream.Despawn to bulk-remove half the entity population in one call.
 ---
 
 # How to Snap ~25% of the World away
@@ -19,7 +19,7 @@ All `.csproj` and `.cs` files are [over here on Github!](https://github.com/outf
 ### Premise
 Hey there, mighty Titan (who flunked probabilitics)! Ready to bring perfect balance to your `fennecs.World`?
 
-In this example, we'll show you how to use fennecs' `Query.Subset` and `Query.Exclude` methods to ~~snap away~~ `Despawn` half the entities in your world. 
+In this example, we'll show you how to use fennecs' `Has` and `Not` stream filters to ~~snap away~~ `Despawn` half the entities in your world. 
 
 ::: details SPOILER
 Well... randomly half of randomly half!

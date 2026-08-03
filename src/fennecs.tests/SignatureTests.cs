@@ -339,16 +339,20 @@ public class SignatureTests
     }
 
     [Fact]
-    public void Signature_Can_Match_Component_Sets()
+    public void Signature_Set_Operations_Match_Component_Expressions()
     {
         var signature1 = new Signature(TypeExpression.Of<int>(Match.Plain), TypeExpression.Of<string>(Match.Plain));
-        
-        ImmutableSortedSet<Comp> componentSet1 = [Comp<int>.Plain];
-        ImmutableSortedSet<Comp> componentSet2 = [Comp<string>.Plain];
-        ImmutableSortedSet<Comp> componentSet3 = [Comp<float>.Plain];
-        
-        Assert.True(signature1.Matches(componentSet1));
-        Assert.True(signature1.Matches(componentSet2));
-        Assert.False(signature1.Matches(componentSet3));
+
+        // the set operations FilteredStream matching is built on (Has = superset, Not = overlap)
+        ImmutableSortedSet<TypeExpression> both = [Comp<int>.Plain.Expression, Comp<string>.Plain.Expression];
+        ImmutableSortedSet<TypeExpression> ints = [Comp<int>.Plain.Expression];
+        ImmutableSortedSet<TypeExpression> floats = [Comp<float>.Plain.Expression];
+
+        Assert.True(signature1.IsSupersetOf(both));
+        Assert.True(signature1.IsSupersetOf(ints));
+        Assert.False(signature1.IsSupersetOf(floats));
+
+        Assert.True(signature1.Overlaps(ints));
+        Assert.False(signature1.Overlaps(floats));
     }
 }
