@@ -104,7 +104,7 @@ partyGoers.For((ref name, ref playlist) =>
 From the start, a Query includes only Entities that match all of its [Stream Types](../Streams/). This applies regardless of whether it's a Plain Component, Entity-Entity Relation, or Object Link  –  unless expressly specified in the QueryBuilder.
 
 ::: details :neofox_magnify: BEHIND THE SCENES: What does a Query even DO?
-Each compiled Query maintains a collection of all Archetypes it matches (and a [filtered subset](/docs/Intermediate/Filters/index.md)). When iterating, the Query processes each Archetype in deterministic order.
+Each compiled Query maintains a collection of all Archetypes it matches (and a [filtered subset](/docs/Intermediate/Filters/Subset.md)). When iterating, the Query processes each Archetype in deterministic order.
 
 Whenever a new Archetype materializes, the World notifies _all matching Queries_ of its existence.
 :::

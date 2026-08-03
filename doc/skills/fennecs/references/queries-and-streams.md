@@ -137,11 +137,22 @@ Prefer a broad query + stream filters when the narrowing target is dynamic
 (e.g. a specific entity that may despawn); prefer baked query expressions for
 static criteria.
 
-Per-value predicate filtering (evaluated per entity during iteration):
+Per-value predicate filtering — `Where` (LINQ-style, evaluated per entity):
 
 ```csharp
-var moving = stream.Where((in Velocity v) => v.Value.LengthSquared() > 0.01f);
+var moving = stream
+    .Where((in Velocity v) => v.Value.LengthSquared() > 0.01f)
+    .Where((in Health h) => h.Current < h.Max);   // different component: ANDed
 ```
+
+`Where` takes a `ComponentFilter<C>` (`bool (in C c)`) for one of the stream's
+type parameters and returns a new Stream — spell out the lambda's parameter
+type; it selects the overload. One predicate slot per stream type: chaining
+across different components ANDs them, but a second `Where` on the same
+component type *replaces* that slot (combine conditions in one lambda instead).
+Predicates run per entity in `For` and `Job` (thread-safe for `Job`);
+`Raw`, `Blit`, enumeration, and `Count` ignore them and honor only
+`Subset`/`Exclude`.
 
 ### Wildcard cross-join semantics
 
