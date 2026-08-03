@@ -6,11 +6,11 @@ order: 20
 description: 'Stream filters in fennecs narrow a Query on the fly - archetype-level Subset & Exclude sets, and LINQ-style per-entity Where(lambda) predicates on component values.'
 ---
 
-# Filters
+# Stream Filters
 
-Sometimes, a dynamic on-the-fly filter is needed to process only a subset of Entities; this enables us to quickly adjust our ECS logic to do different subsets of work without requiring a growing amount of queries to be defined.
+Sometimes, a dynamic on-the-fly filter is needed to process only a subset of Entities; this enables us to quickly adjust our ECS logic to do different subsets of work without requiring a growing amount of queries to be defined and tracked.
 
-Streams are lightweight views over their Query, so filtering never mutates the original Stream nor the underlying Query – you simply get a new, narrower view to run.
+Streams are *lightweight views* over their Query, so filtering never mutates the original Stream nor the underlying Query – you simply use a new, narrower view to run.
 
 ## Two Flavors of Filtering
 
