@@ -35,7 +35,8 @@ For support questions, please join our vibrant community on [Discord](https://di
 1. New contributors should submit their work as Pull Requests via GitHub.
 2. All contributions must be compatible with the MIT license. If you're including MIT-licensed work from others, please let us know so we can properly attribute them.
 3. As **fenn**ecs is distributed as a .NET package on NuGet (and potentially other registries), contributions should not introduce dependencies to other packages or include game-engine-specific code paths.
-4. Engine-specific code and bindings are welcome, but in supplementary packages (e.g., the `fennecs-godot` addon).
+4. Engine-specific code and bindings are welcome, but in supplementary packages (e.g., a `fennecs-godot` addon, let's discuss on [Discord](https://discord.gg/Bfx74WcVXW)).
+5. AI / LLM Extrusions, issue reports, and pull requests are welcome. Please keep their verbosity down, and give the work a thorough human sanity check.
 
 ## Attribution
 
