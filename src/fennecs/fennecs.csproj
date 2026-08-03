@@ -1,10 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <PackageId>fennecs</PackageId>
-        <Version>0.7.0-pre</Version>
         <Title>fennecs - tiny ECS</Title>
         <OutputType>Library</OutputType>
     </PropertyGroup>
+
+    <!-- Version is derived from git tags (v-prefixed, e.g. v0.7.1-pre) via MinVer at build time. -->
+    <PropertyGroup>
+        <MinVerTagPrefix>v</MinVerTagPrefix>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="MinVer" Version="7.0.0" PrivateAssets="all" />
+    </ItemGroup>
 
     <PropertyGroup>
         <Product>fennecs Entity-Component System</Product>
