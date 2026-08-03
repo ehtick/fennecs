@@ -562,6 +562,34 @@ public class FilteredStream<#= n #><#= setName #>Tests
         });
         Assert.Equal(1, visited);
 
+        visited = 0;
+        both.For((in e, <#= RefArgs(n, 0) #>) =>
+        {
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, <#= RefArgs(n, 0) #>) =>
+        {
+            Assert.Equal(4711, uniform);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, in e, <#= RefArgs(n, 0) #>) =>
+        {
+            Assert.Equal(4711, uniform);
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
         var enumerated = 0;
         foreach (var row in both)
         {
@@ -691,17 +719,20 @@ public class FilteredStream<#= n #><#= setName #>Tests
         world.Spawn()<#= AddChain(T, n, k => "10") #>;
         world.Spawn()<#= AddChain(T, n, k => "90") #>;
         world.Spawn()<#= AddChain(T, n, k => "95") #>.Add("extended");
+        world.Spawn()<#= AddChain(T, n, k => "99") #>.Add(42L); // sheltered by the Not clause
         var outsider = world.Spawn().Add("outsider");
 
-        var filtered = world.Stream<<#= types #>>().Where((in <#= T0 #> c) => c.Value > 50);
+        var filtered = world.Stream<<#= types #>>()
+            .Not(Comp<long>.Plain)
+            .Where((in <#= T0 #> c) => c.Value > 50);
         Assert.Equal(2, filtered.Count);
 
         filtered.Despawn();
 
         Assert.Equal(0, filtered.Count);
-        Assert.Equal(1, world.Stream<<#= types #>>().Count);
+        Assert.Equal(2, world.Stream<<#= types #>>().Count);
         Assert.True(outsider.Alive);
-        world.Stream<<#= types #>>().For((<#= RefArgs(n, 0) #>) => Assert.Equal(10, c0.Value));
+        world.Stream<<#= types #>>().For((<#= RefArgs(n, 0) #>) => Assert.True(c0.Value is 10 or 99));
     }
 
     [Fact]

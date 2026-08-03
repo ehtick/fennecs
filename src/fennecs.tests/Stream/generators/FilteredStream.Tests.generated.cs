@@ -529,6 +529,34 @@ public class FilteredStream1ValueTests
         });
         Assert.Equal(1, visited);
 
+        visited = 0;
+        both.For((in e, ref c0) =>
+        {
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, ref c0) =>
+        {
+            Assert.Equal(4711, uniform);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, in e, ref c0) =>
+        {
+            Assert.Equal(4711, uniform);
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
         var enumerated = 0;
         foreach (var row in both)
         {
@@ -657,17 +685,20 @@ public class FilteredStream1ValueTests
         world.Spawn().Add(ValA.New(10));
         world.Spawn().Add(ValA.New(90));
         world.Spawn().Add(ValA.New(95)).Add("extended");
+        world.Spawn().Add(ValA.New(99)).Add(42L); // sheltered by the Not clause
         var outsider = world.Spawn().Add("outsider");
 
-        var filtered = world.Stream<ValA>().Where((in ValA c) => c.Value > 50);
+        var filtered = world.Stream<ValA>()
+            .Not(Comp<long>.Plain)
+            .Where((in ValA c) => c.Value > 50);
         Assert.Equal(2, filtered.Count);
 
         filtered.Despawn();
 
         Assert.Equal(0, filtered.Count);
-        Assert.Equal(1, world.Stream<ValA>().Count);
+        Assert.Equal(2, world.Stream<ValA>().Count);
         Assert.True(outsider.Alive);
-        world.Stream<ValA>().For((ref c0) => Assert.Equal(10, c0.Value));
+        world.Stream<ValA>().For((ref c0) => Assert.True(c0.Value is 10 or 99));
     }
 
     [Fact]
@@ -1529,6 +1560,34 @@ public class FilteredStream2ValueTests
         });
         Assert.Equal(1, visited);
 
+        visited = 0;
+        both.For((in e, ref c0, ref _) =>
+        {
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, ref c0, ref _) =>
+        {
+            Assert.Equal(4711, uniform);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, in e, ref c0, ref _) =>
+        {
+            Assert.Equal(4711, uniform);
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
         var enumerated = 0;
         foreach (var row in both)
         {
@@ -1657,17 +1716,20 @@ public class FilteredStream2ValueTests
         world.Spawn().Add(ValA.New(10)).Add(ValB.New(10));
         world.Spawn().Add(ValA.New(90)).Add(ValB.New(90));
         world.Spawn().Add(ValA.New(95)).Add(ValB.New(95)).Add("extended");
+        world.Spawn().Add(ValA.New(99)).Add(ValB.New(99)).Add(42L); // sheltered by the Not clause
         var outsider = world.Spawn().Add("outsider");
 
-        var filtered = world.Stream<ValA, ValB>().Where((in ValA c) => c.Value > 50);
+        var filtered = world.Stream<ValA, ValB>()
+            .Not(Comp<long>.Plain)
+            .Where((in ValA c) => c.Value > 50);
         Assert.Equal(2, filtered.Count);
 
         filtered.Despawn();
 
         Assert.Equal(0, filtered.Count);
-        Assert.Equal(1, world.Stream<ValA, ValB>().Count);
+        Assert.Equal(2, world.Stream<ValA, ValB>().Count);
         Assert.True(outsider.Alive);
-        world.Stream<ValA, ValB>().For((ref c0, ref _) => Assert.Equal(10, c0.Value));
+        world.Stream<ValA, ValB>().For((ref c0, ref _) => Assert.True(c0.Value is 10 or 99));
     }
 
     [Fact]
@@ -2769,6 +2831,34 @@ public class FilteredStream3ValueTests
         });
         Assert.Equal(1, visited);
 
+        visited = 0;
+        both.For((in e, ref c0, ref _, ref _) =>
+        {
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, ref c0, ref _, ref _) =>
+        {
+            Assert.Equal(4711, uniform);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, in e, ref c0, ref _, ref _) =>
+        {
+            Assert.Equal(4711, uniform);
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
         var enumerated = 0;
         foreach (var row in both)
         {
@@ -2897,17 +2987,20 @@ public class FilteredStream3ValueTests
         world.Spawn().Add(ValA.New(10)).Add(ValB.New(10)).Add(ValC.New(10));
         world.Spawn().Add(ValA.New(90)).Add(ValB.New(90)).Add(ValC.New(90));
         world.Spawn().Add(ValA.New(95)).Add(ValB.New(95)).Add(ValC.New(95)).Add("extended");
+        world.Spawn().Add(ValA.New(99)).Add(ValB.New(99)).Add(ValC.New(99)).Add(42L); // sheltered by the Not clause
         var outsider = world.Spawn().Add("outsider");
 
-        var filtered = world.Stream<ValA, ValB, ValC>().Where((in ValA c) => c.Value > 50);
+        var filtered = world.Stream<ValA, ValB, ValC>()
+            .Not(Comp<long>.Plain)
+            .Where((in ValA c) => c.Value > 50);
         Assert.Equal(2, filtered.Count);
 
         filtered.Despawn();
 
         Assert.Equal(0, filtered.Count);
-        Assert.Equal(1, world.Stream<ValA, ValB, ValC>().Count);
+        Assert.Equal(2, world.Stream<ValA, ValB, ValC>().Count);
         Assert.True(outsider.Alive);
-        world.Stream<ValA, ValB, ValC>().For((ref c0, ref _, ref _) => Assert.Equal(10, c0.Value));
+        world.Stream<ValA, ValB, ValC>().For((ref c0, ref _, ref _) => Assert.True(c0.Value is 10 or 99));
     }
 
     [Fact]
@@ -4249,6 +4342,34 @@ public class FilteredStream4ValueTests
         });
         Assert.Equal(1, visited);
 
+        visited = 0;
+        both.For((in e, ref c0, ref _, ref _, ref _) =>
+        {
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, ref c0, ref _, ref _, ref _) =>
+        {
+            Assert.Equal(4711, uniform);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, in e, ref c0, ref _, ref _, ref _) =>
+        {
+            Assert.Equal(4711, uniform);
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
         var enumerated = 0;
         foreach (var row in both)
         {
@@ -4377,17 +4498,20 @@ public class FilteredStream4ValueTests
         world.Spawn().Add(ValA.New(10)).Add(ValB.New(10)).Add(ValC.New(10)).Add(ValD.New(10));
         world.Spawn().Add(ValA.New(90)).Add(ValB.New(90)).Add(ValC.New(90)).Add(ValD.New(90));
         world.Spawn().Add(ValA.New(95)).Add(ValB.New(95)).Add(ValC.New(95)).Add(ValD.New(95)).Add("extended");
+        world.Spawn().Add(ValA.New(99)).Add(ValB.New(99)).Add(ValC.New(99)).Add(ValD.New(99)).Add(42L); // sheltered by the Not clause
         var outsider = world.Spawn().Add("outsider");
 
-        var filtered = world.Stream<ValA, ValB, ValC, ValD>().Where((in ValA c) => c.Value > 50);
+        var filtered = world.Stream<ValA, ValB, ValC, ValD>()
+            .Not(Comp<long>.Plain)
+            .Where((in ValA c) => c.Value > 50);
         Assert.Equal(2, filtered.Count);
 
         filtered.Despawn();
 
         Assert.Equal(0, filtered.Count);
-        Assert.Equal(1, world.Stream<ValA, ValB, ValC, ValD>().Count);
+        Assert.Equal(2, world.Stream<ValA, ValB, ValC, ValD>().Count);
         Assert.True(outsider.Alive);
-        world.Stream<ValA, ValB, ValC, ValD>().For((ref c0, ref _, ref _, ref _) => Assert.Equal(10, c0.Value));
+        world.Stream<ValA, ValB, ValC, ValD>().For((ref c0, ref _, ref _, ref _) => Assert.True(c0.Value is 10 or 99));
     }
 
     [Fact]
@@ -5969,6 +6093,34 @@ public class FilteredStream5ValueTests
         });
         Assert.Equal(1, visited);
 
+        visited = 0;
+        both.For((in e, ref c0, ref _, ref _, ref _, ref _) =>
+        {
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, ref c0, ref _, ref _, ref _, ref _) =>
+        {
+            Assert.Equal(4711, uniform);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, in e, ref c0, ref _, ref _, ref _, ref _) =>
+        {
+            Assert.Equal(4711, uniform);
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
         var enumerated = 0;
         foreach (var row in both)
         {
@@ -6097,17 +6249,20 @@ public class FilteredStream5ValueTests
         world.Spawn().Add(ValA.New(10)).Add(ValB.New(10)).Add(ValC.New(10)).Add(ValD.New(10)).Add(ValE.New(10));
         world.Spawn().Add(ValA.New(90)).Add(ValB.New(90)).Add(ValC.New(90)).Add(ValD.New(90)).Add(ValE.New(90));
         world.Spawn().Add(ValA.New(95)).Add(ValB.New(95)).Add(ValC.New(95)).Add(ValD.New(95)).Add(ValE.New(95)).Add("extended");
+        world.Spawn().Add(ValA.New(99)).Add(ValB.New(99)).Add(ValC.New(99)).Add(ValD.New(99)).Add(ValE.New(99)).Add(42L); // sheltered by the Not clause
         var outsider = world.Spawn().Add("outsider");
 
-        var filtered = world.Stream<ValA, ValB, ValC, ValD, ValE>().Where((in ValA c) => c.Value > 50);
+        var filtered = world.Stream<ValA, ValB, ValC, ValD, ValE>()
+            .Not(Comp<long>.Plain)
+            .Where((in ValA c) => c.Value > 50);
         Assert.Equal(2, filtered.Count);
 
         filtered.Despawn();
 
         Assert.Equal(0, filtered.Count);
-        Assert.Equal(1, world.Stream<ValA, ValB, ValC, ValD, ValE>().Count);
+        Assert.Equal(2, world.Stream<ValA, ValB, ValC, ValD, ValE>().Count);
         Assert.True(outsider.Alive);
-        world.Stream<ValA, ValB, ValC, ValD, ValE>().For((ref c0, ref _, ref _, ref _, ref _) => Assert.Equal(10, c0.Value));
+        world.Stream<ValA, ValB, ValC, ValD, ValE>().For((ref c0, ref _, ref _, ref _, ref _) => Assert.True(c0.Value is 10 or 99));
     }
 
     [Fact]
@@ -6729,6 +6884,34 @@ public class FilteredStream1RefTests
         });
         Assert.Equal(1, visited);
 
+        visited = 0;
+        both.For((in e, ref c0) =>
+        {
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, ref c0) =>
+        {
+            Assert.Equal(4711, uniform);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, in e, ref c0) =>
+        {
+            Assert.Equal(4711, uniform);
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
         var enumerated = 0;
         foreach (var row in both)
         {
@@ -6857,17 +7040,20 @@ public class FilteredStream1RefTests
         world.Spawn().Add(RefA.New(10));
         world.Spawn().Add(RefA.New(90));
         world.Spawn().Add(RefA.New(95)).Add("extended");
+        world.Spawn().Add(RefA.New(99)).Add(42L); // sheltered by the Not clause
         var outsider = world.Spawn().Add("outsider");
 
-        var filtered = world.Stream<RefA>().Where((in RefA c) => c.Value > 50);
+        var filtered = world.Stream<RefA>()
+            .Not(Comp<long>.Plain)
+            .Where((in RefA c) => c.Value > 50);
         Assert.Equal(2, filtered.Count);
 
         filtered.Despawn();
 
         Assert.Equal(0, filtered.Count);
-        Assert.Equal(1, world.Stream<RefA>().Count);
+        Assert.Equal(2, world.Stream<RefA>().Count);
         Assert.True(outsider.Alive);
-        world.Stream<RefA>().For((ref c0) => Assert.Equal(10, c0.Value));
+        world.Stream<RefA>().For((ref c0) => Assert.True(c0.Value is 10 or 99));
     }
 
     [Fact]
@@ -7729,6 +7915,34 @@ public class FilteredStream2RefTests
         });
         Assert.Equal(1, visited);
 
+        visited = 0;
+        both.For((in e, ref c0, ref _) =>
+        {
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, ref c0, ref _) =>
+        {
+            Assert.Equal(4711, uniform);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, in e, ref c0, ref _) =>
+        {
+            Assert.Equal(4711, uniform);
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
         var enumerated = 0;
         foreach (var row in both)
         {
@@ -7857,17 +8071,20 @@ public class FilteredStream2RefTests
         world.Spawn().Add(RefA.New(10)).Add(RefB.New(10));
         world.Spawn().Add(RefA.New(90)).Add(RefB.New(90));
         world.Spawn().Add(RefA.New(95)).Add(RefB.New(95)).Add("extended");
+        world.Spawn().Add(RefA.New(99)).Add(RefB.New(99)).Add(42L); // sheltered by the Not clause
         var outsider = world.Spawn().Add("outsider");
 
-        var filtered = world.Stream<RefA, RefB>().Where((in RefA c) => c.Value > 50);
+        var filtered = world.Stream<RefA, RefB>()
+            .Not(Comp<long>.Plain)
+            .Where((in RefA c) => c.Value > 50);
         Assert.Equal(2, filtered.Count);
 
         filtered.Despawn();
 
         Assert.Equal(0, filtered.Count);
-        Assert.Equal(1, world.Stream<RefA, RefB>().Count);
+        Assert.Equal(2, world.Stream<RefA, RefB>().Count);
         Assert.True(outsider.Alive);
-        world.Stream<RefA, RefB>().For((ref c0, ref _) => Assert.Equal(10, c0.Value));
+        world.Stream<RefA, RefB>().For((ref c0, ref _) => Assert.True(c0.Value is 10 or 99));
     }
 
     [Fact]
@@ -8969,6 +9186,34 @@ public class FilteredStream3RefTests
         });
         Assert.Equal(1, visited);
 
+        visited = 0;
+        both.For((in e, ref c0, ref _, ref _) =>
+        {
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, ref c0, ref _, ref _) =>
+        {
+            Assert.Equal(4711, uniform);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, in e, ref c0, ref _, ref _) =>
+        {
+            Assert.Equal(4711, uniform);
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
         var enumerated = 0;
         foreach (var row in both)
         {
@@ -9097,17 +9342,20 @@ public class FilteredStream3RefTests
         world.Spawn().Add(RefA.New(10)).Add(RefB.New(10)).Add(RefC.New(10));
         world.Spawn().Add(RefA.New(90)).Add(RefB.New(90)).Add(RefC.New(90));
         world.Spawn().Add(RefA.New(95)).Add(RefB.New(95)).Add(RefC.New(95)).Add("extended");
+        world.Spawn().Add(RefA.New(99)).Add(RefB.New(99)).Add(RefC.New(99)).Add(42L); // sheltered by the Not clause
         var outsider = world.Spawn().Add("outsider");
 
-        var filtered = world.Stream<RefA, RefB, RefC>().Where((in RefA c) => c.Value > 50);
+        var filtered = world.Stream<RefA, RefB, RefC>()
+            .Not(Comp<long>.Plain)
+            .Where((in RefA c) => c.Value > 50);
         Assert.Equal(2, filtered.Count);
 
         filtered.Despawn();
 
         Assert.Equal(0, filtered.Count);
-        Assert.Equal(1, world.Stream<RefA, RefB, RefC>().Count);
+        Assert.Equal(2, world.Stream<RefA, RefB, RefC>().Count);
         Assert.True(outsider.Alive);
-        world.Stream<RefA, RefB, RefC>().For((ref c0, ref _, ref _) => Assert.Equal(10, c0.Value));
+        world.Stream<RefA, RefB, RefC>().For((ref c0, ref _, ref _) => Assert.True(c0.Value is 10 or 99));
     }
 
     [Fact]
@@ -10449,6 +10697,34 @@ public class FilteredStream4RefTests
         });
         Assert.Equal(1, visited);
 
+        visited = 0;
+        both.For((in e, ref c0, ref _, ref _, ref _) =>
+        {
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, ref c0, ref _, ref _, ref _) =>
+        {
+            Assert.Equal(4711, uniform);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, in e, ref c0, ref _, ref _, ref _) =>
+        {
+            Assert.Equal(4711, uniform);
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
         var enumerated = 0;
         foreach (var row in both)
         {
@@ -10577,17 +10853,20 @@ public class FilteredStream4RefTests
         world.Spawn().Add(RefA.New(10)).Add(RefB.New(10)).Add(RefC.New(10)).Add(RefD.New(10));
         world.Spawn().Add(RefA.New(90)).Add(RefB.New(90)).Add(RefC.New(90)).Add(RefD.New(90));
         world.Spawn().Add(RefA.New(95)).Add(RefB.New(95)).Add(RefC.New(95)).Add(RefD.New(95)).Add("extended");
+        world.Spawn().Add(RefA.New(99)).Add(RefB.New(99)).Add(RefC.New(99)).Add(RefD.New(99)).Add(42L); // sheltered by the Not clause
         var outsider = world.Spawn().Add("outsider");
 
-        var filtered = world.Stream<RefA, RefB, RefC, RefD>().Where((in RefA c) => c.Value > 50);
+        var filtered = world.Stream<RefA, RefB, RefC, RefD>()
+            .Not(Comp<long>.Plain)
+            .Where((in RefA c) => c.Value > 50);
         Assert.Equal(2, filtered.Count);
 
         filtered.Despawn();
 
         Assert.Equal(0, filtered.Count);
-        Assert.Equal(1, world.Stream<RefA, RefB, RefC, RefD>().Count);
+        Assert.Equal(2, world.Stream<RefA, RefB, RefC, RefD>().Count);
         Assert.True(outsider.Alive);
-        world.Stream<RefA, RefB, RefC, RefD>().For((ref c0, ref _, ref _, ref _) => Assert.Equal(10, c0.Value));
+        world.Stream<RefA, RefB, RefC, RefD>().For((ref c0, ref _, ref _, ref _) => Assert.True(c0.Value is 10 or 99));
     }
 
     [Fact]
@@ -12169,6 +12448,34 @@ public class FilteredStream5RefTests
         });
         Assert.Equal(1, visited);
 
+        visited = 0;
+        both.For((in e, ref c0, ref _, ref _, ref _, ref _) =>
+        {
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, ref c0, ref _, ref _, ref _, ref _) =>
+        {
+            Assert.Equal(4711, uniform);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, in e, ref c0, ref _, ref _, ref _, ref _) =>
+        {
+            Assert.Equal(4711, uniform);
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
         var enumerated = 0;
         foreach (var row in both)
         {
@@ -12297,17 +12604,20 @@ public class FilteredStream5RefTests
         world.Spawn().Add(RefA.New(10)).Add(RefB.New(10)).Add(RefC.New(10)).Add(RefD.New(10)).Add(RefE.New(10));
         world.Spawn().Add(RefA.New(90)).Add(RefB.New(90)).Add(RefC.New(90)).Add(RefD.New(90)).Add(RefE.New(90));
         world.Spawn().Add(RefA.New(95)).Add(RefB.New(95)).Add(RefC.New(95)).Add(RefD.New(95)).Add(RefE.New(95)).Add("extended");
+        world.Spawn().Add(RefA.New(99)).Add(RefB.New(99)).Add(RefC.New(99)).Add(RefD.New(99)).Add(RefE.New(99)).Add(42L); // sheltered by the Not clause
         var outsider = world.Spawn().Add("outsider");
 
-        var filtered = world.Stream<RefA, RefB, RefC, RefD, RefE>().Where((in RefA c) => c.Value > 50);
+        var filtered = world.Stream<RefA, RefB, RefC, RefD, RefE>()
+            .Not(Comp<long>.Plain)
+            .Where((in RefA c) => c.Value > 50);
         Assert.Equal(2, filtered.Count);
 
         filtered.Despawn();
 
         Assert.Equal(0, filtered.Count);
-        Assert.Equal(1, world.Stream<RefA, RefB, RefC, RefD, RefE>().Count);
+        Assert.Equal(2, world.Stream<RefA, RefB, RefC, RefD, RefE>().Count);
         Assert.True(outsider.Alive);
-        world.Stream<RefA, RefB, RefC, RefD, RefE>().For((ref c0, ref _, ref _, ref _, ref _) => Assert.Equal(10, c0.Value));
+        world.Stream<RefA, RefB, RefC, RefD, RefE>().For((ref c0, ref _, ref _, ref _, ref _) => Assert.True(c0.Value is 10 or 99));
     }
 
     [Fact]
@@ -13169,6 +13479,34 @@ public class FilteredStream2MixedTests
         });
         Assert.Equal(1, visited);
 
+        visited = 0;
+        both.For((in e, ref c0, ref _) =>
+        {
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, ref c0, ref _) =>
+        {
+            Assert.Equal(4711, uniform);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, in e, ref c0, ref _) =>
+        {
+            Assert.Equal(4711, uniform);
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
         var enumerated = 0;
         foreach (var row in both)
         {
@@ -13297,17 +13635,20 @@ public class FilteredStream2MixedTests
         world.Spawn().Add(ValA.New(10)).Add(RefB.New(10));
         world.Spawn().Add(ValA.New(90)).Add(RefB.New(90));
         world.Spawn().Add(ValA.New(95)).Add(RefB.New(95)).Add("extended");
+        world.Spawn().Add(ValA.New(99)).Add(RefB.New(99)).Add(42L); // sheltered by the Not clause
         var outsider = world.Spawn().Add("outsider");
 
-        var filtered = world.Stream<ValA, RefB>().Where((in ValA c) => c.Value > 50);
+        var filtered = world.Stream<ValA, RefB>()
+            .Not(Comp<long>.Plain)
+            .Where((in ValA c) => c.Value > 50);
         Assert.Equal(2, filtered.Count);
 
         filtered.Despawn();
 
         Assert.Equal(0, filtered.Count);
-        Assert.Equal(1, world.Stream<ValA, RefB>().Count);
+        Assert.Equal(2, world.Stream<ValA, RefB>().Count);
         Assert.True(outsider.Alive);
-        world.Stream<ValA, RefB>().For((ref c0, ref _) => Assert.Equal(10, c0.Value));
+        world.Stream<ValA, RefB>().For((ref c0, ref _) => Assert.True(c0.Value is 10 or 99));
     }
 
     [Fact]
@@ -14409,6 +14750,34 @@ public class FilteredStream3MixedTests
         });
         Assert.Equal(1, visited);
 
+        visited = 0;
+        both.For((in e, ref c0, ref _, ref _) =>
+        {
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, ref c0, ref _, ref _) =>
+        {
+            Assert.Equal(4711, uniform);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, in e, ref c0, ref _, ref _) =>
+        {
+            Assert.Equal(4711, uniform);
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
         var enumerated = 0;
         foreach (var row in both)
         {
@@ -14537,17 +14906,20 @@ public class FilteredStream3MixedTests
         world.Spawn().Add(ValA.New(10)).Add(RefB.New(10)).Add(ValC.New(10));
         world.Spawn().Add(ValA.New(90)).Add(RefB.New(90)).Add(ValC.New(90));
         world.Spawn().Add(ValA.New(95)).Add(RefB.New(95)).Add(ValC.New(95)).Add("extended");
+        world.Spawn().Add(ValA.New(99)).Add(RefB.New(99)).Add(ValC.New(99)).Add(42L); // sheltered by the Not clause
         var outsider = world.Spawn().Add("outsider");
 
-        var filtered = world.Stream<ValA, RefB, ValC>().Where((in ValA c) => c.Value > 50);
+        var filtered = world.Stream<ValA, RefB, ValC>()
+            .Not(Comp<long>.Plain)
+            .Where((in ValA c) => c.Value > 50);
         Assert.Equal(2, filtered.Count);
 
         filtered.Despawn();
 
         Assert.Equal(0, filtered.Count);
-        Assert.Equal(1, world.Stream<ValA, RefB, ValC>().Count);
+        Assert.Equal(2, world.Stream<ValA, RefB, ValC>().Count);
         Assert.True(outsider.Alive);
-        world.Stream<ValA, RefB, ValC>().For((ref c0, ref _, ref _) => Assert.Equal(10, c0.Value));
+        world.Stream<ValA, RefB, ValC>().For((ref c0, ref _, ref _) => Assert.True(c0.Value is 10 or 99));
     }
 
     [Fact]
@@ -15889,6 +16261,34 @@ public class FilteredStream4MixedTests
         });
         Assert.Equal(1, visited);
 
+        visited = 0;
+        both.For((in e, ref c0, ref _, ref _, ref _) =>
+        {
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, ref c0, ref _, ref _, ref _) =>
+        {
+            Assert.Equal(4711, uniform);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, in e, ref c0, ref _, ref _, ref _) =>
+        {
+            Assert.Equal(4711, uniform);
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
         var enumerated = 0;
         foreach (var row in both)
         {
@@ -16017,17 +16417,20 @@ public class FilteredStream4MixedTests
         world.Spawn().Add(ValA.New(10)).Add(RefB.New(10)).Add(ValC.New(10)).Add(RefD.New(10));
         world.Spawn().Add(ValA.New(90)).Add(RefB.New(90)).Add(ValC.New(90)).Add(RefD.New(90));
         world.Spawn().Add(ValA.New(95)).Add(RefB.New(95)).Add(ValC.New(95)).Add(RefD.New(95)).Add("extended");
+        world.Spawn().Add(ValA.New(99)).Add(RefB.New(99)).Add(ValC.New(99)).Add(RefD.New(99)).Add(42L); // sheltered by the Not clause
         var outsider = world.Spawn().Add("outsider");
 
-        var filtered = world.Stream<ValA, RefB, ValC, RefD>().Where((in ValA c) => c.Value > 50);
+        var filtered = world.Stream<ValA, RefB, ValC, RefD>()
+            .Not(Comp<long>.Plain)
+            .Where((in ValA c) => c.Value > 50);
         Assert.Equal(2, filtered.Count);
 
         filtered.Despawn();
 
         Assert.Equal(0, filtered.Count);
-        Assert.Equal(1, world.Stream<ValA, RefB, ValC, RefD>().Count);
+        Assert.Equal(2, world.Stream<ValA, RefB, ValC, RefD>().Count);
         Assert.True(outsider.Alive);
-        world.Stream<ValA, RefB, ValC, RefD>().For((ref c0, ref _, ref _, ref _) => Assert.Equal(10, c0.Value));
+        world.Stream<ValA, RefB, ValC, RefD>().For((ref c0, ref _, ref _, ref _) => Assert.True(c0.Value is 10 or 99));
     }
 
     [Fact]
@@ -17609,6 +18012,34 @@ public class FilteredStream5MixedTests
         });
         Assert.Equal(1, visited);
 
+        visited = 0;
+        both.For((in e, ref c0, ref _, ref _, ref _, ref _) =>
+        {
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, ref c0, ref _, ref _, ref _, ref _) =>
+        {
+            Assert.Equal(4711, uniform);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
+        visited = 0;
+        both.For(4711, (uniform, in e, ref c0, ref _, ref _, ref _, ref _) =>
+        {
+            Assert.Equal(4711, uniform);
+            Assert.True(e.Alive);
+            visited++;
+            Assert.Equal(4, c0.Value);
+        });
+        Assert.Equal(1, visited);
+
         var enumerated = 0;
         foreach (var row in both)
         {
@@ -17737,17 +18168,20 @@ public class FilteredStream5MixedTests
         world.Spawn().Add(ValA.New(10)).Add(RefB.New(10)).Add(ValC.New(10)).Add(RefD.New(10)).Add(ValE.New(10));
         world.Spawn().Add(ValA.New(90)).Add(RefB.New(90)).Add(ValC.New(90)).Add(RefD.New(90)).Add(ValE.New(90));
         world.Spawn().Add(ValA.New(95)).Add(RefB.New(95)).Add(ValC.New(95)).Add(RefD.New(95)).Add(ValE.New(95)).Add("extended");
+        world.Spawn().Add(ValA.New(99)).Add(RefB.New(99)).Add(ValC.New(99)).Add(RefD.New(99)).Add(ValE.New(99)).Add(42L); // sheltered by the Not clause
         var outsider = world.Spawn().Add("outsider");
 
-        var filtered = world.Stream<ValA, RefB, ValC, RefD, ValE>().Where((in ValA c) => c.Value > 50);
+        var filtered = world.Stream<ValA, RefB, ValC, RefD, ValE>()
+            .Not(Comp<long>.Plain)
+            .Where((in ValA c) => c.Value > 50);
         Assert.Equal(2, filtered.Count);
 
         filtered.Despawn();
 
         Assert.Equal(0, filtered.Count);
-        Assert.Equal(1, world.Stream<ValA, RefB, ValC, RefD, ValE>().Count);
+        Assert.Equal(2, world.Stream<ValA, RefB, ValC, RefD, ValE>().Count);
         Assert.True(outsider.Alive);
-        world.Stream<ValA, RefB, ValC, RefD, ValE>().For((ref c0, ref _, ref _, ref _, ref _) => Assert.Equal(10, c0.Value));
+        world.Stream<ValA, RefB, ValC, RefD, ValE>().For((ref c0, ref _, ref _, ref _, ref _) => Assert.True(c0.Value is 10 or 99));
     }
 
     [Fact]
