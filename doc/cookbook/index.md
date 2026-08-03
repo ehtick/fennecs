@@ -15,7 +15,7 @@ description: 'The fennecs cookbook: install the tiny C# Entity-Component System 
 ```shell
 dotnet add package fennecs
 ```
-:neofox_laptop: *(psst append, `--prerelease` while we're still in beta!)*
+:neofox_laptop: *(psst append, `--prerelease` if you want an alpha/beta build!)*
 
 # ... and go!
 

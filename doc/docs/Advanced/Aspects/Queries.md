@@ -67,7 +67,7 @@ var loaded = world.Query<CrewData>().Has<Cargo>().Compile();  // ✅ all "game"
 var empty = game.Query<CrewData>().Not<Cargo>().Compile();    // ✅ still "game"
 ```
 
-[Relations](/docs/Advanced/Keys/Relation.md) work per-Aspect as well  –  including [Match Expressions](/docs/Queries/Matching.md) like `Match.Entity`  –  and may target Entities that never joined the Aspect at all.
+[Relations](/docs/Intermediate/Keys/Relation.md) work per-Aspect as well  –  including [Match Expressions](/docs/Basic/Queries/Matching.md) like `Match.Entity`  –  and may target Entities that never joined the Aspect at all.
 
 ## Crossing Aspects inside a loop
 
@@ -107,4 +107,4 @@ Each Aspect keeps its own Query cache and notifies its cached Queries when new A
 
 ## Where to next?
 
-That's the whole tour! Head back to the [Aspects overview](index.md), or check what else lurks in [Advanced](/docs/Advanced/index.md).
+That's the whole tour! Head back to the [Aspects overview](index.md), or check what else lurks in Advanced: [Expressions](/docs/Advanced/Expressions/index.md) and [SIMD](/docs/Advanced/SIMD/index.md).

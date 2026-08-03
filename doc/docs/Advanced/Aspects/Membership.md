@@ -60,7 +60,7 @@ Every living Entity is a member of `Main`, always  –  even one whose component
 
 Bulk operations are fully Aspect-aware, and mostly Just Work™:
 
-**[EntityTemplates](/docs/Entities/Templates.md)** split their template across Aspects automatically  –  no special ceremony needed:
+**[EntityTemplates](/docs/Intermediate/Templates/index.md)** split their template across Aspects automatically  –  no special ceremony needed:
 
 ```csharp
 world.Template()
@@ -72,7 +72,7 @@ world.Template()
 // world.Count == 100, visuals.Count == 100, game.Count == 100
 ```
 
-**[Batches](/docs/Queries/CRUD.md#batch-operations)** operate within a Query  –  and since a Query belongs to a single Aspect *(more on that in [Queries & Streams](Queries.md))*, a Batch may only add or remove types of that same Aspect:
+**[Batches](/docs/Basic/Queries/CRUD.md#batch-operations)** operate within a Query  –  and since a Query belongs to a single Aspect *(more on that in [Queries & Streams](Queries.md))*, a Batch may only add or remove types of that same Aspect:
 
 ::: warning :neofox_peek_knife: ONE ASPECT PER BATCH
 ```csharp
@@ -102,7 +102,7 @@ using (var worldLock = world.Lock())
 Despawning removes an Entity from **all** Aspects  –  its data is cleaned up in every storage universe it ever joined. This includes the fancy cases:
 
 - `world.DespawnAllWith<T>()` and `query.Truncate(n)` cascade across all Aspects of the affected Entities.
-- Despawning the *target* of a [Relation](/docs/Advanced/Keys/Relation.md) cleans up relation components in every Aspect that stored one  –  while leaving the holders' other components untouched.
+- Despawning the *target* of a [Relation](/docs/Intermediate/Keys/Relation.md) cleans up relation components in every Aspect that stored one  –  while leaving the holders' other components untouched.
 
 ```csharp
 var target = world.Spawn();

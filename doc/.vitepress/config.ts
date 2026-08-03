@@ -2,6 +2,7 @@ import { defineConfig, UserConfig } from 'vitepress'
 import { neofoxPlugin } from './plugin-neofox';
 import { hyperlinkPlugin } from './plugin-hyperlink';
 import { withSidebar } from 'vitepress-sidebar';
+import { withSidebarDividers } from './sidebar-dividers';
 
 
 // https://vitepress.dev/reference/site-config
@@ -144,5 +145,5 @@ const sidebarConfigs = {
 };
 
 export default defineConfig(
-  withSidebar(vitePressConfigs, sidebarConfigs)
+  withSidebarDividers(withSidebar(vitePressConfigs, sidebarConfigs))
 );

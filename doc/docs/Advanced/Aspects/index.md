@@ -1,6 +1,6 @@
 ---
 title: Aspects
-order: 1
+order: 30
 outline: [1, 2]
 description: 'Aspects split a fennecs World into contiguous component storage universes - declare them with AddAspect and Owns to group hot data and fight fragmentation.'
 ---
@@ -11,7 +11,7 @@ description: 'Aspects split a fennecs World into contiguous component storage un
 
 ## What's an Aspect?
 
-An ==Aspect== is a self-contained collection of [Archetypes](/docs/Components/index.md#archetypes) inside a World  –  its very own, contiguously laid-out component storage universe. All Aspects of a World share the same Entities; only the *component data* lives apart.
+An ==Aspect== is a self-contained collection of [Archetypes](/docs/Basic/Components/index.md#archetypes) inside a World  –  its very own, contiguously laid-out component storage universe. All Aspects of a World share the same Entities; only the *component data* lives apart.
 
 Every World comes with one Aspect built in: `World.Main`, fittingly named `"main"`. It's always first in `world.Aspects`, proudly reports `IsMain == true`, and every living Entity is a member. Any component type you don't explicitly assign elsewhere is stored there  –  which is why, until this very page, you never needed to know Aspects existed. *You're welcome.*
 

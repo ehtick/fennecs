@@ -24,6 +24,7 @@
   "license": "MIT",
   "devDependencies": {
     "fflate": "^0.8.3",
+    "gray-matter": "^4.0.3",
     "vitepress": "^2.0.0-alpha.17",
     "vitepress-sidebar": "^1.33.1"
   }

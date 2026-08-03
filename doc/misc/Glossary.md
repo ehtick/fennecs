@@ -21,7 +21,7 @@ Read all about them in the [Aspects documentation](/docs/Advanced/Aspects/index.
 ## Contains
 We contextually sometimes say:
 
-- "the Query contains" a set of Entities, and the base `Query` class also exposes these "contents" via a `IEnumerable<Entity>` interface. This is usable for world setup and in unit tests - but your game logic might want to do its heavy lifting with [Streams](/docs/Streams/index.md) and [SIMD](/docs/Advanced/SIMD.md) operations.
+- "the Query contains" a set of Entities, and the base `Query` class also exposes these "contents" via a `IEnumerable<Entity>` interface. This is usable for world setup and in unit tests - but your game logic might want to do its heavy lifting with [Streams](/docs/Basic/Streams/index.md) and [SIMD](/docs/Advanced/SIMD/index.md) operations.
 - "the World contains", which can refer to both Entites and Archetypes.
 - "the Archetype contains", which can refer both to the Entities that share this Archetype, but also the Types that constitute said Archetype.
 
@@ -35,7 +35,7 @@ Each *extant* combination of Components, Object Links, and Relations on an Entit
 ::: danger :neofox_nom_fox_nervous: HOW DOES THAT BITE US?
 Runners efficiently parallelize their work within and across Archetypes, but if each Archetype only contains a small number of Entities, eventually runtime and memory overheads will eat into these efficiency gains.
 
-An indirect symptom of fragmentation can be that you might be performing frequent or many structural changes, possibly even heterogeneously (per-Entity). [Bulk and Batch Operations](/docs/Queries/CRUD.md#batch-operations) can help streamline these operations, and they also benefit greatly from larger Archetypes (i.e. less fragmentation).
+An indirect symptom of fragmentation can be that you might be performing frequent or many structural changes, possibly even heterogeneously (per-Entity). [Bulk and Batch Operations](/docs/Basic/Queries/CRUD.md#batch-operations) can help streamline these operations, and they also benefit greatly from larger Archetypes (i.e. less fragmentation).
 :::
 
 
@@ -48,7 +48,7 @@ Since 0.7.0, [Aspects](/docs/Advanced/Aspects/index.md) are the first-class miti
 
 Other mitigations for everyday fragmentation may include enabling/disabling components with a flag and just skipping over them in the runner code (if it's a minority of entities affected), but usually each use case will need custom optimizations when that time comes. 
 
-It's also recommended to perform large bulk operations such as adding or removing components to a large number of Entities through the [Query CRUD](/docs/Queries/CRUD.md), instead of the [per-Entity CRUD](/docs/Entities/ComponentAdd.md).
+It's also recommended to perform large bulk operations such as adding or removing components to a large number of Entities through the [Query CRUD](/docs/Basic/Queries/CRUD.md), instead of the [per-Entity CRUD](/docs/Basic/Entities/ComponentAdd.md).
 
 You'll likely get a long way before Archetype Fragmentation becomes a serious threat, but among the performance risks, this may quickly become the biggest one. 
 
@@ -63,11 +63,11 @@ Console.WriteLine(myWorld.DebugString());
 An Identity is a 64-bit number. When associated with a World, the majority of Identities are called Entities. Identities can represent multiple things:
 - a specific Entity (as itself or for targeting)
 - a specific Object's Identity (for Link targeting)
-- a Wildcard for a Query Filter (see [Match Expressions](/docs/Queries/Matching.md))
+- a Wildcard for a Query Filter (see [Match Expressions](/docs/Basic/Queries/Matching.md))
 
 ## Structural Changes
 
-Changes to the layout of Entities - meaning which Components, Links, or Relations they have - define which [Archetype](/docs/Components/index.md#archetypes) they falls into. 
+Changes to the layout of Entities - meaning which Components, Links, or Relations they have - define which [Archetype](/docs/Basic/Components/index.md#archetypes) they falls into. 
 
 ### Each of these constitutes a structural change:
  - Adding a Component, Link, or Relation
@@ -84,7 +84,7 @@ Structural Changes will invariably cause data to be moved around internally, and
 Structural changes to the world are deferred while a ==World Lock== is taken out, until _ALL_ locks are disposed. Once that happens, they are all applied in order of submission.
 
 ### Batch versus Individual Operations
-When removing components, it's often good practice to perform structural changes in bulk through the [Query CRUD](/docs/Queries/CRUD.md) functions where possible. 
+When removing components, it's often good practice to perform structural changes in bulk through the [Query CRUD](/docs/Basic/Queries/CRUD.md) functions where possible. 
 
 
 ::: details :neofox_magnify: BEHIND THE SCENES

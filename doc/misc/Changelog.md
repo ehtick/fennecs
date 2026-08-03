@@ -244,7 +244,7 @@ myworld.All.Despawn();
 ## Version 0.5.11-beta
 
 - Fixed [Issue #23](https://github.com/outfox/fennecs/issues/23) Data Integrity Issue Following Despawn. Thanks to [Penny](https://github.com/PennyMew) for the Issue and PR to fix it!
-- Fixed [Issue #21](https://github.com/outfox/fennecs/issues/21) Streams Documentation [Example](https://fennecs.net/docs/Streams/) was mixed up.
+- Fixed [Issue #21](https://github.com/outfox/fennecs/issues/21) Streams Documentation [Example](https://fennecs.net/docs/Basic/Streams/) was mixed up.
 
 ## Version 0.5.10-beta
 
@@ -298,8 +298,8 @@ public static class ReflectionExtensions
 
 ## Version 0.5.8-beta
 
-- `Component` factory class has most of its members deprecated. It is now a storage for a Boxed Component. ([updated documentation](/docs/Advanced/Expressions.md))
-- `Comp<T>` is a new factory class for Component Expressions. ([updated documentation](/docs/Advanced/Expressions.md))
+- `Component` factory class has most of its members deprecated. It is now a storage for a Boxed Component. ([updated documentation](/docs/Advanced/Expressions/index.md))
+- `Comp<T>` is a new factory class for Component Expressions. ([updated documentation](/docs/Advanced/Expressions/index.md))
 - get (read) a specific component using `entity.Get<T>(Match match)`, e.g. `entity.Get<MyLinkType>(Link.Any)` to get all the Links
 
 ### 0.5.8 Upgrading
