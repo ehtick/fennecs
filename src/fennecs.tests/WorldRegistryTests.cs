@@ -176,6 +176,14 @@ public class WorldRegistryTests
     }
 
 
+}
+
+
+// Observes the shared tag free-list, which every World construction/disposal in the process
+// mutates — a parallel test could claim the freshly-released tag between Dispose and the assert.
+[Collection(nameof(SharedPoolTests))]
+public class WorldRegistryIsolatedTests
+{
     [Fact]
     public void Double_Dispose_Releases_Tag_Exactly_Once()
     {

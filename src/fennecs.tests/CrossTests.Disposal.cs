@@ -2,8 +2,8 @@ using System.Collections;
 
 namespace fennecs.tests;
 
-// Tests in this collection observe process-wide shared pools (PooledList, Cross's ArrayPool)
-// and must not run concurrently with anything else that rents from them.
+// Tests in this collection observe process-wide shared pools (PooledList, Cross's ArrayPool,
+// the World tag registry) and must not run concurrently with anything that rents from them.
 [CollectionDefinition(nameof(SharedPoolTests), DisableParallelization = true)]
 public class SharedPoolTests;
 

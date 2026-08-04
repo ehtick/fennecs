@@ -13,7 +13,10 @@ public class JobExceptionTests
     }
 
     // Runs the Job on a task with a bounded wait, so a regression of the missed-signal hang
-    // fails this test cleanly instead of stalling the whole suite.
+    // fails this test cleanly instead of stalling the whole suite. On timeout the worker is
+    // deliberately abandoned: a hang means it is blocked in countdown.Wait(), which no
+    // CancellationToken can interrupt (and Job takes none) — the orphaned thread and the World
+    // it pins are accepted collateral of an already-failing run.
     private static void AssertJobFaults(Action jobCall)
     {
         var task = Task.Run(() => Assert.Throws<AggregateException>(jobCall));
