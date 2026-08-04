@@ -3,6 +3,7 @@
         <PackageId>fennecs</PackageId>
         <Title>fennecs - tiny ECS</Title>
         <OutputType>Library</OutputType>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     </PropertyGroup>
 
     <!-- Version is derived from git tags (v-prefixed, e.g. v0.7.1-pre) via MinVer at build time. -->
