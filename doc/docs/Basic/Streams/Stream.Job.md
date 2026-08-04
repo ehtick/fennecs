@@ -58,7 +58,7 @@ Choosing the right way to spread your workload across CPU cores can yield signif
 :::warning :neofox_glare_sob: A GOOD TRADE-OFF LEAVES EVERYONE MAD!
 Overhead for thread scheduling is real; as are context switches between threads. Experiment finding the right workload Chunk Size (start big - try 69,420, they say it's nice) and always consider giving [`Stream.For`](Stream.For.md) another look if you realize there's too much overhead or ==fragmentation==.
 
-You can also set the [Filter State](/docs/Intermediate/Filters/Subset.md) of your Query to only include the Archetypes you want to process as a `Stream.Job`, and use `Stream.For` to do the rest. Or make it even easier: **Create Two Queries.**
+You can also use [Stream Filters](/docs/Intermediate/Filters/Archetypes.md) on your Query to only include the Archetypes you want to process as a `Stream.Job`, and use `Stream.For` to do the rest. Or make it even easier: **Create Two Queries.**
 :::
 
 Scheduling Jobs has a certain overhead, so just splitting work across as many CPUs as possible sometimes slows down processing speeds.

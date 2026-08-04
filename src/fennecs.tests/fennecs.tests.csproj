@@ -31,19 +31,19 @@
             <Generator>TextTemplatingFileGenerator</Generator>
             <LastGenOutput>Stream.Tests.generated.cs</LastGenOutput>
         </None>
-        <None Update="Stream\generators\Stream.Filter.Tests.tt">
+        <None Update="Stream\generators\FilteredStream.Tests.tt">
             <Generator>TextTemplatingFileGenerator</Generator>
-            <LastGenOutput>Stream.Filter.Tests.generated.cs</LastGenOutput>
+            <LastGenOutput>FilteredStream.Tests.generated.cs</LastGenOutput>
         </None>
         <Compile Update="Stream\generators\Stream.Tests.generated.cs">
             <AutoGen>True</AutoGen>
             <DesignTime>True</DesignTime>
             <DependentUpon>Stream.Tests.tt</DependentUpon>
         </Compile>
-        <Compile Update="Stream\generators\Stream.Filter.Tests.generated.cs">
+        <Compile Update="Stream\generators\FilteredStream.Tests.generated.cs">
             <AutoGen>True</AutoGen>
             <DesignTime>True</DesignTime>
-            <DependentUpon>Stream.Filter.Tests.tt</DependentUpon>
+            <DependentUpon>FilteredStream.Tests.tt</DependentUpon>
         </Compile>
         <None Update="Entity\generators\EntityTemplate.Tests.tt">
             <Generator>TextTemplatingFileGenerator</Generator>

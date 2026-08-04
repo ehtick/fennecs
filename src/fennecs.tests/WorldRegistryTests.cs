@@ -174,4 +174,26 @@ public class WorldRegistryTests
 
         Assert.Throws<ObjectDisposedException>(() => worldLock.Dispose());
     }
+
+
+}
+
+
+// Observes the shared tag free-list, which every World construction/disposal in the process
+// mutates — a parallel test could claim the freshly-released tag between Dispose and the assert.
+[Collection(nameof(SharedPoolTests))]
+public class WorldRegistryIsolatedTests
+{
+    [Fact]
+    public void Double_Dispose_Releases_Tag_Exactly_Once()
+    {
+        var world = new World(0);
+        var tag = world.Tag;
+
+        world.Dispose();
+        world.Dispose(); // must be a no-op
+
+        Assert.Equal(1, World.FreeTagCount(tag)); // the World's tag was recycled exactly once
+        Assert.Equal(0, World.FreeTagCount(0));   // the reserved tag never enters the free list
+    }
 }

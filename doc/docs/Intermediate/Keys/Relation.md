@@ -103,10 +103,8 @@ var entitiesThatAreDebtFree = world
 // Wildcard target, specific exclusion, stream filter
 var entitiesOwingAnyoneExceptEve = world
     .Query<Owes>(Entity.Any)
-    .Stream() with // do this on-the-fly where needed
-    {
-        Exclude = [Comp<Owes>.Matching(eve)]
-    };
+    .Stream() // do this on-the-fly where needed
+    .Not(Comp<Owes>.Matching(eve));
 ```
 ::: danger :neofox_googly_reverse: DUDE, where's my ENTITY?
 To query for Relations, you must either specify a concrete target Entity or use a wildcard:

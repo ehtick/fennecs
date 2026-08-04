@@ -28,7 +28,7 @@ public class FilterBenchmarks
     private static readonly Vector3 UniformConstantVector = new(3, 4, 5);
     
     private Stream<Vector3, int> _streamV3;
-    private Stream<Vector3, int> _streamV3Top10Percent;
+    private FilteredStream<Vector3, int> _streamV3Top10Percent;
     private Vector3[] _vectorsRaw = null!;
     private int[] _intsRaw = null!;
 

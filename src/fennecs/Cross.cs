@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.Collections;
 using System.Diagnostics;
 using fennecs.pools;
 
@@ -76,6 +77,10 @@ public static class Cross
         /// </summary>
         internal Storage<C0> Select => _storages0[_counter[0]];
 
+        // Test seam: bookkeeping internals for disposal / pool round-trip verification.
+        internal (int[] Counter, int[] Limiter, IEnumerable[] Storages) TestState =>
+            (_counter, _limiter, [_storages0]);
+
 
         /// <summary>
         /// Ticks the internal counter of the Join operation, readying the next permutation to use in <see cref="Select"/>.
@@ -142,6 +147,10 @@ public static class Cross
 
         internal (Storage<C0>, Storage<C1>) Select => (_storages0[_counter[0]], _storages1[_counter[1]]);
 
+        // Test seam: bookkeeping internals for disposal / pool round-trip verification.
+        internal (int[] Counter, int[] Limiter, IEnumerable[] Storages) TestState =>
+            (_counter, _limiter, [_storages0, _storages1]);
+
         internal bool Iterate()
         {
             Debug.Assert(_counter is { Length: >= 2 });
@@ -202,6 +211,10 @@ public static class Cross
 
         internal (Storage<C0>, Storage<C1>, Storage<C2>) Select =>
             (_storages0[_counter[0]], _storages1[_counter[1]], _storages2[_counter[2]]);
+
+        // Test seam: bookkeeping internals for disposal / pool round-trip verification.
+        internal (int[] Counter, int[] Limiter, IEnumerable[] Storages) TestState =>
+            (_counter, _limiter, [_storages0, _storages1, _storages2]);
 
         internal bool Iterate()
         {
@@ -267,6 +280,10 @@ public static class Cross
 
         internal (Storage<C0>, Storage<C1>, Storage<C2>, Storage<C3>) Select => (_storages0[_counter[0]],
             _storages1[_counter[1]], _storages2[_counter[2]], _storages3[_counter[3]]);
+
+        // Test seam: bookkeeping internals for disposal / pool round-trip verification.
+        internal (int[] Counter, int[] Limiter, IEnumerable[] Storages) TestState =>
+            (_counter, _limiter, [_storages0, _storages1, _storages2, _storages3]);
 
         internal bool Iterate()
         {
@@ -337,6 +354,10 @@ public static class Cross
 
         internal (Storage<C0>, Storage<C1>, Storage<C2>, Storage<C3>, Storage<C4>) Select => (_storages0[_counter[0]],
             _storages1[_counter[1]], _storages2[_counter[2]], _storages3[_counter[3]], _storages4[_counter[4]]);
+
+        // Test seam: bookkeeping internals for disposal / pool round-trip verification.
+        internal (int[] Counter, int[] Limiter, IEnumerable[] Storages) TestState =>
+            (_counter, _limiter, [_storages0, _storages1, _storages2, _storages3, _storages4]);
 
         internal bool Iterate()
         {

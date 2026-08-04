@@ -138,26 +138,6 @@ public sealed partial class Query : IReadOnlySet<Entity>, IDisposable, IBatchBeg
     }
 
 
-    /// <summary>
-    ///     Enumerator over a subset of the Entities in the Query, which must also match the filters.
-    ///     Do not make modifications to the world affecting the Query while enumerating.
-    ///     This is a convenience method for filtering the Query without changing its filter state.
-    ///     Any pre-existing filter state is being honored.
-    /// </summary>
-    /// <returns>
-    ///     An enumerator over the Entities in the Query that match all provided <see cref="TypeExpression">TypeExpressions</see>.
-    /// </returns>
-    internal IEnumerable<Entity> Filtered(params TypeExpression[] filterExpressions)
-    {
-        foreach (var table in Archetypes)
-        {
-            if (!table.IsMatchSuperSet(filterExpressions)) continue;
-
-            foreach (var entity in table) yield return entity;
-        }
-    }
-
-
     /// <inheritdoc cref="IEnumerable.GetEnumerator" />
     IEnumerator IEnumerable.GetEnumerator()
     {

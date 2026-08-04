@@ -47,6 +47,12 @@ Here be ~~dragons~~ more foxes. *What did you expect?*
 ::: details
 
 - **Aspects** (0.7.0): Worlds can host multiple self-contained Archetype collections ("Aspects") to group hot data and fight fragmentation. ([documentation](/docs/Advanced/Aspects/index.md))
+- **FilteredStream** (0.7.0): all Stream filtering now lives in a dedicated `FilteredStream<>` view, created fluently via `Has(...)`, `Not(...)`, and `Where(...)` on any Stream. ([documentation](/docs/Intermediate/Filters/index.md))
+  - **Breaking:** the init-only `Subset`/`Exclude` sets are gone – `stream with { Subset = ... }` no longer compiles; use `stream.Has(...)`/`.Not(...)`. `Stream.Where(...)` now returns a `FilteredStream<>`.
+  - **Fixed:** `Has` (formerly `Subset`) now uses AND semantics as documented – an Archetype must have *all* listed expressions (previously matched *any*).
+  - A `FilteredStream` honors all its filters in `For`, `Job`, `Count`, enumeration, and `Despawn`. `Raw`/`Blit` remain on the unfiltered `Stream` (reachable via the `.Stream` property).
+  - ✨ Two-delegate runners: every `For`/`Job` variant gains an `(included, excluded)` overload that partitions the Query in a single pass – `excluded` visits pruned Archetypes and predicate-rejected Entities.
+  - Jobs no longer share `CountdownEvent` state between Stream copies; each invocation synchronizes independently.
 - Stream runners return their own Stream, allowing chaining operations.
 - Chunked Component Storage (global, or maybe each World may have its own chunk size)
 - `Match.Object` becomes internal / deprecated, use `Link.Any` instead.

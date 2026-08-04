@@ -19,6 +19,16 @@ public partial class World
     private static readonly Lock TagLock = new();
 
 
+    // Test seam: how often a tag currently appears in the free list. (0 or 1 in a healthy registry)
+    internal static int FreeTagCount(byte tag)
+    {
+        lock (TagLock)
+        {
+            return FreeTags.Count(t => t == tag);
+        }
+    }
+
+
     /// <summary>
     /// The tag identifying this World in the process-wide registry. (bits 32..39 of its Entities)
     /// </summary>

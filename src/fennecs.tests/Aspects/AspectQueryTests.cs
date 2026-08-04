@@ -18,6 +18,47 @@ public class AspectQueryTests
 
 
     [Fact]
+    public void Aspect_Query_With_Foreign_Any_Or_Not_Type_Throws()
+    {
+        var (world, visuals, _) = CreateWorld();
+        using var _1 = world;
+
+        Assert.Throws<InvalidOperationException>(() => visuals.Query<Position>().Any<CrewData>().Compile());
+        Assert.Throws<InvalidOperationException>(() => visuals.Query<Position>().Not<CrewData>().Compile());
+    }
+
+
+    [Fact]
+    public void World_Query_Mixed_Any_And_Not_Types_Are_Caught_By_Resolution()
+    {
+        var (world, _, _) = CreateWorld();
+        using var _1 = world;
+
+        // ResolveAspect itself must already see Any/Not filter types ("span several" is its
+        // wording) — not just the owning Aspect's later validation.
+        var any = Assert.Throws<InvalidOperationException>(() => world.Query<Position>().Any<CrewData>().Compile());
+        Assert.Contains("span several", any.Message);
+
+        var not = Assert.Throws<InvalidOperationException>(() => world.Query<Position>().Not<CrewData>().Compile());
+        Assert.Contains("span several", not.Message);
+    }
+
+
+    [Fact]
+    public void Disposed_Query_Is_Evicted_From_Cache()
+    {
+        var (world, _, _) = CreateWorld();
+        using var _1 = world;
+
+        var first = world.Query<Position>().Compile();
+        first.Dispose();
+
+        var second = world.Query<Position>().Compile();
+        Assert.NotSame(first, second);
+    }
+
+
+    [Fact]
     public void World_Query_Resolves_Owning_Aspect()
     {
         var (world, _, _) = CreateWorld();

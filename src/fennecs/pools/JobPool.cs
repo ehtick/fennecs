@@ -8,10 +8,12 @@ internal static class JobPool<T> where T : class, new()
 {
     private static readonly ConcurrentBag<T> Pool = [];
 
+    // Stryker disable all : prefill is a tuning optimization, not behavior
     static JobPool()
     {
         for (var i = 0; i < 32; i++) Pool.Add(new T());
     }
+    // Stryker restore all
 
 
     public static T Rent()

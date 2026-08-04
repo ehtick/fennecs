@@ -18,6 +18,7 @@ internal static class MaskPool
     }
 
 
+    // Stryker disable all : prefill is a tuning optimization, not behavior
     static MaskPool()
     {
         for (var i = 0; i < 32; i++)
@@ -25,4 +26,5 @@ internal static class MaskPool
             Return(new());
         }
     }
+    // Stryker restore all
 }

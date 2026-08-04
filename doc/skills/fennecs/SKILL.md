@@ -216,7 +216,7 @@ no-op instead of a throw when nothing matches.
 ## Going deeper (reference files in this skill)
 
 - **[references/queries-and-streams.md](references/queries-and-streams.md)** —
-  QueryBuilder details, stream filters (`Subset`/`Exclude`/`Where`), all
+  QueryBuilder details, stream filters (`FilteredStream` via `Has`/`Not`/`Where`), all
   runner/delegate signatures, SIMD, enumeration.
 - **[references/relations-links-aspects.md](references/relations-links-aspects.md)** —
   Entity-Entity Relations, Object Links, wildcard semantics, and Aspects

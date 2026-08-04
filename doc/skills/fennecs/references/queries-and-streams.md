@@ -119,15 +119,14 @@ Assert.All(stream, t => Assert.True(t.Item2.Value > 0));
 ### Stream filters — narrow without recompiling
 
 Queries bake their criteria immutably. Streams add cheap, reconfigurable
-narrowing — `Subset` (must also have) and `Exclude` (must not have) are
-init-only sets of `Comp`, so use `with`:
+narrowing — `Has(...)` (must have ALL), `Not(...)` (must have NONE), and
+`Where(...)` each return a `FilteredStream<C…>` view; chaining `Has`/`Not`
+accumulates expressions:
 
 ```csharp
-var filtered = stream with
-{
-    Subset  = [Comp<Unlucky>.Plain],
-    Exclude = [Comp<Lucky>.Plain, Comp<Owes>.Matching(eve)],
-};
+var filtered = stream
+    .Has(Comp<Unlucky>.Plain)
+    .Not(Comp<Lucky>.Plain, Comp<Owes>.Matching(eve));
 ```
 
 `Comp<T>` expressions: `Comp<T>.Plain`, `Comp<T>.Matching(match)` (an `Entity`
@@ -146,13 +145,27 @@ var moving = stream
 ```
 
 `Where` takes a `ComponentFilter<C>` (`bool (in C c)`) for one of the stream's
-type parameters and returns a new Stream — spell out the lambda's parameter
-type; it selects the overload. One predicate slot per stream type: chaining
-across different components ANDs them, but a second `Where` on the same
-component type *replaces* that slot (combine conditions in one lambda instead).
-Predicates run per entity in `For` and `Job` (thread-safe for `Job`);
-`Raw`, `Blit`, enumeration, and `Count` ignore them and honor only
-`Subset`/`Exclude`.
+type parameters and returns a `FilteredStream` — spell out the lambda's
+parameter type; it selects the overload. One predicate slot per stream type:
+chaining across different components ANDs them, but a second `Where` on the
+same component type *replaces* that slot (combine conditions in one lambda
+instead). A `FilteredStream` honors ALL its filters in everything it offers:
+`For`, `Job` (predicates must be thread-safe), enumeration, `Count` (O(n) with
+predicates), and `Despawn`. `Raw`/`Blit` are not offered — drop down via the
+`filtered.Stream` property for block operations.
+
+Two-delegate runners visit the complement too: every `For`/`Job` variant has an
+`(included, excluded)` overload — `included` runs on entities passing all
+filters, `excluded` on every other entity the Query matches (pruned archetypes
+AND predicate rejects); together they visit each entity exactly once. Not
+available on wildcard streams (and `Despawn` with predicates set also asserts
+no wildcards):
+
+```csharp
+filtered.For(
+    included: (ref Pos p, ref Health h) => Advance(ref p),
+    excluded: (ref Pos p, ref Health h) => h.Regen());
+```
 
 ### Wildcard cross-join semantics
 

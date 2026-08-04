@@ -844,6 +844,17 @@ public class WorldTests(ITestOutputHelper output)
 
 
     [Fact]
+    public void GetSignature_Throws_On_Despawned_Entity()
+    {
+        using var world = new World();
+        var entity = world.Spawn().Add(123);
+        entity.Despawn();
+
+        Assert.Throws<ObjectDisposedException>(() => world.GetSignature(entity));
+    }
+
+
+    [Fact]
     public void GetSignature_Merges_Aspects_that_Contain_the_Entity()
     {
         using var world = new World();

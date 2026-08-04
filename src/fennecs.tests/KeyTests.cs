@@ -18,6 +18,18 @@ public class KeyTests
 
 
     [Fact]
+    public void IsRelation_Requires_Specific_Target()
+    {
+        Assert.False(Key.Plain.IsRelation);
+        Assert.False(Key.AnyEntity.IsRelation); // wildcards have no specific target
+        Assert.False(Key.AnyObject.IsRelation);
+
+        Assert.True(new Entity(1, 123, 1).Key.IsRelation);
+        Assert.True(Key.Of("linked object").IsRelation);
+    }
+
+
+    [Fact]
     public void ToString_Describes_All_Categories()
     {
         Assert.Equal("[None]", Key.Plain.ToString());

@@ -1,70 +1,68 @@
-﻿namespace fennecs.tests.Query;
+namespace fennecs.tests.Query;
 
 using fennecs;
 
-public class QueryFilterTests
+public class FilteredStreamArchetypeTests
 {
     private readonly World _world;
-    private readonly Stream<ComponentA> _query;
+    private readonly Stream<ComponentA> _stream;
 
-    public QueryFilterTests()
+    public FilteredStreamArchetypeTests()
     {
         _world = new World();
-        // Assuming that the World class has a method to create queries.
-        // Replace with the actual method to create a Query instance.
-        _query = _world.Query<ComponentA>().Stream();
+        _stream = _world.Query<ComponentA>().Stream();
     }
 
-    
+
     [Fact]
-    public void Subset_ShouldNarrowDownResults()
+    public void Has_ShouldNarrowDownResults()
     {
-        // Arrange
+        // Arrange (entity2 is in the stream but lacks ComponentB, in a distinct archetype)
         var entity1 = _world.Spawn().Add(new ComponentA());
-        var entity2 = _world.Spawn().Add(new ComponentB());
+        var entity2 = _world.Spawn().Add(new ComponentA()).Add(new ComponentC());
         var entity3 = _world.Spawn().Add(new ComponentA()).Add(new ComponentB());
 
         // Act
-        var query2 = _query with { Subset = [Comp<ComponentA>.Plain] }; 
+        var filtered = _stream.Has(Comp<ComponentB>.Plain);
 
-        var results = query2.ToList().Select(r => r.Item1).ToArray();
-        
+        var results = filtered.ToList().Select(r => r.Item1).ToArray();
+
         // Assert
-        Assert.Contains(entity1, results);
+        Assert.DoesNotContain(entity1, results);
         Assert.DoesNotContain(entity2, results);
         Assert.Contains(entity3, results);
 
         //Ensure count is reduced
-        Assert.Equal(2, results.Length);
+        Assert.Single(results);
     }
 
     [Fact]
-    public void Exclude_ShouldNarrowDownResults()
+    public void Not_ShouldNarrowDownResults()
     {
-        // Arrange
+        // Arrange (entity2 is in the stream and has ComponentB, in a distinct archetype)
         var entity1 = _world.Spawn().Add(new ComponentA());
-        var entity2 = _world.Spawn().Add(new ComponentB());
+        var entity2 = _world.Spawn().Add(new ComponentA()).Add(new ComponentB()).Add(new ComponentC());
         var entity3 = _world.Spawn().Add(new ComponentA()).Add(new ComponentB());
 
         // Act
-        var query2 = _query with { Exclude = [Comp<ComponentB>.Plain] }; 
+        var filtered = _stream.Not(Comp<ComponentB>.Plain);
 
-        var results = query2.Select(r => r.Item1).ToArray();
-        
+        var results = filtered.Select(r => r.Item1).ToArray();
+
         // Assert
         Assert.Contains(entity1, results);
         Assert.DoesNotContain(entity2, results);
         Assert.DoesNotContain(entity3, results);
-        
+
         //Ensure count is reduced
         Assert.Single(results);
     }
-    
+
     [Fact]
-    public void Exclude_ShouldNarrowDownResults_EntityAny()
+    public void Not_ShouldNarrowDownResults_EntityAny()
     {
         using var world = new World();
-        
+
         // Arrange
         var target = world.Spawn();
         var entity1 = world.Spawn().Add(new ComponentA());
@@ -73,27 +71,24 @@ public class QueryFilterTests
         var stream = world.Query<ComponentA>().Stream();
 
         // Act
-        var filtered = stream with
-        {
-            Exclude = [Comp<ComponentB>.Matching(Match.Entity)]
-        };
+        var filtered = stream.Not(Comp<ComponentB>.Matching(Match.Entity));
 
         var results = new List<Entity>();
         filtered.For((in entity, ref _) => results.Add(entity));
-        
+
         // Assert
         Assert.Contains(entity1, results);
         Assert.DoesNotContain(entity2, results);
-        
+
         //Ensure count is reduced
         Assert.Single(results);
     }
 
     [Fact]
-    public void Exclude_ShouldNarrowDownResults_MatchAny()
+    public void Not_ShouldNarrowDownResults_MatchAny()
     {
         using var world = new World();
-        
+
         // Arrange
         var target = world.Spawn();
         var entity1 = world.Spawn().Add(new ComponentA());
@@ -102,14 +97,11 @@ public class QueryFilterTests
         var stream = world.Query<ComponentA>().Stream();
 
         // Act
-        var filtered = stream with
-        {
-            Exclude = [Comp<ComponentB>.Matching(Match.Any)]
-        };
+        var filtered = stream.Not(Comp<ComponentB>.Matching(Match.Any));
 
         var results = new List<Entity>();
         filtered.For((in entity, ref _) => results.Add(entity));
-        
+
         // Assert
         Assert.Contains(entity1, results);
         Assert.DoesNotContain(entity2, results);
@@ -117,6 +109,53 @@ public class QueryFilterTests
         //Ensure count is reduced
         Assert.Single(results);
     }
+
+    [Fact]
+    public void Has_ShouldMatchWildcardRelations()
+    {
+        using var world = new World();
+
+        // Arrange
+        var target = world.Spawn();
+        var entity1 = world.Spawn().Add(new ComponentA());
+        var entity2 = world.Spawn().Add(new ComponentA()).Add(new ComponentB(), target);
+
+        var stream = world.Query<ComponentA>().Stream();
+
+        // Act - the wildcard expression matches the relation via the expanded signature
+        var filtered = stream.Has(Comp<ComponentB>.Matching(Match.Any));
+
+        var results = new List<Entity>();
+        filtered.For((in entity, ref _) => results.Add(entity));
+
+        // Assert
+        Assert.DoesNotContain(entity1, results);
+        Assert.Contains(entity2, results);
+        Assert.Single(results);
+    }
+
+    [Fact]
+    public void Count_Counts_Wildcard_Permutations_Without_Predicates()
+    {
+        using var world = new World();
+
+        // Two relations of the same backing type -> two storages -> two permutations per entity.
+        var target1 = world.Spawn();
+        var target2 = world.Spawn();
+        var entity = world.Spawn().Add(new ComponentA());
+        entity.Add(new ComponentB(), target1);
+        entity.Add(new ComponentB(), target2);
+
+        var stream = world.Query<ComponentB>(Match.Entity).Stream();
+        var filtered = stream.Has(Comp<ComponentA>.Plain);
+
+        // No per-entity predicates set: the count must still match one visit per permutation.
+        var visits = 0;
+        filtered.For((in _, ref _) => visits++);
+        Assert.Equal(2, visits);
+        Assert.Equal(visits, filtered.Count);
+    }
+
 
     [Fact]
     public void Filters_SupportMultipleExpressions()
@@ -132,11 +171,9 @@ public class QueryFilterTests
         var stream = world.Query<ComponentA>().Stream();
 
         // Act - Comp must be comparable for ImmutableSortedSet to hold more than one expression
-        var filtered = stream with
-        {
-            Subset = [Comp<ComponentA>.Plain, Comp<ComponentC>.Plain],
-            Exclude = [Comp<ComponentB>.Plain, Comp<ComponentD>.Matching(target)],
-        };
+        var filtered = stream
+            .Has(Comp<ComponentA>.Plain, Comp<ComponentC>.Plain)
+            .Not(Comp<ComponentB>.Plain, Comp<ComponentD>.Matching(target));
 
         var results = new List<Entity>();
         filtered.For((in entity, ref _) => results.Add(entity));

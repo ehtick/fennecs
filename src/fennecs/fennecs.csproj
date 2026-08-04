@@ -3,6 +3,7 @@
         <PackageId>fennecs</PackageId>
         <Title>fennecs - tiny ECS</Title>
         <OutputType>Library</OutputType>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     </PropertyGroup>
 
     <!-- Version is derived from git tags (v-prefixed, e.g. v0.7.1-pre) via MinVer at build time. -->
@@ -91,6 +92,21 @@
             <Generator>TextTemplatingFileGenerator</Generator>
             <LastGenOutput>Stream.generated.cs</LastGenOutput>
         </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="generators\FilteredStream.tt">
+            <Generator>TextTemplatingFileGenerator</Generator>
+            <LastGenOutput>FilteredStream.generated.cs</LastGenOutput>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Update="generators\FilteredStream.generated.cs">
+            <AutoGen>True</AutoGen>
+            <DesignTime>True</DesignTime>
+            <DependentUpon>FilteredStream.tt</DependentUpon>
+        </Compile>
     </ItemGroup>
 
     <ItemGroup>

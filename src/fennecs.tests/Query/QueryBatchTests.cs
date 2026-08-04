@@ -10,6 +10,130 @@ public class QueryBatchTests
 
 
     [Fact]
+    public void Submit_Disposes_Batch_Lists()
+    {
+        using var world = new World();
+        world.Spawn().Add(123).Add("doomed");
+
+        var query = world.Query<int>().Compile();
+
+        // The pooled lists are shared process-wide; a parallel test can re-rent them right after
+        // Submit disposes them. Retry with a fresh batch until an uncontended window is observed —
+        // a Batch that fails to dispose still holds its own entries and never passes.
+        for (var attempt = 0; attempt < 50; attempt++)
+        {
+            var batch = query.Batch(AddConflict.Replace, RemoveConflict.Allow).Add(2.0).Remove<string>();
+            Assert.NotEmpty(batch.Archetypes);
+            Assert.NotEmpty(batch.Additions);
+            Assert.NotEmpty(batch.BackFill);
+
+            batch.Submit();
+
+            if (batch.Archetypes.Count == 0 && batch.Additions.Count == 0
+                && batch.Removals.Count == 0 && batch.BackFill.Count == 0) return;
+        }
+
+        Assert.Fail("Batch.Submit did not dispose the batch's pooled lists.");
+    }
+
+
+    [Fact]
+    public void Deferred_Submit_Disposes_Batch_On_CatchUp()
+    {
+        using var world = new World();
+        var entity = world.Spawn().Add(123);
+        var query = world.Query<int>().Compile();
+
+        // Retried for the same pooled-list contention reason as Submit_Disposes_Batch_Lists.
+        for (var attempt = 0; attempt < 50; attempt++)
+        {
+            var batch = query.Batch(AddConflict.Replace).Add(9.9);
+            using (world.Lock())
+            {
+                batch.Submit();
+                Assert.NotEmpty(batch.Additions); // deferred: neither committed nor disposed yet
+            }
+
+            Assert.True(entity.Has<double>());
+            if (batch.Additions.Count == 0) return; // catch-up committed and disposed the batch
+        }
+
+        Assert.Fail("Deferred catch-up did not dispose the submitted batch.");
+    }
+
+
+    [Fact]
+    public void Batch_Remove_Clears_Source_Storage_For_Repopulation()
+    {
+        using var world = new World();
+        world.Spawn().Add(0).Add("tag0");
+        world.Spawn().Add(1).Add("tag1");
+
+        var query = world.Query<int>().Has<string>().Compile();
+        query.Batch().Remove<string>().Submit();
+
+        // Re-enter the vacated (int, string) archetype; stale storage rows would misalign values.
+        var fresh = world.Spawn().Add(9).Add("fresh");
+        Assert.Equal("fresh", fresh.Ref<string>());
+        Assert.Equal(9, fresh.Ref<int>());
+    }
+
+
+    [Fact]
+    public void Batch_Add_Throws_For_Component_In_Other_Aspect()
+    {
+        using var world = new World();
+        world.AddAspect("hot", typeof(TypeA));
+        world.Spawn().Add(123);
+        var query = world.Query<int>().Compile();
+
+        using var batch = query.Batch(AddConflict.Preserve);
+        Assert.Throws<InvalidOperationException>(() => batch.Add(new TypeA(1)));
+    }
+
+
+    [Fact]
+    public void Batch_Remove_Throws_For_Component_In_Other_Aspect()
+    {
+        using var world = new World();
+        world.AddAspect("hot", typeof(TypeA));
+        world.Spawn().Add(123);
+        var query = world.Query<int>().Compile();
+
+        using var batch = query.Batch(RemoveConflict.Allow);
+        Assert.Throws<InvalidOperationException>(() => batch.Remove<TypeA>());
+    }
+
+
+    [Fact]
+    public void Batch_Add_Throws_For_Foreign_World_Relation()
+    {
+        using var world = new World();
+        using var otherWorld = new World();
+        var foreign = otherWorld.Spawn();
+        world.Spawn().Add(123);
+        var query = world.Query<int>().Compile();
+
+        using var batch = query.Batch(AddConflict.Preserve);
+        Assert.Throws<InvalidOperationException>(() => batch.Add(2.0f, foreign));
+    }
+
+
+    [Fact]
+    public void Batch_Remove_Throws_For_Foreign_World_Relation()
+    {
+        using var world = new World();
+        using var otherWorld = new World();
+        var foreign = otherWorld.Spawn();
+        world.Spawn().Add(123);
+        var query = world.Query<int>().Compile();
+
+        using var batch = query.Batch(RemoveConflict.Allow);
+        Assert.Throws<InvalidOperationException>(() => batch.Remove<float>(foreign));
+    }
+
+
+    [Fact]
     public void Can_Batch_Reference_Types()
     {
         using var world = new World();

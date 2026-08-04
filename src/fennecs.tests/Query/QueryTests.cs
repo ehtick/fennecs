@@ -479,6 +479,19 @@ public class QueryTests
 
 
     [Fact]
+    private void Query_Contains_Type_Present_In_Some_Archetypes()
+    {
+        using var world = new World();
+        world.Spawn().Add(1);
+        world.Spawn().Add(2).Add("tagged");
+        var query = world.Query<int>().Compile();
+
+        Assert.True(query.Contains<string>());
+        Assert.False(query.Contains<double>());
+    }
+
+
+    [Fact]
     private void Query_Contains_Type_Subset()
     {
         using var world = new World();
@@ -512,28 +525,28 @@ public class QueryTests
 
 
     [Fact]
-    public void Filtered_Enumerator_Filters()
+    public void Filtered_Stream_Filters_Archetypes_By_Expression()
     {
         using var world = new World();
-        var query = world.Query<EntityIndex, int>(Match.Plain, Match.Any).Compile();
+        var stream = world.Query<EntityIndex, int>(Match.Plain, Match.Any).Stream();
 
         var entity1 = world.Spawn().Add(444);
         var entity2 = world.Spawn().Add(555, entity1);
 
         //Partial miss
-        var tx = TypeExpression.Of<int>(Match.Plain);
-        Assert.Contains(entity1, query.Filtered(tx));
-        Assert.DoesNotContain(entity2, query.Filtered(tx));
+        var filtered = stream.Has(Comp<int>.Plain);
+        Assert.Contains(entity1, filtered.Select(r => r.Item1));
+        Assert.DoesNotContain(entity2, filtered.Select(r => r.Item1));
 
         //Complete miss
-        tx = TypeExpression.Of<string>(Match.Any);
-        Assert.DoesNotContain(entity1, query.Filtered(tx));
-        Assert.DoesNotContain(entity2, query.Filtered(tx));
+        filtered = stream.Has(Comp<string>.Matching(Match.Any));
+        Assert.DoesNotContain(entity1, filtered.Select(r => r.Item1));
+        Assert.DoesNotContain(entity2, filtered.Select(r => r.Item1));
 
         //No-op filter
-        tx = TypeExpression.Of<int>(Match.Any);
-        Assert.Contains(entity1, query.Filtered(tx));
-        Assert.Contains(entity2, query.Filtered(tx));
+        filtered = stream.Has(Comp<int>.Matching(Match.Any));
+        Assert.Contains(entity1, filtered.Select(r => r.Item1));
+        Assert.Contains(entity2, filtered.Select(r => r.Item1));
     }
 
 
@@ -653,6 +666,39 @@ public class QueryTests
         var query = world.Query<int>(Match.Any).Compile();
 
         for (var i = 0; i < 420; i++) world.Spawn().Add(i);
+
+        query.Despawn();
+        Assert.Empty(query);
+    }
+
+
+    [Fact]
+    public void Truncate_Cleans_Relations_Targeting_Truncated_Entities()
+    {
+        using var world = new World();
+        var target = world.Spawn().Add(1);
+        var holder = world.Spawn().Add("holder");
+        holder.Add(7.7, target);
+        Assert.True(holder.Has<double>(target));
+
+        var query = world.Query<int>().Compile();
+        query.Truncate(0);
+
+        Assert.False(world.IsAlive(target));
+        Assert.False(holder.Has<double>(target));
+    }
+
+
+    [Fact]
+    public void Can_Despawn_With_Empty_Archetype_In_Query()
+    {
+        using var world = new World();
+        world.Spawn().Add(1);
+        var mover = world.Spawn().Add(2).Add("tag");
+        mover.Remove<string>(); // leaves an empty (int, string) archetype tracked by the query
+
+        var query = world.Query<int>().Compile();
+        Assert.Equal(2, query.Count);
 
         query.Despawn();
         Assert.Empty(query);
