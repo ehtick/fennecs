@@ -17,9 +17,9 @@ public class FilteredStreamArchetypeTests
     [Fact]
     public void Has_ShouldNarrowDownResults()
     {
-        // Arrange
+        // Arrange (entity2 is in the stream but lacks ComponentB, in a distinct archetype)
         var entity1 = _world.Spawn().Add(new ComponentA());
-        var entity2 = _world.Spawn().Add(new ComponentB());
+        var entity2 = _world.Spawn().Add(new ComponentA()).Add(new ComponentC());
         var entity3 = _world.Spawn().Add(new ComponentA()).Add(new ComponentB());
 
         // Act
@@ -39,9 +39,9 @@ public class FilteredStreamArchetypeTests
     [Fact]
     public void Not_ShouldNarrowDownResults()
     {
-        // Arrange
+        // Arrange (entity2 is in the stream and has ComponentB, in a distinct archetype)
         var entity1 = _world.Spawn().Add(new ComponentA());
-        var entity2 = _world.Spawn().Add(new ComponentB());
+        var entity2 = _world.Spawn().Add(new ComponentA()).Add(new ComponentB()).Add(new ComponentC());
         var entity3 = _world.Spawn().Add(new ComponentA()).Add(new ComponentB());
 
         // Act

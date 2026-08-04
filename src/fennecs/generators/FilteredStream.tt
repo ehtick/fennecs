@@ -367,6 +367,7 @@ namespace fennecs
         /// <remarks>
         /// Not supported on wildcard Stream Types. The action must be thread-safe.
         /// </remarks>
+        /// <exception cref="AggregateException">if any worker threw; raised after all workers have finished</exception>
         [UnsupportedOSPlatform("browser", "browser-wasm runtime is single-threaded")]
         public void Job(ComponentAction<<#= types #>> action)
         {
@@ -410,7 +411,11 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, jobs);
             JobPool<DualWork<<#= types #>>>.Return(jobs);
+            Workloads.Rethrow(faults);
         }
 
         /// <inheritdoc cref="Job(ComponentAction{<#= types #>})"/>
@@ -460,7 +465,11 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, jobs);
             JobPool<UniformDualWork<U, <#= types #>>>.Return(jobs);
+            Workloads.Rethrow(faults);
         }
         #endregion
 
@@ -474,6 +483,7 @@ namespace fennecs
         /// Together, both delegates visit every entity of the Query exactly once.
         /// Not supported on wildcard Stream Types. The actions must be thread-safe.
         /// </remarks>
+        /// <exception cref="AggregateException">if any worker threw; raised after all workers have finished</exception>
         [UnsupportedOSPlatform("browser", "browser-wasm runtime is single-threaded")]
         public void Job(ComponentAction<<#= types #>> included, ComponentAction<<#= types #>> excluded)
         {
@@ -533,8 +543,13 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, dualJobs);
+            Workloads.CollectFaults(ref faults, plainJobs);
             JobPool<DualWork<<#= types #>>>.Return(dualJobs);
             JobPool<Work<<#= types #>>>.Return(plainJobs);
+            Workloads.Rethrow(faults);
         }
 
         /// <inheritdoc cref="Job(ComponentAction{<#= types #>}, ComponentAction{<#= types #>})"/>
@@ -599,8 +614,13 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, dualJobs);
+            Workloads.CollectFaults(ref faults, plainJobs);
             JobPool<UniformDualWork<U, <#= types #>>>.Return(dualJobs);
             JobPool<UniformWork<U, <#= types #>>>.Return(plainJobs);
+            Workloads.Rethrow(faults);
         }
         #endregion
 

@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Reflection;
 
 namespace fennecs.tests;
 
@@ -38,9 +37,6 @@ public class CrossTests
     }
 
     private static TypeExpression Plain<T>() => TypeExpression.Of<T>(Match.Plain);
-
-    private static T GetField<T>(object join, string name) =>
-        (T)join.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(join)!;
 
 
     [Fact]
@@ -176,12 +172,11 @@ public class CrossTests
     // Dispose must return the matched storage lists to their pool (which clears them). The pooled
     // lists are shared process-wide and can be re-rented by parallel tests right after disposal,
     // so retry with a fresh join — a Join that fails to dispose still holds its rows and never passes.
-    private static void AssertDisposeClearsStorages(Func<IDisposable> makeJoin, params string[] storageFields)
+    private static void AssertDisposeClearsStorages(Func<(IDisposable join, IEnumerable[] lists)> makeJoin)
     {
         for (var attempt = 0; attempt < 50; attempt++)
         {
-            var join = makeJoin();
-            var lists = storageFields.Select(name => GetField<IEnumerable>(join, name)).ToArray();
+            var (join, lists) = makeJoin();
             foreach (var list in lists) Assert.NotEmpty(list);
 
             join.Dispose();
@@ -198,35 +193,45 @@ public class CrossTests
         using var world = Setup(out var archetype);
 
         AssertDisposeClearsStorages(() =>
-            new Cross.Join<int>(archetype, [Plain<int>()]),
-            "_storages0");
+        {
+            var join = new Cross.Join<int>(archetype, [Plain<int>()]);
+            return (join, [join._storages0]);
+        });
         AssertDisposeClearsStorages(() =>
-            new Cross.Join<int, string>(archetype, [Plain<int>(), Plain<string>()]),
-            "_storages0", "_storages1");
+        {
+            var join = new Cross.Join<int, string>(archetype, [Plain<int>(), Plain<string>()]);
+            return (join, [join._storages0, join._storages1]);
+        });
         AssertDisposeClearsStorages(() =>
-            new Cross.Join<int, string, float>(archetype, [Plain<int>(), Plain<string>(), Plain<float>()]),
-            "_storages0", "_storages1", "_storages2");
+        {
+            var join = new Cross.Join<int, string, float>(archetype, [Plain<int>(), Plain<string>(), Plain<float>()]);
+            return (join, [join._storages0, join._storages1, join._storages2]);
+        });
         AssertDisposeClearsStorages(() =>
-            new Cross.Join<int, string, float, double>(archetype, [Plain<int>(), Plain<string>(), Plain<float>(), Plain<double>()]),
-            "_storages0", "_storages1", "_storages2", "_storages3");
+        {
+            var join = new Cross.Join<int, string, float, double>(archetype, [Plain<int>(), Plain<string>(), Plain<float>(), Plain<double>()]);
+            return (join, [join._storages0, join._storages1, join._storages2, join._storages3]);
+        });
         AssertDisposeClearsStorages(() =>
-            new Cross.Join<int, string, float, double, byte>(archetype, [Plain<int>(), Plain<string>(), Plain<float>(), Plain<double>(), Plain<byte>()]),
-            "_storages0", "_storages1", "_storages2", "_storages3", "_storages4");
+        {
+            var join = new Cross.Join<int, string, float, double, byte>(archetype, [Plain<int>(), Plain<string>(), Plain<float>(), Plain<double>(), Plain<byte>()]);
+            return (join, [join._storages0, join._storages1, join._storages2, join._storages3, join._storages4]);
+        });
     }
 
 
     // Dispose must return the counter/limiter arrays to Cross's ArrayPool: after a dispose, a fresh join
     // of the same arity should be handed the recycled arrays. Retried because other tests share the pool.
-    private static void AssertDisposeRecyclesArrays(Func<IDisposable> makeJoin)
+    private static void AssertDisposeRecyclesArrays(Func<(IDisposable join, int[] counter, int[] limiter)> makeJoin)
     {
         for (var attempt = 0; attempt < 50; attempt++)
         {
-            var first = makeJoin();
-            var firstArrays = new[] { GetField<int[]>(first, "_counter"), GetField<int[]>(first, "_limiter") };
+            var (first, counter1, limiter1) = makeJoin();
+            var firstArrays = new[] { counter1, limiter1 };
             first.Dispose();
 
-            var second = makeJoin();
-            var secondArrays = new[] { GetField<int[]>(second, "_counter"), GetField<int[]>(second, "_limiter") };
+            var (second, counter2, limiter2) = makeJoin();
+            var secondArrays = new[] { counter2, limiter2 };
             second.Dispose();
 
             if (secondArrays.All(array => firstArrays.Contains(array))) return;
@@ -241,15 +246,30 @@ public class CrossTests
     {
         using var world = Setup(out var archetype);
 
-        AssertDisposeRecyclesArrays(() => new Cross.Join<int>(archetype,
-            [Plain<int>()]));
-        AssertDisposeRecyclesArrays(() => new Cross.Join<int, string>(archetype,
-            [Plain<int>(), Plain<string>()]));
-        AssertDisposeRecyclesArrays(() => new Cross.Join<int, string, float>(archetype,
-            [Plain<int>(), Plain<string>(), Plain<float>()]));
-        AssertDisposeRecyclesArrays(() => new Cross.Join<int, string, float, double>(archetype,
-            [Plain<int>(), Plain<string>(), Plain<float>(), Plain<double>()]));
-        AssertDisposeRecyclesArrays(() => new Cross.Join<int, string, float, double, byte>(archetype,
-            [Plain<int>(), Plain<string>(), Plain<float>(), Plain<double>(), Plain<byte>()]));
+        AssertDisposeRecyclesArrays(() =>
+        {
+            var join = new Cross.Join<int>(archetype, [Plain<int>()]);
+            return (join, join._counter, join._limiter);
+        });
+        AssertDisposeRecyclesArrays(() =>
+        {
+            var join = new Cross.Join<int, string>(archetype, [Plain<int>(), Plain<string>()]);
+            return (join, join._counter, join._limiter);
+        });
+        AssertDisposeRecyclesArrays(() =>
+        {
+            var join = new Cross.Join<int, string, float>(archetype, [Plain<int>(), Plain<string>(), Plain<float>()]);
+            return (join, join._counter, join._limiter);
+        });
+        AssertDisposeRecyclesArrays(() =>
+        {
+            var join = new Cross.Join<int, string, float, double>(archetype, [Plain<int>(), Plain<string>(), Plain<float>(), Plain<double>()]);
+            return (join, join._counter, join._limiter);
+        });
+        AssertDisposeRecyclesArrays(() =>
+        {
+            var join = new Cross.Join<int, string, float, double, byte>(archetype, [Plain<int>(), Plain<string>(), Plain<float>(), Plain<double>(), Plain<byte>()]);
+            return (join, join._counter, join._limiter);
+        });
     }
 }

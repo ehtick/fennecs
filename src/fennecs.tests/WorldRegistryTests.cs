@@ -183,14 +183,10 @@ public class WorldRegistryTests
         world.Dispose();
         world.Dispose(); // must be a no-op; the reserved tag 0 must never enter the free list
 
-        var flags = System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic;
-        var freeTags = (Queue<byte>)typeof(World).GetField("FreeTags", flags)!.GetValue(null)!;
-        var tagLock = (System.Threading.Lock)typeof(World).GetField("TagLock", flags)!.GetValue(null)!;
-
         bool containsZero;
-        using (tagLock.EnterScope())
+        using (World.TagLock.EnterScope())
         {
-            containsZero = freeTags.Contains(0);
+            containsZero = World.FreeTags.Contains(0);
         }
 
         Assert.False(containsZero);

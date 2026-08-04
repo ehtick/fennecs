@@ -1,85 +1,128 @@
 namespace fennecs;
 
-internal class Work<C1> : IThreadPoolWorkItem
+/// <summary>
+/// A pooled unit of parallel work. Guarantees the countdown is signaled even when the
+/// workload's delegates throw; the caller collects <see cref="Exception"/> after waiting.
+/// </summary>
+internal abstract class Workload : IThreadPoolWorkItem
+{
+    public CountdownEvent CountDown = null!;
+    public Exception? Exception;
+
+    public void Execute()
+    {
+        try
+        {
+            Run();
+        }
+        catch (Exception exception)
+        {
+            Exception = exception;
+        }
+        finally
+        {
+            CountDown.Signal();
+        }
+    }
+
+    protected abstract void Run();
+}
+
+internal static class Workloads
+{
+    /// <summary>
+    /// Collects and clears any Exceptions the workloads captured. (call before returning them to their pool)
+    /// </summary>
+    public static void CollectFaults<W>(ref List<Exception>? faults, pools.PooledList<W> jobs) where W : Workload
+    {
+        foreach (var job in jobs)
+        {
+            if (job.Exception is null) continue;
+            (faults ??= []).Add(job.Exception);
+            job.Exception = null;
+        }
+    }
+
+    /// <summary>
+    /// Throws an <see cref="AggregateException"/> if any workloads faulted.
+    /// </summary>
+    public static void Rethrow(List<Exception>? faults)
+    {
+        if (faults is not null) throw new AggregateException(faults);
+    }
+}
+
+internal class Work<C1> : Workload
 {
     public Memory<C1> Memory1 = null!;
     public ComponentAction<C1> Action = null!;
-    public CountdownEvent CountDown = null!;
 
-    public void Execute()
+    protected override void Run()
     {
         foreach (ref var c in Memory1.Span)
         {
             Action(ref c);
         }
-        CountDown.Signal();
     }
 }
 
-internal class UniformWork<U, C1> : IThreadPoolWorkItem
+internal class UniformWork<U, C1> : Workload
 {
     public Memory<C1> Memory1 = null!;
     public UniformComponentAction<U, C1> Action = null!;
-    public CountdownEvent CountDown = null!;
     public U Uniform = default!;
 
-    public void Execute()
+    protected override void Run()
     {
         foreach (ref var c in Memory1.Span)
         {
             Action(Uniform, ref c);
         }
-        CountDown.Signal();
     }
 }
 
-internal class DualWork<C1> : IThreadPoolWorkItem
+internal class DualWork<C1> : Workload
 {
     public Memory<C1> Memory1 = null!;
     public FilterDelegate<C1> Pass = null!;
     public ComponentAction<C1> Included = null!;
     public ComponentAction<C1> Excluded = null!;
-    public CountdownEvent CountDown = null!;
 
-    public void Execute()
+    protected override void Run()
     {
         foreach (ref var c in Memory1.Span)
         {
             if (Pass(in c)) Included(ref c);
             else Excluded(ref c);
         }
-        CountDown.Signal();
     }
 }
 
-internal class UniformDualWork<U, C1> : IThreadPoolWorkItem
+internal class UniformDualWork<U, C1> : Workload
 {
     public Memory<C1> Memory1 = null!;
     public FilterDelegate<C1> Pass = null!;
     public UniformComponentAction<U, C1> Included = null!;
     public UniformComponentAction<U, C1> Excluded = null!;
-    public CountdownEvent CountDown = null!;
     public U Uniform = default!;
 
-    public void Execute()
+    protected override void Run()
     {
         foreach (ref var c in Memory1.Span)
         {
             if (Pass(in c)) Included(Uniform, ref c);
             else Excluded(Uniform, ref c);
         }
-        CountDown.Signal();
     }
 }
 
-internal class Work<C1, C2> : IThreadPoolWorkItem
+internal class Work<C1, C2> : Workload
 {
     public Memory<C1> Memory1 = null!;
     public Memory<C2> Memory2 = null!;
     public ComponentAction<C1, C2> Action = null!;
-    public CountdownEvent CountDown = null!;
 
-    public void Execute()
+    protected override void Run()
     {
         var s1 = Memory1.Span;
         var s2 = Memory2.Span;
@@ -87,21 +130,19 @@ internal class Work<C1, C2> : IThreadPoolWorkItem
         {
             Action(ref s1[i], ref s2[i]);
         }
-        CountDown.Signal();
     }
 }
 
-internal class UniformWork<U, C1, C2> : IThreadPoolWorkItem
+internal class UniformWork<U, C1, C2> : Workload
 {
     public Memory<C1> Memory1 = null!;
     public Memory<C2> Memory2 = null!;
 
     public UniformComponentAction<U, C1, C2> Action = null!;
-    public CountdownEvent CountDown = null!;
     public U Uniform = default!;
 
 
-    public void Execute()
+    protected override void Run()
     {
         var s1 = Memory1.Span;
         var s2 = Memory2.Span;
@@ -110,20 +151,18 @@ internal class UniformWork<U, C1, C2> : IThreadPoolWorkItem
         {
             Action(Uniform, ref s1[i], ref s2[i]);
         }
-        CountDown.Signal();
     }
 }
 
-internal class DualWork<C1, C2> : IThreadPoolWorkItem
+internal class DualWork<C1, C2> : Workload
 {
     public Memory<C1> Memory1 = null!;
     public Memory<C2> Memory2 = null!;
     public FilterDelegate<C1, C2> Pass = null!;
     public ComponentAction<C1, C2> Included = null!;
     public ComponentAction<C1, C2> Excluded = null!;
-    public CountdownEvent CountDown = null!;
 
-    public void Execute()
+    protected override void Run()
     {
         var s1 = Memory1.Span;
         var s2 = Memory2.Span;
@@ -132,21 +171,19 @@ internal class DualWork<C1, C2> : IThreadPoolWorkItem
             if (Pass(in s1[i], in s2[i])) Included(ref s1[i], ref s2[i]);
             else Excluded(ref s1[i], ref s2[i]);
         }
-        CountDown.Signal();
     }
 }
 
-internal class UniformDualWork<U, C1, C2> : IThreadPoolWorkItem
+internal class UniformDualWork<U, C1, C2> : Workload
 {
     public Memory<C1> Memory1 = null!;
     public Memory<C2> Memory2 = null!;
     public FilterDelegate<C1, C2> Pass = null!;
     public UniformComponentAction<U, C1, C2> Included = null!;
     public UniformComponentAction<U, C1, C2> Excluded = null!;
-    public CountdownEvent CountDown = null!;
     public U Uniform = default!;
 
-    public void Execute()
+    protected override void Run()
     {
         var s1 = Memory1.Span;
         var s2 = Memory2.Span;
@@ -155,21 +192,19 @@ internal class UniformDualWork<U, C1, C2> : IThreadPoolWorkItem
             if (Pass(in s1[i], in s2[i])) Included(Uniform, ref s1[i], ref s2[i]);
             else Excluded(Uniform, ref s1[i], ref s2[i]);
         }
-        CountDown.Signal();
     }
 }
 
-internal class Work<C1, C2, C3> : IThreadPoolWorkItem
+internal class Work<C1, C2, C3> : Workload
 {
     public Memory<C1> Memory1 = null!;
     public Memory<C2> Memory2 = null!;
     public Memory<C3> Memory3 = null!;
 
     public ComponentAction<C1, C2, C3> Action = null!;
-    public CountdownEvent CountDown = null!;
 
 
-    public void Execute()
+    protected override void Run()
     {
         var s1 = Memory1.Span;
         var s2 = Memory2.Span;
@@ -179,22 +214,20 @@ internal class Work<C1, C2, C3> : IThreadPoolWorkItem
         {
             Action(ref s1[i], ref s2[i], ref s3[i]);
         }
-        CountDown.Signal();
     }
 }
 
-internal class UniformWork<U, C1, C2, C3> : IThreadPoolWorkItem
+internal class UniformWork<U, C1, C2, C3> : Workload
 {
     public Memory<C1> Memory1 = null!;
     public Memory<C2> Memory2 = null!;
     public Memory<C3> Memory3 = null!;
 
     public UniformComponentAction<U, C1, C2, C3> Action = null!;
-    public CountdownEvent CountDown = null!;
     public U Uniform = default!;
 
 
-    public void Execute()
+    protected override void Run()
     {
         var s1 = Memory1.Span;
         var s2 = Memory2.Span;
@@ -204,11 +237,10 @@ internal class UniformWork<U, C1, C2, C3> : IThreadPoolWorkItem
         {
             Action(Uniform, ref s1[i], ref s2[i], ref s3[i]);
         }
-        CountDown.Signal();
     }
 }
 
-internal class DualWork<C1, C2, C3> : IThreadPoolWorkItem
+internal class DualWork<C1, C2, C3> : Workload
 {
     public Memory<C1> Memory1 = null!;
     public Memory<C2> Memory2 = null!;
@@ -216,9 +248,8 @@ internal class DualWork<C1, C2, C3> : IThreadPoolWorkItem
     public FilterDelegate<C1, C2, C3> Pass = null!;
     public ComponentAction<C1, C2, C3> Included = null!;
     public ComponentAction<C1, C2, C3> Excluded = null!;
-    public CountdownEvent CountDown = null!;
 
-    public void Execute()
+    protected override void Run()
     {
         var s1 = Memory1.Span;
         var s2 = Memory2.Span;
@@ -228,11 +259,10 @@ internal class DualWork<C1, C2, C3> : IThreadPoolWorkItem
             if (Pass(in s1[i], in s2[i], in s3[i])) Included(ref s1[i], ref s2[i], ref s3[i]);
             else Excluded(ref s1[i], ref s2[i], ref s3[i]);
         }
-        CountDown.Signal();
     }
 }
 
-internal class UniformDualWork<U, C1, C2, C3> : IThreadPoolWorkItem
+internal class UniformDualWork<U, C1, C2, C3> : Workload
 {
     public Memory<C1> Memory1 = null!;
     public Memory<C2> Memory2 = null!;
@@ -240,10 +270,9 @@ internal class UniformDualWork<U, C1, C2, C3> : IThreadPoolWorkItem
     public FilterDelegate<C1, C2, C3> Pass = null!;
     public UniformComponentAction<U, C1, C2, C3> Included = null!;
     public UniformComponentAction<U, C1, C2, C3> Excluded = null!;
-    public CountdownEvent CountDown = null!;
     public U Uniform = default!;
 
-    public void Execute()
+    protected override void Run()
     {
         var s1 = Memory1.Span;
         var s2 = Memory2.Span;
@@ -253,11 +282,10 @@ internal class UniformDualWork<U, C1, C2, C3> : IThreadPoolWorkItem
             if (Pass(in s1[i], in s2[i], in s3[i])) Included(Uniform, ref s1[i], ref s2[i], ref s3[i]);
             else Excluded(Uniform, ref s1[i], ref s2[i], ref s3[i]);
         }
-        CountDown.Signal();
     }
 }
 
-internal class Work<C1, C2, C3, C4> : IThreadPoolWorkItem
+internal class Work<C1, C2, C3, C4> : Workload
 {
     public Memory<C1> Memory1 = null!;
     public Memory<C2> Memory2 = null!;
@@ -265,10 +293,9 @@ internal class Work<C1, C2, C3, C4> : IThreadPoolWorkItem
     public Memory<C4> Memory4 = null!;
 
     public ComponentAction<C1, C2, C3, C4> Action = null!;
-    public CountdownEvent CountDown = null!;
 
 
-    public void Execute()
+    protected override void Run()
     {
         var s1 = Memory1.Span;
         var s2 = Memory2.Span;
@@ -279,11 +306,10 @@ internal class Work<C1, C2, C3, C4> : IThreadPoolWorkItem
         {
             Action(ref s1[i], ref s2[i], ref s3[i], ref s4[i]);
         }
-        CountDown.Signal();
     }
 }
 
-internal class UniformWork<U, C1, C2, C3, C4> : IThreadPoolWorkItem
+internal class UniformWork<U, C1, C2, C3, C4> : Workload
 {
     public Memory<C1> Memory1 = null!;
     public Memory<C2> Memory2 = null!;
@@ -291,11 +317,10 @@ internal class UniformWork<U, C1, C2, C3, C4> : IThreadPoolWorkItem
     public Memory<C4> Memory4 = null!;
 
     public UniformComponentAction<U, C1, C2, C3, C4> Action = null!;
-    public CountdownEvent CountDown = null!;
     public U Uniform = default!;
 
 
-    public void Execute()
+    protected override void Run()
     {
         var s1 = Memory1.Span;
         var s2 = Memory2.Span;
@@ -305,11 +330,10 @@ internal class UniformWork<U, C1, C2, C3, C4> : IThreadPoolWorkItem
         {
             Action(Uniform, ref s1[i], ref s2[i], ref s3[i], ref s4[i]);
         }
-        CountDown.Signal();
     }
 }
 
-internal class DualWork<C1, C2, C3, C4> : IThreadPoolWorkItem
+internal class DualWork<C1, C2, C3, C4> : Workload
 {
     public Memory<C1> Memory1 = null!;
     public Memory<C2> Memory2 = null!;
@@ -318,9 +342,8 @@ internal class DualWork<C1, C2, C3, C4> : IThreadPoolWorkItem
     public FilterDelegate<C1, C2, C3, C4> Pass = null!;
     public ComponentAction<C1, C2, C3, C4> Included = null!;
     public ComponentAction<C1, C2, C3, C4> Excluded = null!;
-    public CountdownEvent CountDown = null!;
 
-    public void Execute()
+    protected override void Run()
     {
         var s1 = Memory1.Span;
         var s2 = Memory2.Span;
@@ -331,11 +354,10 @@ internal class DualWork<C1, C2, C3, C4> : IThreadPoolWorkItem
             if (Pass(in s1[i], in s2[i], in s3[i], in s4[i])) Included(ref s1[i], ref s2[i], ref s3[i], ref s4[i]);
             else Excluded(ref s1[i], ref s2[i], ref s3[i], ref s4[i]);
         }
-        CountDown.Signal();
     }
 }
 
-internal class UniformDualWork<U, C1, C2, C3, C4> : IThreadPoolWorkItem
+internal class UniformDualWork<U, C1, C2, C3, C4> : Workload
 {
     public Memory<C1> Memory1 = null!;
     public Memory<C2> Memory2 = null!;
@@ -344,10 +366,9 @@ internal class UniformDualWork<U, C1, C2, C3, C4> : IThreadPoolWorkItem
     public FilterDelegate<C1, C2, C3, C4> Pass = null!;
     public UniformComponentAction<U, C1, C2, C3, C4> Included = null!;
     public UniformComponentAction<U, C1, C2, C3, C4> Excluded = null!;
-    public CountdownEvent CountDown = null!;
     public U Uniform = default!;
 
-    public void Execute()
+    protected override void Run()
     {
         var s1 = Memory1.Span;
         var s2 = Memory2.Span;
@@ -358,11 +379,10 @@ internal class UniformDualWork<U, C1, C2, C3, C4> : IThreadPoolWorkItem
             if (Pass(in s1[i], in s2[i], in s3[i], in s4[i])) Included(Uniform, ref s1[i], ref s2[i], ref s3[i], ref s4[i]);
             else Excluded(Uniform, ref s1[i], ref s2[i], ref s3[i], ref s4[i]);
         }
-        CountDown.Signal();
     }
 }
 
-internal class Work<C1, C2, C3, C4, C5> : IThreadPoolWorkItem
+internal class Work<C1, C2, C3, C4, C5> : Workload
 {
     public Memory<C1> Memory1 = null!;
     public Memory<C2> Memory2 = null!;
@@ -371,10 +391,9 @@ internal class Work<C1, C2, C3, C4, C5> : IThreadPoolWorkItem
     public Memory<C5> Memory5 = null!;
 
     public ComponentAction<C1, C2, C3, C4, C5> Action = null!;
-    public CountdownEvent CountDown = null!;
 
 
-    public void Execute()
+    protected override void Run()
     {
         var s1 = Memory1.Span;
         var s2 = Memory2.Span;
@@ -386,11 +405,10 @@ internal class Work<C1, C2, C3, C4, C5> : IThreadPoolWorkItem
         {
             Action(ref s1[i], ref s2[i], ref s3[i], ref s4[i], ref s5[i]);
         }
-        CountDown.Signal();
     }
 }
 
-internal class UniformWork<U, C1, C2, C3, C4, C5> : IThreadPoolWorkItem
+internal class UniformWork<U, C1, C2, C3, C4, C5> : Workload
 {
     public Memory<C1> Memory1 = null!;
     public Memory<C2> Memory2 = null!;
@@ -399,11 +417,10 @@ internal class UniformWork<U, C1, C2, C3, C4, C5> : IThreadPoolWorkItem
     public Memory<C5> Memory5 = null!;
 
     public UniformComponentAction<U, C1, C2, C3, C4, C5> Action = null!;
-    public CountdownEvent CountDown = null!;
     public U Uniform = default!;
 
 
-    public void Execute()
+    protected override void Run()
     {
         var s1 = Memory1.Span;
         var s2 = Memory2.Span;
@@ -415,11 +432,10 @@ internal class UniformWork<U, C1, C2, C3, C4, C5> : IThreadPoolWorkItem
         {
             Action(Uniform, ref s1[i], ref s2[i], ref s3[i], ref s4[i], ref s5[i]);
         }
-        CountDown.Signal();
     }
 }
 
-internal class DualWork<C1, C2, C3, C4, C5> : IThreadPoolWorkItem
+internal class DualWork<C1, C2, C3, C4, C5> : Workload
 {
     public Memory<C1> Memory1 = null!;
     public Memory<C2> Memory2 = null!;
@@ -429,9 +445,8 @@ internal class DualWork<C1, C2, C3, C4, C5> : IThreadPoolWorkItem
     public FilterDelegate<C1, C2, C3, C4, C5> Pass = null!;
     public ComponentAction<C1, C2, C3, C4, C5> Included = null!;
     public ComponentAction<C1, C2, C3, C4, C5> Excluded = null!;
-    public CountdownEvent CountDown = null!;
 
-    public void Execute()
+    protected override void Run()
     {
         var s1 = Memory1.Span;
         var s2 = Memory2.Span;
@@ -443,11 +458,10 @@ internal class DualWork<C1, C2, C3, C4, C5> : IThreadPoolWorkItem
             if (Pass(in s1[i], in s2[i], in s3[i], in s4[i], in s5[i])) Included(ref s1[i], ref s2[i], ref s3[i], ref s4[i], ref s5[i]);
             else Excluded(ref s1[i], ref s2[i], ref s3[i], ref s4[i], ref s5[i]);
         }
-        CountDown.Signal();
     }
 }
 
-internal class UniformDualWork<U, C1, C2, C3, C4, C5> : IThreadPoolWorkItem
+internal class UniformDualWork<U, C1, C2, C3, C4, C5> : Workload
 {
     public Memory<C1> Memory1 = null!;
     public Memory<C2> Memory2 = null!;
@@ -457,10 +471,9 @@ internal class UniformDualWork<U, C1, C2, C3, C4, C5> : IThreadPoolWorkItem
     public FilterDelegate<C1, C2, C3, C4, C5> Pass = null!;
     public UniformComponentAction<U, C1, C2, C3, C4, C5> Included = null!;
     public UniformComponentAction<U, C1, C2, C3, C4, C5> Excluded = null!;
-    public CountdownEvent CountDown = null!;
     public U Uniform = default!;
 
-    public void Execute()
+    protected override void Run()
     {
         var s1 = Memory1.Span;
         var s2 = Memory2.Span;
@@ -472,6 +485,5 @@ internal class UniformDualWork<U, C1, C2, C3, C4, C5> : IThreadPoolWorkItem
             if (Pass(in s1[i], in s2[i], in s3[i], in s4[i], in s5[i])) Included(Uniform, ref s1[i], ref s2[i], ref s3[i], ref s4[i], ref s5[i]);
             else Excluded(Uniform, ref s1[i], ref s2[i], ref s3[i], ref s4[i], ref s5[i]);
         }
-        CountDown.Signal();
     }
 }

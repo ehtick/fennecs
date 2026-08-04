@@ -310,6 +310,7 @@ namespace fennecs
         /// <remarks>
         /// Not supported on wildcard Stream Types. The action must be thread-safe.
         /// </remarks>
+        /// <exception cref="AggregateException">if any worker threw; raised after all workers have finished</exception>
         [UnsupportedOSPlatform("browser", "browser-wasm runtime is single-threaded")]
         public void Job(ComponentAction<C0> action)
         {
@@ -351,7 +352,11 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, jobs);
             JobPool<DualWork<C0>>.Return(jobs);
+            Workloads.Rethrow(faults);
         }
 
         /// <inheritdoc cref="Job(ComponentAction{C0})"/>
@@ -399,7 +404,11 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, jobs);
             JobPool<UniformDualWork<U, C0>>.Return(jobs);
+            Workloads.Rethrow(faults);
         }
         #endregion
 
@@ -413,6 +422,7 @@ namespace fennecs
         /// Together, both delegates visit every entity of the Query exactly once.
         /// Not supported on wildcard Stream Types. The actions must be thread-safe.
         /// </remarks>
+        /// <exception cref="AggregateException">if any worker threw; raised after all workers have finished</exception>
         [UnsupportedOSPlatform("browser", "browser-wasm runtime is single-threaded")]
         public void Job(ComponentAction<C0> included, ComponentAction<C0> excluded)
         {
@@ -468,8 +478,13 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, dualJobs);
+            Workloads.CollectFaults(ref faults, plainJobs);
             JobPool<DualWork<C0>>.Return(dualJobs);
             JobPool<Work<C0>>.Return(plainJobs);
+            Workloads.Rethrow(faults);
         }
 
         /// <inheritdoc cref="Job(ComponentAction{C0}, ComponentAction{C0})"/>
@@ -530,8 +545,13 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, dualJobs);
+            Workloads.CollectFaults(ref faults, plainJobs);
             JobPool<UniformDualWork<U, C0>>.Return(dualJobs);
             JobPool<UniformWork<U, C0>>.Return(plainJobs);
+            Workloads.Rethrow(faults);
         }
         #endregion
 
@@ -1074,6 +1094,7 @@ namespace fennecs
         /// <remarks>
         /// Not supported on wildcard Stream Types. The action must be thread-safe.
         /// </remarks>
+        /// <exception cref="AggregateException">if any worker threw; raised after all workers have finished</exception>
         [UnsupportedOSPlatform("browser", "browser-wasm runtime is single-threaded")]
         public void Job(ComponentAction<C0, C1> action)
         {
@@ -1116,7 +1137,11 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, jobs);
             JobPool<DualWork<C0, C1>>.Return(jobs);
+            Workloads.Rethrow(faults);
         }
 
         /// <inheritdoc cref="Job(ComponentAction{C0, C1})"/>
@@ -1165,7 +1190,11 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, jobs);
             JobPool<UniformDualWork<U, C0, C1>>.Return(jobs);
+            Workloads.Rethrow(faults);
         }
         #endregion
 
@@ -1179,6 +1208,7 @@ namespace fennecs
         /// Together, both delegates visit every entity of the Query exactly once.
         /// Not supported on wildcard Stream Types. The actions must be thread-safe.
         /// </remarks>
+        /// <exception cref="AggregateException">if any worker threw; raised after all workers have finished</exception>
         [UnsupportedOSPlatform("browser", "browser-wasm runtime is single-threaded")]
         public void Job(ComponentAction<C0, C1> included, ComponentAction<C0, C1> excluded)
         {
@@ -1236,8 +1266,13 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, dualJobs);
+            Workloads.CollectFaults(ref faults, plainJobs);
             JobPool<DualWork<C0, C1>>.Return(dualJobs);
             JobPool<Work<C0, C1>>.Return(plainJobs);
+            Workloads.Rethrow(faults);
         }
 
         /// <inheritdoc cref="Job(ComponentAction{C0, C1}, ComponentAction{C0, C1})"/>
@@ -1300,8 +1335,13 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, dualJobs);
+            Workloads.CollectFaults(ref faults, plainJobs);
             JobPool<UniformDualWork<U, C0, C1>>.Return(dualJobs);
             JobPool<UniformWork<U, C0, C1>>.Return(plainJobs);
+            Workloads.Rethrow(faults);
         }
         #endregion
 
@@ -1855,6 +1895,7 @@ namespace fennecs
         /// <remarks>
         /// Not supported on wildcard Stream Types. The action must be thread-safe.
         /// </remarks>
+        /// <exception cref="AggregateException">if any worker threw; raised after all workers have finished</exception>
         [UnsupportedOSPlatform("browser", "browser-wasm runtime is single-threaded")]
         public void Job(ComponentAction<C0, C1, C2> action)
         {
@@ -1898,7 +1939,11 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, jobs);
             JobPool<DualWork<C0, C1, C2>>.Return(jobs);
+            Workloads.Rethrow(faults);
         }
 
         /// <inheritdoc cref="Job(ComponentAction{C0, C1, C2})"/>
@@ -1948,7 +1993,11 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, jobs);
             JobPool<UniformDualWork<U, C0, C1, C2>>.Return(jobs);
+            Workloads.Rethrow(faults);
         }
         #endregion
 
@@ -1962,6 +2011,7 @@ namespace fennecs
         /// Together, both delegates visit every entity of the Query exactly once.
         /// Not supported on wildcard Stream Types. The actions must be thread-safe.
         /// </remarks>
+        /// <exception cref="AggregateException">if any worker threw; raised after all workers have finished</exception>
         [UnsupportedOSPlatform("browser", "browser-wasm runtime is single-threaded")]
         public void Job(ComponentAction<C0, C1, C2> included, ComponentAction<C0, C1, C2> excluded)
         {
@@ -2021,8 +2071,13 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, dualJobs);
+            Workloads.CollectFaults(ref faults, plainJobs);
             JobPool<DualWork<C0, C1, C2>>.Return(dualJobs);
             JobPool<Work<C0, C1, C2>>.Return(plainJobs);
+            Workloads.Rethrow(faults);
         }
 
         /// <inheritdoc cref="Job(ComponentAction{C0, C1, C2}, ComponentAction{C0, C1, C2})"/>
@@ -2087,8 +2142,13 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, dualJobs);
+            Workloads.CollectFaults(ref faults, plainJobs);
             JobPool<UniformDualWork<U, C0, C1, C2>>.Return(dualJobs);
             JobPool<UniformWork<U, C0, C1, C2>>.Return(plainJobs);
+            Workloads.Rethrow(faults);
         }
         #endregion
 
@@ -2653,6 +2713,7 @@ namespace fennecs
         /// <remarks>
         /// Not supported on wildcard Stream Types. The action must be thread-safe.
         /// </remarks>
+        /// <exception cref="AggregateException">if any worker threw; raised after all workers have finished</exception>
         [UnsupportedOSPlatform("browser", "browser-wasm runtime is single-threaded")]
         public void Job(ComponentAction<C0, C1, C2, C3> action)
         {
@@ -2697,7 +2758,11 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, jobs);
             JobPool<DualWork<C0, C1, C2, C3>>.Return(jobs);
+            Workloads.Rethrow(faults);
         }
 
         /// <inheritdoc cref="Job(ComponentAction{C0, C1, C2, C3})"/>
@@ -2748,7 +2813,11 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, jobs);
             JobPool<UniformDualWork<U, C0, C1, C2, C3>>.Return(jobs);
+            Workloads.Rethrow(faults);
         }
         #endregion
 
@@ -2762,6 +2831,7 @@ namespace fennecs
         /// Together, both delegates visit every entity of the Query exactly once.
         /// Not supported on wildcard Stream Types. The actions must be thread-safe.
         /// </remarks>
+        /// <exception cref="AggregateException">if any worker threw; raised after all workers have finished</exception>
         [UnsupportedOSPlatform("browser", "browser-wasm runtime is single-threaded")]
         public void Job(ComponentAction<C0, C1, C2, C3> included, ComponentAction<C0, C1, C2, C3> excluded)
         {
@@ -2823,8 +2893,13 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, dualJobs);
+            Workloads.CollectFaults(ref faults, plainJobs);
             JobPool<DualWork<C0, C1, C2, C3>>.Return(dualJobs);
             JobPool<Work<C0, C1, C2, C3>>.Return(plainJobs);
+            Workloads.Rethrow(faults);
         }
 
         /// <inheritdoc cref="Job(ComponentAction{C0, C1, C2, C3}, ComponentAction{C0, C1, C2, C3})"/>
@@ -2891,8 +2966,13 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, dualJobs);
+            Workloads.CollectFaults(ref faults, plainJobs);
             JobPool<UniformDualWork<U, C0, C1, C2, C3>>.Return(dualJobs);
             JobPool<UniformWork<U, C0, C1, C2, C3>>.Return(plainJobs);
+            Workloads.Rethrow(faults);
         }
         #endregion
 
@@ -3468,6 +3548,7 @@ namespace fennecs
         /// <remarks>
         /// Not supported on wildcard Stream Types. The action must be thread-safe.
         /// </remarks>
+        /// <exception cref="AggregateException">if any worker threw; raised after all workers have finished</exception>
         [UnsupportedOSPlatform("browser", "browser-wasm runtime is single-threaded")]
         public void Job(ComponentAction<C0, C1, C2, C3, C4> action)
         {
@@ -3513,7 +3594,11 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, jobs);
             JobPool<DualWork<C0, C1, C2, C3, C4>>.Return(jobs);
+            Workloads.Rethrow(faults);
         }
 
         /// <inheritdoc cref="Job(ComponentAction{C0, C1, C2, C3, C4})"/>
@@ -3565,7 +3650,11 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, jobs);
             JobPool<UniformDualWork<U, C0, C1, C2, C3, C4>>.Return(jobs);
+            Workloads.Rethrow(faults);
         }
         #endregion
 
@@ -3579,6 +3668,7 @@ namespace fennecs
         /// Together, both delegates visit every entity of the Query exactly once.
         /// Not supported on wildcard Stream Types. The actions must be thread-safe.
         /// </remarks>
+        /// <exception cref="AggregateException">if any worker threw; raised after all workers have finished</exception>
         [UnsupportedOSPlatform("browser", "browser-wasm runtime is single-threaded")]
         public void Job(ComponentAction<C0, C1, C2, C3, C4> included, ComponentAction<C0, C1, C2, C3, C4> excluded)
         {
@@ -3642,8 +3732,13 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, dualJobs);
+            Workloads.CollectFaults(ref faults, plainJobs);
             JobPool<DualWork<C0, C1, C2, C3, C4>>.Return(dualJobs);
             JobPool<Work<C0, C1, C2, C3, C4>>.Return(plainJobs);
+            Workloads.Rethrow(faults);
         }
 
         /// <inheritdoc cref="Job(ComponentAction{C0, C1, C2, C3, C4}, ComponentAction{C0, C1, C2, C3, C4})"/>
@@ -3712,8 +3807,13 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, dualJobs);
+            Workloads.CollectFaults(ref faults, plainJobs);
             JobPool<UniformDualWork<U, C0, C1, C2, C3, C4>>.Return(dualJobs);
             JobPool<UniformWork<U, C0, C1, C2, C3, C4>>.Return(plainJobs);
+            Workloads.Rethrow(faults);
         }
         #endregion
 

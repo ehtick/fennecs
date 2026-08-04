@@ -241,7 +241,11 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, jobs);
             JobPool<Work<<#= types #>>>.Return(jobs);
+            Workloads.Rethrow(faults);
         }
 
         /// <inheritdoc cref="Stream{C0}.Job{U}"/>
@@ -286,7 +290,11 @@ namespace fennecs
             }
             countdown.Signal();
             countdown.Wait();
+
+            List<Exception>? faults = null;
+            Workloads.CollectFaults(ref faults, jobs);
             JobPool<UniformWork<U, <#= types #>>>.Return(jobs);
+            Workloads.Rethrow(faults);
         }
         #endregion
 

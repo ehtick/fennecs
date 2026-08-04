@@ -14,9 +14,9 @@ public partial class World
     private static readonly World?[] Worlds = new World?[256];
 
     // Tag 0 is permanently reserved so default(Entity) can never resolve to a World.
-    private static readonly Queue<byte> FreeTags = new(Enumerable.Range(1, 255).Select(i => (byte) i));
+    internal static readonly Queue<byte> FreeTags = new(Enumerable.Range(1, 255).Select(i => (byte) i));
 
-    private static readonly Lock TagLock = new();
+    internal static readonly Lock TagLock = new();
 
 
     /// <summary>

@@ -43,10 +43,10 @@ public static class Cross
     /// </summary>
     internal readonly struct Join<C0> : IDisposable
     {
-        private readonly int[] _counter;
-        private readonly int[] _limiter;
+        internal readonly int[] _counter;
+        internal readonly int[] _limiter;
 
-        private readonly PooledList<Storage<C0>> _storages0;
+        internal readonly PooledList<Storage<C0>> _storages0;
 
         private readonly bool _allocated;
         private readonly bool _populated;
@@ -113,11 +113,11 @@ public static class Cross
     /// </summary>
     internal readonly struct Join<C0, C1> : IDisposable
     {
-        private readonly int[] _counter;
-        private readonly int[] _limiter;
+        internal readonly int[] _counter;
+        internal readonly int[] _limiter;
 
-        private readonly PooledList<Storage<C0>> _storages0;
-        private readonly PooledList<Storage<C1>> _storages1;
+        internal readonly PooledList<Storage<C0>> _storages0;
+        internal readonly PooledList<Storage<C1>> _storages1;
 
         private readonly bool _allocated;
         private readonly bool _populated;
@@ -169,12 +169,12 @@ public static class Cross
     /// </summary>
     internal readonly struct Join<C0, C1, C2> : IDisposable
     {
-        private readonly int[] _counter;
-        private readonly int[] _limiter;
+        internal readonly int[] _counter;
+        internal readonly int[] _limiter;
 
-        private readonly PooledList<Storage<C0>> _storages0;
-        private readonly PooledList<Storage<C1>> _storages1;
-        private readonly PooledList<Storage<C2>> _storages2;
+        internal readonly PooledList<Storage<C0>> _storages0;
+        internal readonly PooledList<Storage<C1>> _storages1;
+        internal readonly PooledList<Storage<C2>> _storages2;
 
         private readonly bool _allocated;
         private readonly bool _populated;
@@ -231,13 +231,13 @@ public static class Cross
     /// </summary>
     internal readonly struct Join<C0, C1, C2, C3> : IDisposable
     {
-        private readonly int[] _counter;
-        private readonly int[] _limiter;
+        internal readonly int[] _counter;
+        internal readonly int[] _limiter;
 
-        private readonly PooledList<Storage<C0>> _storages0;
-        private readonly PooledList<Storage<C1>> _storages1;
-        private readonly PooledList<Storage<C2>> _storages2;
-        private readonly PooledList<Storage<C3>> _storages3;
+        internal readonly PooledList<Storage<C0>> _storages0;
+        internal readonly PooledList<Storage<C1>> _storages1;
+        internal readonly PooledList<Storage<C2>> _storages2;
+        internal readonly PooledList<Storage<C3>> _storages3;
 
         private readonly bool _allocated;
         private readonly bool _populated;
@@ -297,14 +297,14 @@ public static class Cross
     /// </summary>
     internal readonly struct Join<C0, C1, C2, C3, C4> : IDisposable
     {
-        private readonly int[] _counter;
-        private readonly int[] _limiter;
+        internal readonly int[] _counter;
+        internal readonly int[] _limiter;
 
-        private readonly PooledList<Storage<C0>> _storages0;
-        private readonly PooledList<Storage<C1>> _storages1;
-        private readonly PooledList<Storage<C2>> _storages2;
-        private readonly PooledList<Storage<C3>> _storages3;
-        private readonly PooledList<Storage<C4>> _storages4;
+        internal readonly PooledList<Storage<C0>> _storages0;
+        internal readonly PooledList<Storage<C1>> _storages1;
+        internal readonly PooledList<Storage<C2>> _storages2;
+        internal readonly PooledList<Storage<C3>> _storages3;
+        internal readonly PooledList<Storage<C4>> _storages4;
 
         private readonly bool _allocated;
         private readonly bool _populated;
