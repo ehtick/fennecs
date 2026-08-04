@@ -1,20 +1,32 @@
 name: Release to NuGet
 
+# Publishes via NuGet Trusted Publishing (OIDC) — no long-lived API key stored.
+# Runs when an un-prefixed version tag (e.g. 0.7.1 or 0.7.1-pre) is pushed; the
+# package version is taken verbatim from the tag name via MinVerVersionOverride.
 on:
-  release:
-    types: [published]
-    
+  push:
+    tags:
+      - "[0-9]*.[0-9]*.[0-9]*"
+
+permissions:
+  contents: write # create the GitHub Release for the tag
+  id-token: write # request the GitHub OIDC token for Trusted Publishing
+
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
 
     defaults:
       run:
         working-directory: src
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
+      with:
+        # MinVer needs full history and tags for the test build's version.
+        fetch-depth: 0
+        filter: tree:0
 
     - name: Setup .NET 10
       uses: actions/setup-dotnet@v5
@@ -26,11 +38,61 @@ jobs:
       with:
         dotnet-version: 11.0.x
         dotnet-quality: preview
-    
-    - run: dotnet restore
-    - run: dotnet build -c Release
-    - run: dotnet test -c Release --no-build
-    - name: Pack nuget
-      run: dotnet pack -c Release --no-build --output .
-#    - name: Push to NuGet
-#      run: dotnet nuget push "*.nupkg" --api-key ${{secrets.nuget_api_key}} --source https://api.nuget.org/v3/index.json
+
+    - name: Restore
+      run: dotnet restore fennecs.tests/fennecs.tests.csproj
+
+    - name: Test
+      run: dotnet test fennecs.tests/fennecs.tests.csproj -c Release --no-restore
+
+    # Tags carry no "v" prefix, but the csproj sets MinVerTagPrefix=v; the
+    # override sidesteps that and guarantees package version == tag name.
+    - name: Pack
+      run: >
+        dotnet pack fennecs/fennecs.csproj -c Release
+        -o ${{ runner.temp }}/artifacts
+        -p:MinVerVersionOverride=${{ github.ref_name }}
+
+    - name: Verify package
+      run: |
+        ls -l "${{ runner.temp }}/artifacts"
+        test -f "${{ runner.temp }}/artifacts/fennecs.${{ github.ref_name }}.nupkg" \
+          || { echo "::error::Package version does not match tag ${{ github.ref_name }}"; exit 1; }
+        test -f "${{ runner.temp }}/artifacts/fennecs.${{ github.ref_name }}.snupkg" \
+          || { echo "::error::No .snupkg symbol package was generated"; exit 1; }
+
+    - name: Upload package artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: nuget-package
+        path: |
+          ${{ runner.temp }}/artifacts/*.nupkg
+          ${{ runner.temp }}/artifacts/*.snupkg
+
+    # Exchanges the GitHub OIDC token for a short-lived API key via the Trusted
+    # Publishing policy on nuget.org; NUGET_USER holds the owning account name.
+    - name: NuGet login (Trusted Publishing)
+      id: nuget-login
+      uses: NuGet/login@v1
+      with:
+        user: ${{ secrets.NUGET_USER }}
+
+    # Pushing the .nupkg also uploads the matching .snupkg alongside it.
+    - name: Push to NuGet
+      run: >
+        dotnet nuget push "${{ runner.temp }}/artifacts/*.nupkg"
+        --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
+        --source https://api.nuget.org/v3/index.json
+        --skip-duplicate
+
+    - name: Create GitHub Release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        prerelease=""
+        case "${{ github.ref_name }}" in *-*) prerelease="--prerelease";; esac
+        gh release create "${{ github.ref_name }}" \
+          "${{ runner.temp }}"/artifacts/*.nupkg \
+          "${{ runner.temp }}"/artifacts/*.snupkg \
+          --title "${{ github.ref_name }}" \
+          --generate-notes --verify-tag $prerelease
