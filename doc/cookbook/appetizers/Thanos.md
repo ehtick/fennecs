@@ -26,9 +26,9 @@ Well... randomly half of randomly half!
 :::
  
 ### How it works
-First we create a bunch of entities, give some of them a "Lucky" and some of them a "Unlucky" component, then we filter our Query to target the Unlucky and move the Lucky ones out of harm's way.
+First we create a bunch of entities, then flip two coins for each one to hand out "Lucky" and "Unlucky" components. Next, we narrow down our Stream with the `Has` and `Not` filters — targeting the Unlucky while leaving anyone Lucky out of harm's way.
 
-Finally, we unleash the power of the ~~Infinity Gauntlet~~ `Stream<>.Despawn()` to bring an awkward balance to the Universe. 
+Finally, we unleash the power of the ~~Infinity Gauntlet~~ `FilteredStream.Despawn()` to bring an awkward balance to the Universe. 
 
 I'm sure you already see that nothing can go wrong! Let's get snapping!
 

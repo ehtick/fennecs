@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.Collections;
 using System.Diagnostics;
 using fennecs.pools;
 
@@ -43,10 +44,10 @@ public static class Cross
     /// </summary>
     internal readonly struct Join<C0> : IDisposable
     {
-        internal readonly int[] _counter;
-        internal readonly int[] _limiter;
+        private readonly int[] _counter;
+        private readonly int[] _limiter;
 
-        internal readonly PooledList<Storage<C0>> _storages0;
+        private readonly PooledList<Storage<C0>> _storages0;
 
         private readonly bool _allocated;
         private readonly bool _populated;
@@ -75,6 +76,10 @@ public static class Cross
         /// Call <see cref="Iterate"/> to select the next permutation.
         /// </summary>
         internal Storage<C0> Select => _storages0[_counter[0]];
+
+        // Test seam: bookkeeping internals for disposal / pool round-trip verification.
+        internal (int[] Counter, int[] Limiter, IEnumerable[] Storages) TestState =>
+            (_counter, _limiter, [_storages0]);
 
 
         /// <summary>
@@ -113,11 +118,11 @@ public static class Cross
     /// </summary>
     internal readonly struct Join<C0, C1> : IDisposable
     {
-        internal readonly int[] _counter;
-        internal readonly int[] _limiter;
+        private readonly int[] _counter;
+        private readonly int[] _limiter;
 
-        internal readonly PooledList<Storage<C0>> _storages0;
-        internal readonly PooledList<Storage<C1>> _storages1;
+        private readonly PooledList<Storage<C0>> _storages0;
+        private readonly PooledList<Storage<C1>> _storages1;
 
         private readonly bool _allocated;
         private readonly bool _populated;
@@ -141,6 +146,10 @@ public static class Cross
 
 
         internal (Storage<C0>, Storage<C1>) Select => (_storages0[_counter[0]], _storages1[_counter[1]]);
+
+        // Test seam: bookkeeping internals for disposal / pool round-trip verification.
+        internal (int[] Counter, int[] Limiter, IEnumerable[] Storages) TestState =>
+            (_counter, _limiter, [_storages0, _storages1]);
 
         internal bool Iterate()
         {
@@ -169,12 +178,12 @@ public static class Cross
     /// </summary>
     internal readonly struct Join<C0, C1, C2> : IDisposable
     {
-        internal readonly int[] _counter;
-        internal readonly int[] _limiter;
+        private readonly int[] _counter;
+        private readonly int[] _limiter;
 
-        internal readonly PooledList<Storage<C0>> _storages0;
-        internal readonly PooledList<Storage<C1>> _storages1;
-        internal readonly PooledList<Storage<C2>> _storages2;
+        private readonly PooledList<Storage<C0>> _storages0;
+        private readonly PooledList<Storage<C1>> _storages1;
+        private readonly PooledList<Storage<C2>> _storages2;
 
         private readonly bool _allocated;
         private readonly bool _populated;
@@ -202,6 +211,10 @@ public static class Cross
 
         internal (Storage<C0>, Storage<C1>, Storage<C2>) Select =>
             (_storages0[_counter[0]], _storages1[_counter[1]], _storages2[_counter[2]]);
+
+        // Test seam: bookkeeping internals for disposal / pool round-trip verification.
+        internal (int[] Counter, int[] Limiter, IEnumerable[] Storages) TestState =>
+            (_counter, _limiter, [_storages0, _storages1, _storages2]);
 
         internal bool Iterate()
         {
@@ -231,13 +244,13 @@ public static class Cross
     /// </summary>
     internal readonly struct Join<C0, C1, C2, C3> : IDisposable
     {
-        internal readonly int[] _counter;
-        internal readonly int[] _limiter;
+        private readonly int[] _counter;
+        private readonly int[] _limiter;
 
-        internal readonly PooledList<Storage<C0>> _storages0;
-        internal readonly PooledList<Storage<C1>> _storages1;
-        internal readonly PooledList<Storage<C2>> _storages2;
-        internal readonly PooledList<Storage<C3>> _storages3;
+        private readonly PooledList<Storage<C0>> _storages0;
+        private readonly PooledList<Storage<C1>> _storages1;
+        private readonly PooledList<Storage<C2>> _storages2;
+        private readonly PooledList<Storage<C3>> _storages3;
 
         private readonly bool _allocated;
         private readonly bool _populated;
@@ -268,6 +281,10 @@ public static class Cross
         internal (Storage<C0>, Storage<C1>, Storage<C2>, Storage<C3>) Select => (_storages0[_counter[0]],
             _storages1[_counter[1]], _storages2[_counter[2]], _storages3[_counter[3]]);
 
+        // Test seam: bookkeeping internals for disposal / pool round-trip verification.
+        internal (int[] Counter, int[] Limiter, IEnumerable[] Storages) TestState =>
+            (_counter, _limiter, [_storages0, _storages1, _storages2, _storages3]);
+
         internal bool Iterate()
         {
             Debug.Assert(_counter is { Length: >= 4 });
@@ -297,14 +314,14 @@ public static class Cross
     /// </summary>
     internal readonly struct Join<C0, C1, C2, C3, C4> : IDisposable
     {
-        internal readonly int[] _counter;
-        internal readonly int[] _limiter;
+        private readonly int[] _counter;
+        private readonly int[] _limiter;
 
-        internal readonly PooledList<Storage<C0>> _storages0;
-        internal readonly PooledList<Storage<C1>> _storages1;
-        internal readonly PooledList<Storage<C2>> _storages2;
-        internal readonly PooledList<Storage<C3>> _storages3;
-        internal readonly PooledList<Storage<C4>> _storages4;
+        private readonly PooledList<Storage<C0>> _storages0;
+        private readonly PooledList<Storage<C1>> _storages1;
+        private readonly PooledList<Storage<C2>> _storages2;
+        private readonly PooledList<Storage<C3>> _storages3;
+        private readonly PooledList<Storage<C4>> _storages4;
 
         private readonly bool _allocated;
         private readonly bool _populated;
@@ -337,6 +354,10 @@ public static class Cross
 
         internal (Storage<C0>, Storage<C1>, Storage<C2>, Storage<C3>, Storage<C4>) Select => (_storages0[_counter[0]],
             _storages1[_counter[1]], _storages2[_counter[2]], _storages3[_counter[3]], _storages4[_counter[4]]);
+
+        // Test seam: bookkeeping internals for disposal / pool round-trip verification.
+        internal (int[] Counter, int[] Limiter, IEnumerable[] Storages) TestState =>
+            (_counter, _limiter, [_storages0, _storages1, _storages2, _storages3, _storages4]);
 
         internal bool Iterate()
         {

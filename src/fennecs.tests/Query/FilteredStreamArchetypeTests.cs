@@ -135,6 +135,29 @@ public class FilteredStreamArchetypeTests
     }
 
     [Fact]
+    public void Count_Counts_Wildcard_Permutations_Without_Predicates()
+    {
+        using var world = new World();
+
+        // Two relations of the same backing type -> two storages -> two permutations per entity.
+        var target1 = world.Spawn();
+        var target2 = world.Spawn();
+        var entity = world.Spawn().Add(new ComponentA());
+        entity.Add(new ComponentB(), target1);
+        entity.Add(new ComponentB(), target2);
+
+        var stream = world.Query<ComponentB>(Match.Entity).Stream();
+        var filtered = stream.Has(Comp<ComponentA>.Plain);
+
+        // No per-entity predicates set: the count must still match one visit per permutation.
+        var visits = 0;
+        filtered.For((in _, ref _) => visits++);
+        Assert.Equal(2, visits);
+        Assert.Equal(visits, filtered.Count);
+    }
+
+
+    [Fact]
     public void Filters_SupportMultipleExpressions()
     {
         using var world = new World();

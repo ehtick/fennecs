@@ -57,7 +57,6 @@ namespace fennecs
     {
         var types = GenTypeList(n);
         var spanParams = FormatList(n, "Span<C{0}> span{0}", ", ");
-        var spanArgs = GenList("span", n, ", ");
         var refSpanArgs = FormatList(n, "ref span{0}[i]");
         var inSpanArgs = FormatList(n, "in span{0}[i]");
         var selectVars = (n > 1 ? "(" : "") + GenList("s", n) + (n > 1 ? ")" : "");
@@ -118,7 +117,8 @@ namespace fennecs
         {
             get
             {
-                if (!HasPredicates) return IncludedCount;
+                // Wildcard-less streams visit each entity exactly once, so archetype totals suffice.
+                if (!HasPredicates && !HasWildcards) return IncludedCount;
 
                 using var worldLock = World.Lock();
                 var count = 0;
@@ -129,8 +129,15 @@ namespace fennecs
                     if (join.Empty) continue;
                     do
                     {
-                        var <#= selectVars #> = join.Select;
-                        count += CountPass(<#= selectSpans #>);
+                        if (HasPredicates)
+                        {
+                            var <#= selectVars #> = join.Select;
+                            count += CountPass(<#= selectSpans #>);
+                        }
+                        else
+                        {
+                            count += table.Count;
+                        }
                     } while (join.Iterate());
                 }
                 return count;
@@ -841,9 +848,11 @@ namespace fennecs
 
         private static readonly ComponentAction<<#= types #>> NoOp = static (<#= FormatList(n, "ref C{0} _") #>) => { };
 
+        private bool HasWildcards => Stream.StreamTypes.Any(type => type.isWildcard);
+
         private void AssertNoWildcards()
         {
-            if (Stream.StreamTypes.Any(t => t.isWildcard))
+            if (HasWildcards)
                 throw new InvalidOperationException(
                     $"Cannot run this operation on wildcard Stream Types (write destination Aliasing). {Stream.StreamTypes}");
         }

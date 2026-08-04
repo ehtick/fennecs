@@ -12,15 +12,22 @@ public class JobExceptionTests
         return world;
     }
 
+    // Runs the Job on a task with a bounded wait, so a regression of the missed-signal hang
+    // fails this test cleanly instead of stalling the whole suite.
+    private static void AssertJobFaults(Action jobCall)
+    {
+        var task = Task.Run(() => Assert.Throws<AggregateException>(jobCall));
+        Assert.True(task.Wait(TimeSpan.FromSeconds(30)), "Job hung instead of propagating the worker exception.");
+        Assert.All(task.Result.InnerExceptions, e => Assert.IsType<InvalidOperationException>(e));
+    }
+
 
     [Fact]
     public void Job_Propagates_Worker_Exceptions()
     {
         using var world = Setup(out var stream);
 
-        var caught = Assert.Throws<AggregateException>(() =>
-            stream.Job((ref int _) => throw new InvalidOperationException("boom")));
-        Assert.All(caught.InnerExceptions, e => Assert.IsType<InvalidOperationException>(e));
+        AssertJobFaults(() => stream.Job((ref int _) => throw new InvalidOperationException("boom")));
 
         world.Spawn().Add(1); // lock released, world still usable
     }
@@ -31,9 +38,7 @@ public class JobExceptionTests
     {
         using var world = Setup(out var stream);
 
-        var caught = Assert.Throws<AggregateException>(() =>
-            stream.Job(7, (int _, ref int _) => throw new InvalidOperationException("boom")));
-        Assert.All(caught.InnerExceptions, e => Assert.IsType<InvalidOperationException>(e));
+        AssertJobFaults(() => stream.Job(7, (int _, ref int _) => throw new InvalidOperationException("boom")));
 
         world.Spawn().Add(1);
     }
@@ -46,9 +51,7 @@ public class JobExceptionTests
         for (var i = 0; i < 1000; i++) world.Spawn().Add(i).Add((float)i);
         var stream = world.Query<int, float>().Stream();
 
-        var caught = Assert.Throws<AggregateException>(() =>
-            stream.Job((ref int _, ref float _) => throw new InvalidOperationException("boom")));
-        Assert.All(caught.InnerExceptions, e => Assert.IsType<InvalidOperationException>(e));
+        AssertJobFaults(() => stream.Job((ref int _, ref float _) => throw new InvalidOperationException("boom")));
 
         world.Spawn().Add(1);
     }
@@ -62,9 +65,7 @@ public class JobExceptionTests
 
         var filtered = stream.Has(Comp<string>.Plain);
 
-        var caught = Assert.Throws<AggregateException>(() =>
-            filtered.Job((ref int _) => throw new InvalidOperationException("boom")));
-        Assert.All(caught.InnerExceptions, e => Assert.IsType<InvalidOperationException>(e));
+        AssertJobFaults(() => filtered.Job((ref int _) => throw new InvalidOperationException("boom")));
 
         world.Spawn().Add(1);
     }
@@ -78,10 +79,9 @@ public class JobExceptionTests
 
         var filtered = stream.Has(Comp<string>.Plain);
 
-        var caught = Assert.Throws<AggregateException>(() => filtered.Job(
+        AssertJobFaults(() => filtered.Job(
             included: (ref int _) => { },
             excluded: (ref int _) => throw new InvalidOperationException("boom")));
-        Assert.All(caught.InnerExceptions, e => Assert.IsType<InvalidOperationException>(e));
 
         world.Spawn().Add(1);
     }

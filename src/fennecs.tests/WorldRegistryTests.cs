@@ -177,18 +177,15 @@ public class WorldRegistryTests
 
 
     [Fact]
-    public void Double_Dispose_Does_Not_Corrupt_Tag_Registry()
+    public void Double_Dispose_Releases_Tag_Exactly_Once()
     {
         var world = new World(0);
+        var tag = world.Tag;
+
         world.Dispose();
-        world.Dispose(); // must be a no-op; the reserved tag 0 must never enter the free list
+        world.Dispose(); // must be a no-op
 
-        bool containsZero;
-        using (World.TagLock.EnterScope())
-        {
-            containsZero = World.FreeTags.Contains(0);
-        }
-
-        Assert.False(containsZero);
+        Assert.Equal(1, World.FreeTagCount(tag)); // the World's tag was recycled exactly once
+        Assert.Equal(0, World.FreeTagCount(0));   // the reserved tag never enters the free list
     }
 }

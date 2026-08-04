@@ -65,7 +65,8 @@ namespace fennecs
         {
             get
             {
-                if (!HasPredicates) return IncludedCount;
+                // Wildcard-less streams visit each entity exactly once, so archetype totals suffice.
+                if (!HasPredicates && !HasWildcards) return IncludedCount;
 
                 using var worldLock = World.Lock();
                 var count = 0;
@@ -76,8 +77,15 @@ namespace fennecs
                     if (join.Empty) continue;
                     do
                     {
-                        var s0 = join.Select;
-                        count += CountPass(s0.Span);
+                        if (HasPredicates)
+                        {
+                            var s0 = join.Select;
+                            count += CountPass(s0.Span);
+                        }
+                        else
+                        {
+                            count += table.Count;
+                        }
                     } while (join.Iterate());
                 }
                 return count;
@@ -772,9 +780,11 @@ namespace fennecs
 
         private static readonly ComponentAction<C0> NoOp = static (ref C0 _) => { };
 
+        private bool HasWildcards => Stream.StreamTypes.Any(type => type.isWildcard);
+
         private void AssertNoWildcards()
         {
-            if (Stream.StreamTypes.Any(t => t.isWildcard))
+            if (HasWildcards)
                 throw new InvalidOperationException(
                     $"Cannot run this operation on wildcard Stream Types (write destination Aliasing). {Stream.StreamTypes}");
         }
@@ -841,7 +851,8 @@ namespace fennecs
         {
             get
             {
-                if (!HasPredicates) return IncludedCount;
+                // Wildcard-less streams visit each entity exactly once, so archetype totals suffice.
+                if (!HasPredicates && !HasWildcards) return IncludedCount;
 
                 using var worldLock = World.Lock();
                 var count = 0;
@@ -852,8 +863,15 @@ namespace fennecs
                     if (join.Empty) continue;
                     do
                     {
-                        var (s0, s1) = join.Select;
-                        count += CountPass(s0.Span, s1.Span);
+                        if (HasPredicates)
+                        {
+                            var (s0, s1) = join.Select;
+                            count += CountPass(s0.Span, s1.Span);
+                        }
+                        else
+                        {
+                            count += table.Count;
+                        }
                     } while (join.Iterate());
                 }
                 return count;
@@ -1562,9 +1580,11 @@ namespace fennecs
 
         private static readonly ComponentAction<C0, C1> NoOp = static (ref C0 _, ref C1 _) => { };
 
+        private bool HasWildcards => Stream.StreamTypes.Any(type => type.isWildcard);
+
         private void AssertNoWildcards()
         {
-            if (Stream.StreamTypes.Any(t => t.isWildcard))
+            if (HasWildcards)
                 throw new InvalidOperationException(
                     $"Cannot run this operation on wildcard Stream Types (write destination Aliasing). {Stream.StreamTypes}");
         }
@@ -1634,7 +1654,8 @@ namespace fennecs
         {
             get
             {
-                if (!HasPredicates) return IncludedCount;
+                // Wildcard-less streams visit each entity exactly once, so archetype totals suffice.
+                if (!HasPredicates && !HasWildcards) return IncludedCount;
 
                 using var worldLock = World.Lock();
                 var count = 0;
@@ -1645,8 +1666,15 @@ namespace fennecs
                     if (join.Empty) continue;
                     do
                     {
-                        var (s0, s1, s2) = join.Select;
-                        count += CountPass(s0.Span, s1.Span, s2.Span);
+                        if (HasPredicates)
+                        {
+                            var (s0, s1, s2) = join.Select;
+                            count += CountPass(s0.Span, s1.Span, s2.Span);
+                        }
+                        else
+                        {
+                            count += table.Count;
+                        }
                     } while (join.Iterate());
                 }
                 return count;
@@ -2369,9 +2397,11 @@ namespace fennecs
 
         private static readonly ComponentAction<C0, C1, C2> NoOp = static (ref C0 _, ref C1 _, ref C2 _) => { };
 
+        private bool HasWildcards => Stream.StreamTypes.Any(type => type.isWildcard);
+
         private void AssertNoWildcards()
         {
-            if (Stream.StreamTypes.Any(t => t.isWildcard))
+            if (HasWildcards)
                 throw new InvalidOperationException(
                     $"Cannot run this operation on wildcard Stream Types (write destination Aliasing). {Stream.StreamTypes}");
         }
@@ -2444,7 +2474,8 @@ namespace fennecs
         {
             get
             {
-                if (!HasPredicates) return IncludedCount;
+                // Wildcard-less streams visit each entity exactly once, so archetype totals suffice.
+                if (!HasPredicates && !HasWildcards) return IncludedCount;
 
                 using var worldLock = World.Lock();
                 var count = 0;
@@ -2455,8 +2486,15 @@ namespace fennecs
                     if (join.Empty) continue;
                     do
                     {
-                        var (s0, s1, s2, s3) = join.Select;
-                        count += CountPass(s0.Span, s1.Span, s2.Span, s3.Span);
+                        if (HasPredicates)
+                        {
+                            var (s0, s1, s2, s3) = join.Select;
+                            count += CountPass(s0.Span, s1.Span, s2.Span, s3.Span);
+                        }
+                        else
+                        {
+                            count += table.Count;
+                        }
                     } while (join.Iterate());
                 }
                 return count;
@@ -3193,9 +3231,11 @@ namespace fennecs
 
         private static readonly ComponentAction<C0, C1, C2, C3> NoOp = static (ref C0 _, ref C1 _, ref C2 _, ref C3 _) => { };
 
+        private bool HasWildcards => Stream.StreamTypes.Any(type => type.isWildcard);
+
         private void AssertNoWildcards()
         {
-            if (Stream.StreamTypes.Any(t => t.isWildcard))
+            if (HasWildcards)
                 throw new InvalidOperationException(
                     $"Cannot run this operation on wildcard Stream Types (write destination Aliasing). {Stream.StreamTypes}");
         }
@@ -3271,7 +3311,8 @@ namespace fennecs
         {
             get
             {
-                if (!HasPredicates) return IncludedCount;
+                // Wildcard-less streams visit each entity exactly once, so archetype totals suffice.
+                if (!HasPredicates && !HasWildcards) return IncludedCount;
 
                 using var worldLock = World.Lock();
                 var count = 0;
@@ -3282,8 +3323,15 @@ namespace fennecs
                     if (join.Empty) continue;
                     do
                     {
-                        var (s0, s1, s2, s3, s4) = join.Select;
-                        count += CountPass(s0.Span, s1.Span, s2.Span, s3.Span, s4.Span);
+                        if (HasPredicates)
+                        {
+                            var (s0, s1, s2, s3, s4) = join.Select;
+                            count += CountPass(s0.Span, s1.Span, s2.Span, s3.Span, s4.Span);
+                        }
+                        else
+                        {
+                            count += table.Count;
+                        }
                     } while (join.Iterate());
                 }
                 return count;
@@ -4034,9 +4082,11 @@ namespace fennecs
 
         private static readonly ComponentAction<C0, C1, C2, C3, C4> NoOp = static (ref C0 _, ref C1 _, ref C2 _, ref C3 _, ref C4 _) => { };
 
+        private bool HasWildcards => Stream.StreamTypes.Any(type => type.isWildcard);
+
         private void AssertNoWildcards()
         {
-            if (Stream.StreamTypes.Any(t => t.isWildcard))
+            if (HasWildcards)
                 throw new InvalidOperationException(
                     $"Cannot run this operation on wildcard Stream Types (write destination Aliasing). {Stream.StreamTypes}");
         }
