@@ -24,10 +24,12 @@ internal class PooledList<T> : List<T>, IDisposable
     
 
     private const int BagCapacity = 32;
+    // Stryker disable all : prefill is a tuning optimization, not behavior
     static PooledList()
     {
         for (var i = 0; i < BagCapacity; i++) Recycled.Add(new());
     }
+    // Stryker restore all
     
     /// <summary>
     /// Rents a List from the Pool.
