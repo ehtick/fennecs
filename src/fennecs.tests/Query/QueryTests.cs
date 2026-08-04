@@ -479,6 +479,19 @@ public class QueryTests
 
 
     [Fact]
+    private void Query_Contains_Type_Present_In_Some_Archetypes()
+    {
+        using var world = new World();
+        world.Spawn().Add(1);
+        world.Spawn().Add(2).Add("tagged");
+        var query = world.Query<int>().Compile();
+
+        Assert.True(query.Contains<string>());
+        Assert.False(query.Contains<double>());
+    }
+
+
+    [Fact]
     private void Query_Contains_Type_Subset()
     {
         using var world = new World();
@@ -653,6 +666,39 @@ public class QueryTests
         var query = world.Query<int>(Match.Any).Compile();
 
         for (var i = 0; i < 420; i++) world.Spawn().Add(i);
+
+        query.Despawn();
+        Assert.Empty(query);
+    }
+
+
+    [Fact]
+    public void Truncate_Cleans_Relations_Targeting_Truncated_Entities()
+    {
+        using var world = new World();
+        var target = world.Spawn().Add(1);
+        var holder = world.Spawn().Add("holder");
+        holder.Add(7.7, target);
+        Assert.True(holder.Has<double>(target));
+
+        var query = world.Query<int>().Compile();
+        query.Truncate(0);
+
+        Assert.False(world.IsAlive(target));
+        Assert.False(holder.Has<double>(target));
+    }
+
+
+    [Fact]
+    public void Can_Despawn_With_Empty_Archetype_In_Query()
+    {
+        using var world = new World();
+        world.Spawn().Add(1);
+        var mover = world.Spawn().Add(2).Add("tag");
+        mover.Remove<string>(); // leaves an empty (int, string) archetype tracked by the query
+
+        var query = world.Query<int>().Compile();
+        Assert.Equal(2, query.Count);
 
         query.Despawn();
         Assert.Empty(query);

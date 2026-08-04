@@ -25,4 +25,17 @@ public class EntityRelationsTests
         Assert.True(entity.Has<int>(target));
         Assert.False(entity.Has<int>(new Entity(world.Tag, 9001, 1)));
     }
+
+    [Fact]
+    public void Can_Remove_Relation()
+    {
+        using var world = new World();
+        var entity = world.Spawn();
+        var target = world.Spawn();
+        entity.Add(123, target);
+        Assert.True(entity.Has<int>(target));
+
+        entity.Remove<int>(target);
+        Assert.False(entity.Has<int>(target));
+    }
 }

@@ -306,5 +306,110 @@ public class StorageTests
         var memory3 = storage.AsMemory();
         Assert.Equal(4, memory3.Length);
     }
-    
+
+
+    [Fact]
+    public void Append_Ignores_Zero_And_Negative_Additions()
+    {
+        var storage = new Storage<int>();
+        storage.Append(7);
+
+        storage.Append(8, 0);
+        storage.Append(9, -1);
+
+        Assert.Equal(1, storage.Count);
+        Assert.Equal(7, storage[0]);
+    }
+
+
+    [Fact]
+    public void Delete_Middle_Range_Preserves_Remaining_Values()
+    {
+        // Shift branch: too few trailing elements to fill the gap.
+        var small = new Storage<int>();
+        for (var i = 1; i <= 3; i++) small.Append(i);
+        small.Delete(0, 2);
+        Assert.Equal(1, small.Count);
+        Assert.Equal(3, small[0]);
+
+        // Gap-fill branch: the trailing elements are copied into the removal site.
+        var big = new Storage<int>();
+        for (var i = 0; i < 10; i++) big.Append(i);
+        big.Delete(1, 2);
+        Assert.Equal(8, big.Count);
+        Assert.Equal(0, big[0]);
+        Assert.Equal(8, big[1]);
+        Assert.Equal(9, big[2]);
+        Assert.Equal(3, big[3]);
+        Assert.Equal(7, big[7]);
+    }
+
+
+    [Fact]
+    public void Delete_Ignores_Zero_And_Negative_Removals()
+    {
+        var storage = new Storage<int>();
+        storage.Append(7);
+        storage.Append(8);
+
+        storage.Delete(0, 0);
+        storage.Delete(0, -1);
+
+        Assert.Equal(2, storage.Count);
+        Assert.Equal(7, storage[0]);
+        Assert.Equal(8, storage[1]);
+    }
+
+
+    // Each probe type gets its own static ArrayPool<T>, so these tests observe pool
+    // round-trips deterministically without interference from other tests.
+    private struct GrowProbe;
+    private struct CompactProbe;
+    private struct NoOpProbe;
+
+    private static T[] BackingArray<T>(Storage<T> storage) =>
+        (T[])typeof(Storage<T>).GetField("_data", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(storage)!;
+
+    private static System.Buffers.ArrayPool<T> PoolOf<T>() =>
+        (System.Buffers.ArrayPool<T>)typeof(Storage<T>).GetField("Pool", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!.GetValue(null)!;
+
+
+    [Fact]
+    public void EnsureCapacity_Returns_Previous_Array_To_Pool()
+    {
+        var storage = new Storage<GrowProbe>();
+        var previous = BackingArray(storage);
+
+        storage.EnsureCapacity(previous.Length * 2);
+
+        Assert.NotSame(previous, BackingArray(storage));
+        Assert.Same(previous, PoolOf<GrowProbe>().Rent(previous.Length));
+    }
+
+
+    [Fact]
+    public void Compact_Returns_Previous_Array_To_Pool()
+    {
+        var storage = new Storage<CompactProbe>();
+        storage.Append(default, 100);
+        storage.Delete(0, 100);
+        var previous = BackingArray(storage);
+
+        storage.Compact();
+
+        Assert.NotSame(previous, BackingArray(storage));
+        Assert.Same(previous, PoolOf<CompactProbe>().Rent(previous.Length));
+    }
+
+
+    [Fact]
+    public void Compact_At_Target_Size_Keeps_Backing_Array()
+    {
+        var storage = new Storage<NoOpProbe>();
+        var backing = BackingArray(storage);
+
+        storage.Compact();
+
+        Assert.Same(backing, BackingArray(storage));
+    }
 }

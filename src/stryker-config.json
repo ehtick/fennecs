@@ -1,0 +1,61 @@
+{
+  "stryker-config": {
+    "project-info": {
+      "name": "fennecs",
+      "module": "ECS",
+      "version": ""
+    },
+    "concurrency": 12,
+    "mutation-level": "Standard",
+    "language-version": "latest",
+    "additional-timeout": 5000,
+    "mutate": [
+      "**/*"
+    ],
+    "solution": "fennecs.slnx",
+    "configuration": "Debug|AnyCPU",
+    "target-framework": "NET10.0",
+    "project": "fennecs/fennecs.csproj",
+    "coverage-analysis": "perTest",
+    "disable-bail": false,
+    "disable-mix-mutants": false,
+    "thresholds": {
+      "high": 90,
+      "low": 75,
+      "break": 70
+    },
+    "verbosity": "info",
+    "reporters": [
+      "Progress",
+      "Html"
+    ],
+    "since": {
+      "enabled": false,
+      "ignore-changes-in": [],
+      "target": "main"
+    },
+    "baseline": {
+      "enabled": false,
+      "provider": "disk",
+      "azure-fileshare-url": "",
+      "s3-bucket-name": "",
+      "s3-endpoint": "",
+      "s3-region": "",
+      "fallback-version": "main"
+    },
+    "dashboard-url": "https://dashboard.stryker-mutator.io",
+    "test-projects": [],
+    "test-case-filter": "",
+    "test-runner": null,
+    "ignore-mutations": [],
+    "ignore-methods": [
+      "*Exception.ctor",
+      "*Debug.Assert",
+      "GC.SuppressFinalize",
+      "ThrowWildcard",
+      "fennecs.*.Throw*"
+    ],
+    "report-file-name": "mutation-report",
+    "break-on-initial-test-failure": false
+  }
+}

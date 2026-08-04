@@ -60,6 +60,19 @@ public class EntityTemplateTests
 
 
     [Fact]
+    public void Wildcard_Remove_Keeps_Values_Aligned()
+    {
+        using var world = new World();
+        using var template = world.Template().Add(123).Add("kept");
+        template.Remove<int>(Match.Any);
+
+        var entity = template.Spawn();
+        Assert.False(entity.Has<int>());
+        Assert.Equal("kept", entity.Ref<string>());
+    }
+
+
+    [Fact]
     public void Spawn_Returns_Distinct_Entities()
     {
         using var world = new World();

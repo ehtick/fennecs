@@ -25,6 +25,55 @@ public class QueryBuilderTests
 
 
     [Fact]
+    private void Has_Link_Overload_Filters_By_Object()
+    {
+        using var world = new World();
+        const string alice = "alice";
+        const string bob = "bob";
+        var linked = world.Spawn().Add(1).Add(Link.With(alice));
+        world.Spawn().Add(2).Add(Link.With(bob));
+        world.Spawn().Add(3);
+
+        var query = world.Query<int>().Has(Link.With(alice)).Compile();
+        Assert.Single(query);
+        Assert.Contains(linked, query);
+    }
+
+
+    [Fact]
+    private void Not_Link_Overload_Excludes_By_Object()
+    {
+        using var world = new World();
+        const string alice = "alice";
+        var linked = world.Spawn().Add(1).Add(Link.With(alice));
+        var plain = world.Spawn().Add(2);
+
+        var query = world.Query<int>().Not(Link.With(alice)).Compile();
+        Assert.Single(query);
+        Assert.Contains(plain, query);
+        Assert.DoesNotContain(linked, query);
+    }
+
+
+    [Fact]
+    private void Any_Link_Overload_Matches_Either_Object()
+    {
+        using var world = new World();
+        const string alice = "alice";
+        const string bob = "bob";
+        var linkedAlice = world.Spawn().Add(1).Add(Link.With(alice));
+        var linkedBob = world.Spawn().Add(2).Add(Link.With(bob));
+        var plain = world.Spawn().Add(3);
+
+        var query = world.Query<int>().Any(Link.With(alice)).Any(Link.With(bob)).Compile();
+        Assert.Equal(2, query.Count);
+        Assert.Contains(linkedAlice, query);
+        Assert.Contains(linkedBob, query);
+        Assert.DoesNotContain(plain, query);
+    }
+
+
+    [Fact]
     private void All_QueryBuilders_Available_with_MatchExpressions()
     {
         using var world = new World();

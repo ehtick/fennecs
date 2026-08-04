@@ -50,6 +50,26 @@ public class EntityTypelessTests
     }
 
     [Fact]
+    public void Get_Out_Value_Returns_Present_Component()
+    {
+        using var world = new World();
+        var entity = world.Spawn().Add(123);
+
+        Assert.True(entity.Get(out var value, typeof(int)));
+        Assert.Equal(123, value);
+    }
+
+    [Fact]
+    public void Get_Out_Value_Throws_On_Despawned_Entity()
+    {
+        using var world = new World();
+        var entity = world.Spawn().Add(123);
+        entity.Despawn();
+
+        Assert.Throws<ObjectDisposedException>(() => entity.Get(out _, typeof(int)));
+    }
+
+    [Fact]
     public void Clear_Component()
     {
         using var world = new World();

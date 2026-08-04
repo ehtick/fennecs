@@ -21,6 +21,78 @@ public class ArchetypeTests(ITestOutputHelper output)
     
 
     [Fact]
+    public void Matches_Requires_At_Least_One_Any_Type()
+    {
+        using var world = new World();
+        var plain = world.Spawn().Add(1);
+        var tagged = world.Spawn().Add(2).Add("tag");
+
+        using var mask = fennecs.pools.MaskPool.Rent();
+        mask.Has(TypeExpression.Of<int>(Match.Plain));
+        mask.Any(TypeExpression.Of<string>(Match.Plain));
+        mask.Any(TypeExpression.Of<double>(Match.Plain));
+
+        Assert.False(world.GetEntityMeta(plain).Archetype.Matches(mask));
+        Assert.True(world.GetEntityMeta(tagged).Archetype.Matches(mask));
+    }
+
+
+    [Fact]
+    public void Remove_Component_Shifts_Remaining_Values()
+    {
+        using var world = new World();
+        var a = world.Spawn().Add(1).Add("a-str");
+        var b = world.Spawn().Add(2).Add("b-str");
+
+        a.Remove<string>();
+
+        Assert.Equal("b-str", b.Ref<string>());
+        Assert.Equal(2, b.Ref<int>());
+        Assert.Equal(1, a.Ref<int>());
+        Assert.False(a.Has<string>());
+    }
+
+
+    [Fact]
+    public void Truncate_Preserves_Remaining_Component_Values()
+    {
+        using var world = new World();
+        var entities = new List<Entity>();
+        for (var i = 0; i < 5; i++) entities.Add(world.Spawn().Add(i).Add($"str{i}"));
+
+        var table = world.GetEntityMeta(entities[0]).Archetype;
+        table.Truncate(2);
+
+        Assert.Equal(2, table.Count);
+        Assert.Equal(0, entities[0].Ref<int>());
+        Assert.Equal(1, entities[1].Ref<int>());
+        Assert.Equal("str0", entities[0].Ref<string>());
+        Assert.Equal("str1", entities[1].Ref<string>());
+        Assert.False(world.IsAlive(entities[2]));
+        Assert.False(world.IsAlive(entities[3]));
+        Assert.False(world.IsAlive(entities[4]));
+    }
+
+
+    [Fact]
+    public void Migrate_Invalidates_Destination_Enumerators()
+    {
+        using var world = new World();
+        world.Spawn().Add(1);
+        var resident = world.Spawn().Add(2).Add(1.0);
+        var destination = world.GetEntityMeta(resident).Archetype;
+
+        using var enumerator = destination.GetEnumerator();
+        Assert.True(enumerator.MoveNext());
+
+        // Migrates the (int) archetype's entity into the destination (int, double) archetype.
+        world.Query<int>().Not<double>().Compile().Batch().Add(3.0).Submit();
+
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
+    }
+
+
+    [Fact]
     public void GetStorage_Returns_IStorage_Backed_By_Specific_Type()
     {
         using var world = new World();

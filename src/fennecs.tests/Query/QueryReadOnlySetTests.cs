@@ -549,6 +549,78 @@ public class QueryReadOnlySetTests
 
     #endregion
 
+    #region ISet Fast Path
+
+    // The set operations use an ISet argument directly instead of copying it into a HashSet.
+    // This set reports a fixed Count and claims to contain everything, so the tests can tell
+    // the fast path from a defensive copy (which would enumerate nothing).
+    private sealed class FakeSet(int count) : ISet<Entity>
+    {
+        public int Count => count;
+        public bool IsReadOnly => true;
+        public bool Contains(Entity item) => true;
+        public IEnumerator<Entity> GetEnumerator() => Enumerable.Empty<Entity>().GetEnumerator();
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public bool Add(Entity item) => throw new NotSupportedException();
+        void ICollection<Entity>.Add(Entity item) => throw new NotSupportedException();
+        public void Clear() => throw new NotSupportedException();
+        public void CopyTo(Entity[] array, int arrayIndex) => throw new NotSupportedException();
+        public bool Remove(Entity item) => throw new NotSupportedException();
+        public void ExceptWith(IEnumerable<Entity> other) => throw new NotSupportedException();
+        public void IntersectWith(IEnumerable<Entity> other) => throw new NotSupportedException();
+        public bool IsProperSubsetOf(IEnumerable<Entity> other) => throw new NotSupportedException();
+        public bool IsProperSupersetOf(IEnumerable<Entity> other) => throw new NotSupportedException();
+        public bool IsSubsetOf(IEnumerable<Entity> other) => throw new NotSupportedException();
+        public bool IsSupersetOf(IEnumerable<Entity> other) => throw new NotSupportedException();
+        public bool Overlaps(IEnumerable<Entity> other) => throw new NotSupportedException();
+        public bool SetEquals(IEnumerable<Entity> other) => throw new NotSupportedException();
+        public void SymmetricExceptWith(IEnumerable<Entity> other) => throw new NotSupportedException();
+        public void UnionWith(IEnumerable<Entity> other) => throw new NotSupportedException();
+    }
+
+    [Fact]
+    public void IsSubsetOf_Uses_ISet_Argument_Without_Copying()
+    {
+        using var world = new World();
+        world.Spawn().Add(1);
+        var query = world.Query<int>().Compile();
+
+        Assert.True(query.IsSubsetOf(new FakeSet(5)));
+    }
+
+    [Fact]
+    public void IsProperSubsetOf_Uses_ISet_Argument_Without_Copying()
+    {
+        using var world = new World();
+        world.Spawn().Add(1);
+        var query = world.Query<int>().Compile();
+
+        Assert.True(query.IsProperSubsetOf(new FakeSet(5)));
+    }
+
+    [Fact]
+    public void IsProperSupersetOf_Uses_ISet_Argument_Without_Copying()
+    {
+        using var world = new World();
+        world.Spawn().Add(1);
+        var query = world.Query<int>().Compile();
+
+        Assert.False(query.IsProperSupersetOf(new FakeSet(5)));
+    }
+
+    [Fact]
+    public void SetEquals_Uses_ISet_Argument_Without_Copying()
+    {
+        using var world = new World();
+        world.Spawn().Add(1);
+        var query = world.Query<int>().Compile();
+
+        Assert.True(query.SetEquals(new FakeSet(1)));
+    }
+
+    #endregion
+
     #region Edge Cases
 
     [Fact]
