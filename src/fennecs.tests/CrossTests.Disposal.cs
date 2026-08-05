@@ -50,9 +50,15 @@ public class CrossDisposalTests
     // Dispose must return the matched storage lists to their pool (which clears them).
     private static void AssertDisposeClearsStorages<TJoin>(TJoin join, IEnumerable[] lists) where TJoin : IDisposable
     {
-        foreach (var list in lists) Assert.NotEmpty(list);
+        try
+        {
+            foreach (var list in lists) Assert.NotEmpty(list);
+        }
+        finally
+        {
+            join.Dispose();
+        }
 
-        join.Dispose();
         foreach (var list in lists) Assert.Empty(list);
     }
 
