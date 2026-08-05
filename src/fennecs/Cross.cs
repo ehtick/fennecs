@@ -48,8 +48,10 @@ public static class Cross
         private readonly int[] _limiter;
 
         private readonly PooledList<Storage<C0>> _storages0;
+        private readonly Storage<C0> _direct0;
 
         private readonly bool _allocated;
+        private readonly bool _direct;
         private readonly bool _populated;
 
 
@@ -59,7 +61,22 @@ public static class Cross
         internal Join(Archetype archetype, ReadOnlySpan<TypeExpression> streamTypes)
         {
             Debug.Assert(streamTypes.Length == 1, "Not the right amount of stream types.");
+
+            if (!streamTypes[0].isWildcard)
+            {
+                _counter = null!;
+                _limiter = null!;
+                _storages0 = null!;
+                _allocated = false;
+                _direct = true;
+                _populated = archetype.TryGetStorage(streamTypes[0], out var storage0);
+                _direct0 = _populated ? (Storage<C0>)storage0 : null!;
+                return;
+            }
+
             _allocated = true;
+            _direct = false;
+            _direct0 = null!;
 
             _counter = ArrayPool.Rent(1);
             _limiter = ArrayPool.Rent(1);
@@ -75,7 +92,7 @@ public static class Cross
         /// Returns the Storage in the current internal Cross Join counter configuration.
         /// Call <see cref="Iterate"/> to select the next permutation.
         /// </summary>
-        internal Storage<C0> Select => _storages0[_counter[0]];
+        internal Storage<C0> Select => _direct ? _direct0 : _storages0[_counter[0]];
 
         // Test seam: bookkeeping internals for disposal / pool round-trip verification.
         internal (int[] Counter, int[] Limiter, IEnumerable[] Storages) TestState =>
@@ -90,6 +107,7 @@ public static class Cross
         /// </returns>
         internal bool Iterate()
         {
+            if (_direct) return false;
             Debug.Assert(_counter is { Length: >= 1 });
             Debug.Assert(_limiter is { Length: >= 1 });
             return FullPermutation(_counter.AsSpan(0, 1), _limiter.AsSpan(0, 1));
@@ -104,7 +122,7 @@ public static class Cross
 
         public void Dispose()
         {
-            if (!_allocated) return;
+            if (_direct || !_allocated) return;
 
             _storages0.Dispose();
             ArrayPool.Return(_counter);
@@ -123,14 +141,37 @@ public static class Cross
 
         private readonly PooledList<Storage<C0>> _storages0;
         private readonly PooledList<Storage<C1>> _storages1;
+        private readonly Storage<C0> _direct0;
+        private readonly Storage<C1> _direct1;
 
         private readonly bool _allocated;
+        private readonly bool _direct;
         private readonly bool _populated;
         
         internal Join(Archetype archetype, ReadOnlySpan<TypeExpression> streamTypes)
         {
             Debug.Assert(streamTypes.Length == 2, "Not the right amount of stream types.");
+
+            if (!streamTypes[0].isWildcard && !streamTypes[1].isWildcard)
+            {
+                _counter = null!;
+                _limiter = null!;
+                _storages0 = null!;
+                _storages1 = null!;
+                _allocated = false;
+                _direct = true;
+                var has0 = archetype.TryGetStorage(streamTypes[0], out var storage0);
+                var has1 = archetype.TryGetStorage(streamTypes[1], out var storage1);
+                _populated = has0 && has1;
+                _direct0 = has0 ? (Storage<C0>)storage0 : null!;
+                _direct1 = has1 ? (Storage<C1>)storage1 : null!;
+                return;
+            }
+
             _allocated = true;
+            _direct = false;
+            _direct0 = null!;
+            _direct1 = null!;
 
             _counter = ArrayPool.Rent(2);
             _limiter = ArrayPool.Rent(2);
@@ -145,7 +186,9 @@ public static class Cross
         }
 
 
-        internal (Storage<C0>, Storage<C1>) Select => (_storages0[_counter[0]], _storages1[_counter[1]]);
+        internal (Storage<C0>, Storage<C1>) Select => _direct
+            ? (_direct0, _direct1)
+            : (_storages0[_counter[0]], _storages1[_counter[1]]);
 
         // Test seam: bookkeeping internals for disposal / pool round-trip verification.
         internal (int[] Counter, int[] Limiter, IEnumerable[] Storages) TestState =>
@@ -153,6 +196,7 @@ public static class Cross
 
         internal bool Iterate()
         {
+            if (_direct) return false;
             Debug.Assert(_counter is { Length: >= 2 });
             Debug.Assert(_limiter is { Length: >= 2 });
             return FullPermutation(_counter.AsSpan(0, 2), _limiter.AsSpan(0, 2));
@@ -163,7 +207,7 @@ public static class Cross
 
         public void Dispose()
         {
-            if (!_allocated) return;
+            if (_direct || !_allocated) return;
 
             _storages0.Dispose();
             _storages1.Dispose();
@@ -184,15 +228,43 @@ public static class Cross
         private readonly PooledList<Storage<C0>> _storages0;
         private readonly PooledList<Storage<C1>> _storages1;
         private readonly PooledList<Storage<C2>> _storages2;
+        private readonly Storage<C0> _direct0;
+        private readonly Storage<C1> _direct1;
+        private readonly Storage<C2> _direct2;
 
         private readonly bool _allocated;
+        private readonly bool _direct;
         private readonly bool _populated;
 
 
         internal Join(Archetype archetype, ReadOnlySpan<TypeExpression> streamTypes)
         {
             Debug.Assert(streamTypes.Length == 3, "Not the right amount of stream types.");
+
+            if (!streamTypes[0].isWildcard && !streamTypes[1].isWildcard && !streamTypes[2].isWildcard)
+            {
+                _counter = null!;
+                _limiter = null!;
+                _storages0 = null!;
+                _storages1 = null!;
+                _storages2 = null!;
+                _allocated = false;
+                _direct = true;
+                var has0 = archetype.TryGetStorage(streamTypes[0], out var storage0);
+                var has1 = archetype.TryGetStorage(streamTypes[1], out var storage1);
+                var has2 = archetype.TryGetStorage(streamTypes[2], out var storage2);
+                _populated = has0 && has1 && has2;
+                _direct0 = has0 ? (Storage<C0>)storage0 : null!;
+                _direct1 = has1 ? (Storage<C1>)storage1 : null!;
+                _direct2 = has2 ? (Storage<C2>)storage2 : null!;
+                return;
+            }
+
             _allocated = true;
+            _direct = false;
+            _direct0 = null!;
+            _direct1 = null!;
+            _direct2 = null!;
 
             _counter = ArrayPool.Rent(3);
             _limiter = ArrayPool.Rent(3);
@@ -209,8 +281,9 @@ public static class Cross
         }
 
 
-        internal (Storage<C0>, Storage<C1>, Storage<C2>) Select =>
-            (_storages0[_counter[0]], _storages1[_counter[1]], _storages2[_counter[2]]);
+        internal (Storage<C0>, Storage<C1>, Storage<C2>) Select => _direct
+            ? (_direct0, _direct1, _direct2)
+            : (_storages0[_counter[0]], _storages1[_counter[1]], _storages2[_counter[2]]);
 
         // Test seam: bookkeeping internals for disposal / pool round-trip verification.
         internal (int[] Counter, int[] Limiter, IEnumerable[] Storages) TestState =>
@@ -218,6 +291,7 @@ public static class Cross
 
         internal bool Iterate()
         {
+            if (_direct) return false;
             Debug.Assert(_counter is { Length: >= 3 });
             Debug.Assert(_limiter is { Length: >= 3 });
             return FullPermutation(_counter.AsSpan(0, 3), _limiter.AsSpan(0, 3));
@@ -228,7 +302,7 @@ public static class Cross
 
         public void Dispose()
         {
-            if (!_allocated) return;
+            if (_direct || !_allocated) return;
 
             _storages0.Dispose();
             _storages1.Dispose();
@@ -251,15 +325,49 @@ public static class Cross
         private readonly PooledList<Storage<C1>> _storages1;
         private readonly PooledList<Storage<C2>> _storages2;
         private readonly PooledList<Storage<C3>> _storages3;
+        private readonly Storage<C0> _direct0;
+        private readonly Storage<C1> _direct1;
+        private readonly Storage<C2> _direct2;
+        private readonly Storage<C3> _direct3;
 
         private readonly bool _allocated;
+        private readonly bool _direct;
         private readonly bool _populated;
 
 
         internal Join(Archetype archetype, ReadOnlySpan<TypeExpression> streamTypes)
         {
             Debug.Assert(streamTypes.Length == 4, "Not the right amount of stream types.");
+
+            if (!streamTypes[0].isWildcard && !streamTypes[1].isWildcard && !streamTypes[2].isWildcard &&
+                !streamTypes[3].isWildcard)
+            {
+                _counter = null!;
+                _limiter = null!;
+                _storages0 = null!;
+                _storages1 = null!;
+                _storages2 = null!;
+                _storages3 = null!;
+                _allocated = false;
+                _direct = true;
+                var has0 = archetype.TryGetStorage(streamTypes[0], out var storage0);
+                var has1 = archetype.TryGetStorage(streamTypes[1], out var storage1);
+                var has2 = archetype.TryGetStorage(streamTypes[2], out var storage2);
+                var has3 = archetype.TryGetStorage(streamTypes[3], out var storage3);
+                _populated = has0 && has1 && has2 && has3;
+                _direct0 = has0 ? (Storage<C0>)storage0 : null!;
+                _direct1 = has1 ? (Storage<C1>)storage1 : null!;
+                _direct2 = has2 ? (Storage<C2>)storage2 : null!;
+                _direct3 = has3 ? (Storage<C3>)storage3 : null!;
+                return;
+            }
+
             _allocated = true;
+            _direct = false;
+            _direct0 = null!;
+            _direct1 = null!;
+            _direct2 = null!;
+            _direct3 = null!;
 
             _counter = ArrayPool.Rent(4);
             _limiter = ArrayPool.Rent(4);
@@ -278,8 +386,9 @@ public static class Cross
         }
 
 
-        internal (Storage<C0>, Storage<C1>, Storage<C2>, Storage<C3>) Select => (_storages0[_counter[0]],
-            _storages1[_counter[1]], _storages2[_counter[2]], _storages3[_counter[3]]);
+        internal (Storage<C0>, Storage<C1>, Storage<C2>, Storage<C3>) Select => _direct
+            ? (_direct0, _direct1, _direct2, _direct3)
+            : (_storages0[_counter[0]], _storages1[_counter[1]], _storages2[_counter[2]], _storages3[_counter[3]]);
 
         // Test seam: bookkeeping internals for disposal / pool round-trip verification.
         internal (int[] Counter, int[] Limiter, IEnumerable[] Storages) TestState =>
@@ -287,6 +396,7 @@ public static class Cross
 
         internal bool Iterate()
         {
+            if (_direct) return false;
             Debug.Assert(_counter is { Length: >= 4 });
             Debug.Assert(_limiter is { Length: >= 4 });
             return FullPermutation(_counter.AsSpan(0, 4), _limiter.AsSpan(0, 4));
@@ -297,7 +407,7 @@ public static class Cross
 
         public void Dispose()
         {
-            if (!_allocated) return;
+            if (_direct || !_allocated) return;
 
             _storages0.Dispose();
             _storages1.Dispose();
@@ -322,15 +432,54 @@ public static class Cross
         private readonly PooledList<Storage<C2>> _storages2;
         private readonly PooledList<Storage<C3>> _storages3;
         private readonly PooledList<Storage<C4>> _storages4;
+        private readonly Storage<C0> _direct0;
+        private readonly Storage<C1> _direct1;
+        private readonly Storage<C2> _direct2;
+        private readonly Storage<C3> _direct3;
+        private readonly Storage<C4> _direct4;
 
         private readonly bool _allocated;
+        private readonly bool _direct;
         private readonly bool _populated;
 
 
         internal Join(Archetype archetype, ReadOnlySpan<TypeExpression> streamTypes)
         {
             Debug.Assert(streamTypes.Length == 5, "Not the right amount of stream types.");
+
+            if (!streamTypes[0].isWildcard && !streamTypes[1].isWildcard && !streamTypes[2].isWildcard &&
+                !streamTypes[3].isWildcard && !streamTypes[4].isWildcard)
+            {
+                _counter = null!;
+                _limiter = null!;
+                _storages0 = null!;
+                _storages1 = null!;
+                _storages2 = null!;
+                _storages3 = null!;
+                _storages4 = null!;
+                _allocated = false;
+                _direct = true;
+                var has0 = archetype.TryGetStorage(streamTypes[0], out var storage0);
+                var has1 = archetype.TryGetStorage(streamTypes[1], out var storage1);
+                var has2 = archetype.TryGetStorage(streamTypes[2], out var storage2);
+                var has3 = archetype.TryGetStorage(streamTypes[3], out var storage3);
+                var has4 = archetype.TryGetStorage(streamTypes[4], out var storage4);
+                _populated = has0 && has1 && has2 && has3 && has4;
+                _direct0 = has0 ? (Storage<C0>)storage0 : null!;
+                _direct1 = has1 ? (Storage<C1>)storage1 : null!;
+                _direct2 = has2 ? (Storage<C2>)storage2 : null!;
+                _direct3 = has3 ? (Storage<C3>)storage3 : null!;
+                _direct4 = has4 ? (Storage<C4>)storage4 : null!;
+                return;
+            }
+
             _allocated = true;
+            _direct = false;
+            _direct0 = null!;
+            _direct1 = null!;
+            _direct2 = null!;
+            _direct3 = null!;
+            _direct4 = null!;
 
             _counter = ArrayPool.Rent(5);
             _limiter = ArrayPool.Rent(5);
@@ -352,8 +501,10 @@ public static class Cross
         }
 
 
-        internal (Storage<C0>, Storage<C1>, Storage<C2>, Storage<C3>, Storage<C4>) Select => (_storages0[_counter[0]],
-            _storages1[_counter[1]], _storages2[_counter[2]], _storages3[_counter[3]], _storages4[_counter[4]]);
+        internal (Storage<C0>, Storage<C1>, Storage<C2>, Storage<C3>, Storage<C4>) Select => _direct
+            ? (_direct0, _direct1, _direct2, _direct3, _direct4)
+            : (_storages0[_counter[0]], _storages1[_counter[1]], _storages2[_counter[2]], _storages3[_counter[3]],
+                _storages4[_counter[4]]);
 
         // Test seam: bookkeeping internals for disposal / pool round-trip verification.
         internal (int[] Counter, int[] Limiter, IEnumerable[] Storages) TestState =>
@@ -361,6 +512,7 @@ public static class Cross
 
         internal bool Iterate()
         {
+            if (_direct) return false;
             Debug.Assert(_counter is { Length: >= 5 });
             Debug.Assert(_limiter is { Length: >= 5 });
             return FullPermutation(_counter.AsSpan(0, 5), _limiter.AsSpan(0, 5));
@@ -371,7 +523,7 @@ public static class Cross
 
         public void Dispose()
         {
-            if (!_allocated) return;
+            if (_direct || !_allocated) return;
 
             _storages0.Dispose();
             _storages1.Dispose();

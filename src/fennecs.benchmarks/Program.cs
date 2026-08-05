@@ -28,4 +28,7 @@ BenchmarkSwitcher.FromTypes(
     typeof(MicrocodeBenchmarks),
     typeof(SimpleEntityBenchmarks),
     typeof(EntityPassingBenchmarks),
+    typeof(CoreStreamBindingBenchmarks),
+    typeof(CoreJobSchedulingBenchmarks),
+    typeof(CoreFilteredRunnerBenchmarks),
 ]).Run(args.Length > 0 ? args : ["--filter", "*"], config);

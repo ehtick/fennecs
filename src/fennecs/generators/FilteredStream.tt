@@ -384,6 +384,7 @@ namespace fennecs
 
             using var countdown = new CountdownEvent(initialCount: 1);
             using var jobs = PooledList<DualWork<<#= types #>>>.Rent();
+            FilterDelegate<<#= types #>> pass = Pass;
 
             foreach (var table in Archetypes)
             {
@@ -407,8 +408,8 @@ namespace fennecs
                         job.Memory<#= i + 1 #> = s<#= i #>.AsMemory(start, length);
 <# } #>
                         job.Included = action;
-                        job.Excluded = NoOp;
-                        job.Pass = Pass;
+                        job.Excluded = null;
+                        job.Pass = pass;
                         job.CountDown = countdown;
                         jobs.Add(job);
 
@@ -421,6 +422,14 @@ namespace fennecs
 
             List<Exception>? faults = null;
             Workloads.CollectFaults(ref faults, jobs);
+            foreach (var job in jobs)
+            {
+<# for (var i = 0; i < n; i++) { #>                job.Memory<#= i + 1 #> = default;
+<# } #>                job.Pass = null!;
+                job.Included = null!;
+                job.Excluded = null;
+                job.CountDown = null!;
+            }
             JobPool<DualWork<<#= types #>>>.Return(jobs);
             Workloads.Rethrow(faults);
         }
@@ -435,8 +444,7 @@ namespace fennecs
 
             using var countdown = new CountdownEvent(initialCount: 1);
             using var jobs = PooledList<UniformDualWork<U, <#= types #>>>.Rent();
-
-            UniformComponentAction<U, <#= types #>> noOp = static (U _, <#= FormatList(n, "ref C{0} _") #>) => { };
+            FilterDelegate<<#= types #>> pass = Pass;
 
             foreach (var table in Archetypes)
             {
@@ -460,8 +468,8 @@ namespace fennecs
                         job.Memory<#= i + 1 #> = s<#= i #>.AsMemory(start, length);
 <# } #>
                         job.Included = action;
-                        job.Excluded = noOp;
-                        job.Pass = Pass;
+                        job.Excluded = null;
+                        job.Pass = pass;
                         job.Uniform = uniform;
                         job.CountDown = countdown;
                         jobs.Add(job);
@@ -475,6 +483,15 @@ namespace fennecs
 
             List<Exception>? faults = null;
             Workloads.CollectFaults(ref faults, jobs);
+            foreach (var job in jobs)
+            {
+<# for (var i = 0; i < n; i++) { #>                job.Memory<#= i + 1 #> = default;
+<# } #>                job.Pass = null!;
+                job.Included = null!;
+                job.Excluded = null;
+                job.Uniform = default!;
+                job.CountDown = null!;
+            }
             JobPool<UniformDualWork<U, <#= types #>>>.Return(jobs);
             Workloads.Rethrow(faults);
         }
@@ -501,6 +518,7 @@ namespace fennecs
             using var countdown = new CountdownEvent(initialCount: 1);
             using var dualJobs = PooledList<DualWork<<#= types #>>>.Rent();
             using var plainJobs = PooledList<Work<<#= types #>>>.Rent();
+            FilterDelegate<<#= types #>> pass = Pass;
 
             foreach (var table in Archetypes)
             {
@@ -527,7 +545,7 @@ namespace fennecs
 <# } #>
                             job.Included = included;
                             job.Excluded = excluded;
-                            job.Pass = Pass;
+                            job.Pass = pass;
                             job.CountDown = countdown;
                             dualJobs.Add(job);
 
@@ -554,6 +572,20 @@ namespace fennecs
             List<Exception>? faults = null;
             Workloads.CollectFaults(ref faults, dualJobs);
             Workloads.CollectFaults(ref faults, plainJobs);
+            foreach (var job in dualJobs)
+            {
+<# for (var i = 0; i < n; i++) { #>                job.Memory<#= i + 1 #> = default;
+<# } #>                job.Pass = null!;
+                job.Included = null!;
+                job.Excluded = null;
+                job.CountDown = null!;
+            }
+            foreach (var job in plainJobs)
+            {
+<# for (var i = 0; i < n; i++) { #>                job.Memory<#= i + 1 #> = default;
+<# } #>                job.Action = null!;
+                job.CountDown = null!;
+            }
             JobPool<DualWork<<#= types #>>>.Return(dualJobs);
             JobPool<Work<<#= types #>>>.Return(plainJobs);
             Workloads.Rethrow(faults);
@@ -570,6 +602,7 @@ namespace fennecs
             using var countdown = new CountdownEvent(initialCount: 1);
             using var dualJobs = PooledList<UniformDualWork<U, <#= types #>>>.Rent();
             using var plainJobs = PooledList<UniformWork<U, <#= types #>>>.Rent();
+            FilterDelegate<<#= types #>> pass = Pass;
 
             foreach (var table in Archetypes)
             {
@@ -596,7 +629,7 @@ namespace fennecs
 <# } #>
                             job.Included = included;
                             job.Excluded = excluded;
-                            job.Pass = Pass;
+                            job.Pass = pass;
                             job.Uniform = uniform;
                             job.CountDown = countdown;
                             dualJobs.Add(job);
@@ -625,6 +658,22 @@ namespace fennecs
             List<Exception>? faults = null;
             Workloads.CollectFaults(ref faults, dualJobs);
             Workloads.CollectFaults(ref faults, plainJobs);
+            foreach (var job in dualJobs)
+            {
+<# for (var i = 0; i < n; i++) { #>                job.Memory<#= i + 1 #> = default;
+<# } #>                job.Pass = null!;
+                job.Included = null!;
+                job.Excluded = null;
+                job.Uniform = default!;
+                job.CountDown = null!;
+            }
+            foreach (var job in plainJobs)
+            {
+<# for (var i = 0; i < n; i++) { #>                job.Memory<#= i + 1 #> = default;
+<# } #>                job.Action = null!;
+                job.Uniform = default!;
+                job.CountDown = null!;
+            }
             JobPool<UniformDualWork<U, <#= types #>>>.Return(dualJobs);
             JobPool<UniformWork<U, <#= types #>>>.Return(plainJobs);
             Workloads.Rethrow(faults);
@@ -845,8 +894,6 @@ namespace fennecs
                 return sum;
             }
         }
-
-        private static readonly ComponentAction<<#= types #>> NoOp = static (<#= FormatList(n, "ref C{0} _") #>) => { };
 
         private bool HasWildcards => Stream.StreamTypes.Any(type => type.isWildcard);
 
