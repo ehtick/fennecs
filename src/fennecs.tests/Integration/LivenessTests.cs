@@ -1,4 +1,4 @@
-﻿namespace fennecs.tests.Integration;
+namespace fennecs.tests.Integration;
 
 public class LivenessTests(ITestOutputHelper output)
 {
@@ -12,7 +12,7 @@ public class LivenessTests(ITestOutputHelper output)
         entity.Despawn();
         if (!entity.Alive) output.WriteLine(entity.ToString());
     }
-    
+
     [Theory]
     [InlineData(0)]
     [InlineData(1)]
@@ -27,7 +27,7 @@ public class LivenessTests(ITestOutputHelper output)
 
         var worldLock = world.Lock();
         foreach (var entity in world) // world is a query
-        { 
+        {
             // Example uses coin flip, but we sith deal in absolutes
             // if (Random.Shared.NextSingle() >= 0.5f) 
             entity.Despawn();
@@ -35,7 +35,7 @@ public class LivenessTests(ITestOutputHelper output)
             Assert.True(entity.Alive);
         }
         worldLock.Dispose(); // this will catch up the despawns
-        
+
         Assert.Empty(world);
     }
 
@@ -49,18 +49,18 @@ public class LivenessTests(ITestOutputHelper output)
         var stream = world.Query<int>().Stream();
         var despawns = new HashSet<Entity>();
         stream.For(
-            uniform: despawns, 
-            action: (killSet, in entity, ref value) => 
+            uniform: despawns,
+            action: (killSet, in entity, ref value) =>
         {
             if (value == 69) killSet.Add(entity); // Can also just use a closure here, i.e. despawns.
             if (value == 60 + 9 && killSet.Count % 3 == 0) killSet.Add(entity); // fake redundant addition ;)
         });
-        
+
         Assert.Equal(1234, despawns.Count);
-        Assert.Equal(1234+4567, world.Count);
-        
+        Assert.Equal(1234 + 4567, world.Count);
+
         foreach (var d in despawns) world.Despawn(d); // I'll add a overload for any collections later
-        
+
         Assert.Equal(4567, world.Count);
 
         stream.For((ref value) =>
@@ -68,5 +68,5 @@ public class LivenessTests(ITestOutputHelper output)
             Assert.NotEqual(69, value);
         });
     }
-    
+
 }

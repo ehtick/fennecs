@@ -11,9 +11,9 @@ public class EntityEnsureTests
         var entity = world.Spawn();
 
         Assert.False(entity.Has<int>());
-        
+
         ref var component = ref entity.Ensure<int>();
-        
+
         Assert.True(entity.Has<int>());
         Assert.Equal(0, component);
     }
@@ -99,9 +99,9 @@ public class EntityEnsureTests
 
         ref var first = ref entity.Ensure(100);
         first = 200;
-        
+
         ref var second = ref entity.Ensure(999);
-        
+
         Assert.Equal(200, second);
     }
 
@@ -232,7 +232,7 @@ public class EntityEnsureTests
 
         // Add a relation component first
         entity.Add(999, target);
-        
+
         // Ensure with default match should create a plain component
         ref var plain = ref entity.Ensure(42);
 

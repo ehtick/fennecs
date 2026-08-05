@@ -1,4 +1,4 @@
-﻿namespace fennecs.CRUD;
+namespace fennecs.CRUD;
 
 /// <summary>
 /// Objects of this type can perform Batch operations on Entities or sets of Entities.
@@ -19,11 +19,11 @@ public interface IBatchBegin
 
     /// <inheritdoc cref="Batch(fennecs.AddConflict,fennecs.RemoveConflict)"/>
     public Batch Batch();
-    
+
     /// <inheritdoc cref="Batch(fennecs.AddConflict,fennecs.RemoveConflict)"/>
     public Batch Batch(AddConflict add);
 
     /// <inheritdoc cref="Batch(fennecs.AddConflict,fennecs.RemoveConflict)"/>
     public Batch Batch(RemoveConflict remove);
-    
+
 }

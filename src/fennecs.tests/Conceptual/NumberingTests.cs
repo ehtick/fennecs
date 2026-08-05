@@ -1,4 +1,4 @@
-﻿namespace fennecs.tests.Conceptual;
+namespace fennecs.tests.Conceptual;
 
 public class NumberingTests
 {
@@ -16,7 +16,7 @@ public class NumberingTests
         return world.Stream<Index>();
     }
 
-    
+
     // ReSharper disable once NotAccessedPositionalProperty.Local
     private record struct Index(int Value)
     {
@@ -25,7 +25,7 @@ public class NumberingTests
             while (from < to) yield return new(from++);
         }
     }
-    
+
     [Theory]
     [InlineData(0)]
     [InlineData(1)]
@@ -35,7 +35,7 @@ public class NumberingTests
     public void NumberingEntitiesWithEnumerator(int count)
     {
         var stream = Setup(count);
-        
+
         stream.For(
             uniform: Index.Ascending(from: 0),
             action: static (enumerator, ref index) =>
@@ -44,7 +44,7 @@ public class NumberingTests
                 index = enumerator.Current;
             }
         );
-        
+
         VerifyCountAndOrder(stream, count);
     }
 
@@ -86,7 +86,7 @@ public class NumberingTests
     public void NumberingEntitiesWithRange(int count)
     {
         var stream = Setup(count);
-        
+
         var lazyQueue = new Queue<int>(Enumerable.Range(0, count));
         stream.For(
             uniform: lazyQueue,
@@ -95,7 +95,7 @@ public class NumberingTests
                 index.Value = queue.Dequeue();
             }
         );
-        
+
         VerifyCountAndOrder(stream, count);
     }
 
@@ -113,7 +113,7 @@ public class NumberingTests
         var queue = new Queue<Index>(Enumerable.Range(0, stream.Count).Select(i => new Index(i)));
         stream.For((ref index) => index = queue.Dequeue());
 
-        VerifyCountAndOrder(stream, count1+count2);
+        VerifyCountAndOrder(stream, count1 + count2);
     }
 
 
@@ -130,7 +130,7 @@ public class NumberingTests
         var i = 0;
         stream.For((ref index) => index = new(i++));
 
-        VerifyCountAndOrder(stream, count1+count2);
+        VerifyCountAndOrder(stream, count1 + count2);
     }
 
 
@@ -152,7 +152,7 @@ public class NumberingTests
             }
         );
 
-        VerifyCountAndOrder(stream, count1+count2);
+        VerifyCountAndOrder(stream, count1 + count2);
     }
 
     private static void VerifyCountAndOrder(Stream<Index> stream, int count)

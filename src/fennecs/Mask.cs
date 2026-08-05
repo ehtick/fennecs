@@ -9,7 +9,7 @@ internal sealed class Mask : IDisposable
     internal readonly SortedSet<TypeExpression> HasTypes = [];
     internal readonly SortedSet<TypeExpression> NotTypes = [];
     internal readonly SortedSet<TypeExpression> AnyTypes = [];
-    
+
     public bool SafeForAddition(TypeExpression typeExpression) => typeExpression.Matches(NotTypes);
     public bool SafeForRemoval(TypeExpression typeExpression) => typeExpression.Matches(HasTypes) || typeExpression.Matches(AnyTypes);
 
@@ -51,7 +51,7 @@ internal sealed class Mask : IDisposable
         hash = NotTypes.Aggregate(hash, HashCode.Combine);
         hash = HashCode.Combine(hash, AnyTypes.Count);
         hash = AnyTypes.Aggregate(hash, HashCode.Combine);
-        
+
         return hash;
     }
 

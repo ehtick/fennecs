@@ -1,4 +1,4 @@
-﻿namespace fennecs.tests.Query;
+namespace fennecs.tests.Query;
 
 public class DespawnTests
 {
@@ -10,15 +10,18 @@ public class DespawnTests
         var parent = world.Spawn();
         parent.Add<TagForDespawn>();
 
-        for (var i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++)
+        {
             var entity = world.Spawn();
-            if (i % 3 == 2) {
+            if (i % 3 == 2)
+            {
                 entity.Add<RelationComponent>(parent);
             }
 
             entity.Add<ComponentA>();
 
-            if (i % 2 == 0) {
+            if (i % 2 == 0)
+            {
                 entity.Add<TagForDespawn>();
             }
 
@@ -34,25 +37,28 @@ public class DespawnTests
     {
         var world = new World();
         var entities = new List<Entity>();
-        
+
         var parent = world.Spawn();
         parent.Add<TagForDespawn>();
         parent.Add(-1);
         entities.Add(parent);
 
-        for (var i = 0; i < 100; i++) {
+        for (var i = 0; i < 100; i++)
+        {
             var entity = world.Spawn();
             entity.Add(i);
-            
+
             entities.Add(entity);
-            
-            if (i % 5 == 2) {
+
+            if (i % 5 == 2)
+            {
                 entity.Add<RelationComponent>(parent);
             }
 
             entity.Add<ComponentA>();
 
-            if (i % 3 == 0) {
+            if (i % 3 == 0)
+            {
                 entity.Add<TagForDespawn>();
             }
 
@@ -60,7 +66,7 @@ public class DespawnTests
         }
 
         world.Query<int>().Compile().Despawn();
-        
+
         foreach (var entity in entities) Assert.False(entity.Alive, $"Entity {entity} should be despawned");
     }
 
@@ -70,13 +76,16 @@ public class DespawnTests
     {
         var world = new World();
 
-        for (var i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++)
+        {
             var entity = world.Spawn();
-            if (i % 3 == 2) {
+            if (i % 3 == 2)
+            {
                 entity.Add(i);
             }
             entity.Add<ComponentA>();
-            if (i % 2 == 0) {
+            if (i % 2 == 0)
+            {
                 entity.Add<TagForDespawn>();
             }
         }

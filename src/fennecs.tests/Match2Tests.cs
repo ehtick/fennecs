@@ -1,4 +1,4 @@
-﻿namespace fennecs.tests;
+namespace fennecs.tests;
 
 public class Match2Tests
 {
@@ -23,7 +23,7 @@ public class Match2Tests
             .Add(RELATION1, bob);
     }
 
-    
+
     [Fact]
     public void Any_Enumerates_all_Components_Once()
     {

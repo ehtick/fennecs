@@ -50,7 +50,7 @@ public readonly record struct Entity : IAddRemove<Entity>, IHasTyped, IAddRemove
     /// <summary>
     /// The SecondaryKind bits every Entity carries (making its low 48 bits a valid Entity <see cref="Key"/>).
     /// </summary>
-    internal const ulong KindBits = (ulong) SecondaryKind.Entity << Key.KindShift;
+    internal const ulong KindBits = (ulong)SecondaryKind.Entity << Key.KindShift;
 
 
     internal Entity(ulong value) => Value = value;
@@ -60,7 +60,7 @@ public readonly record struct Entity : IAddRemove<Entity>, IHasTyped, IAddRemove
     /// Mints an Entity value from its constituents.
     /// </summary>
     internal Entity(byte worldTag, uint index, ushort generation)
-        : this(((ulong) generation << Key.GenShift) | KindBits | ((ulong) worldTag << Key.WorldShift) | index)
+        : this(((ulong)generation << Key.GenShift) | KindBits | ((ulong)worldTag << Key.WorldShift) | index)
     {
     }
 
@@ -68,19 +68,19 @@ public readonly record struct Entity : IAddRemove<Entity>, IHasTyped, IAddRemove
     /// <summary>
     /// The index of this Entity in its World. (unique among living Entities of that World)
     /// </summary>
-    internal uint Index => (uint) Value;
+    internal uint Index => (uint)Value;
 
     /// <summary>
     /// The tag of the World this Entity belongs to.
     /// </summary>
-    internal byte WorldTag => (byte) (Value >> Key.WorldShift);
+    internal byte WorldTag => (byte)(Value >> Key.WorldShift);
 
     /// <summary>
     /// <para>Generation discriminator of this Entity.</para>
     /// <para>Whenever an Entity is despawned, the generation of its index is incremented;
     /// stored handles with an outdated generation are no longer <see cref="Alive"/>.</para>
     /// </summary>
-    public ushort Generation => (ushort) (Value >> Key.GenShift);
+    public ushort Generation => (ushort)(Value >> Key.GenShift);
 
     /// <summary>
     /// The Key of this Entity, for use as a relation target. (drops the generation)

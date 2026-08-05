@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace fennecs;
@@ -18,12 +18,12 @@ public readonly record struct Component
     /// If targetEntity is despawned, Component instances involving relations with that Entity already in existence remain unaffected.
     /// </remarks>
     public bool isRelation => Expression.Match.IsEntity;
-    
+
     /// <summary>
     /// Is this Component a Link? (if true, the Value is the linked Object)
     /// </summary>
     public bool isLink => Expression.Match.IsObject;
-    
+
     /// <summary>
     /// The Entity target of this Component, if it is a Relation.
     /// </summary>
@@ -36,7 +36,7 @@ public readonly record struct Component
             throw new InvalidOperationException("Component is not a relation.");
         }
     }
-    
+
     /// <summary>
     /// The backing Type of this Component.
     /// </summary>
@@ -49,7 +49,7 @@ public readonly record struct Component
     /// This is guaranteed to be assignable to the backing System.<see cref="Type"/> used by the Component.
     /// </remarks>
     public IStrongBox Box { get; }
-    
+
     /// <summary>
     /// Human-readable representation of this Component Expression.
     /// </summary>
@@ -57,14 +57,14 @@ public readonly record struct Component
 
     private World World { get; }
     internal TypeExpression Expression { get; }
-    
+
     internal Component(TypeExpression expression, IStrongBox box, World world)
     {
         World = world;
         Expression = expression;
         Box = box;
     }
-    
+
     #region DEPRECATED
     /// <summary>
     /// Strongly-Typed Wildcard for a specific Component type, with or without a Target. Used for Stream Filtering and CRUD.
@@ -146,7 +146,7 @@ public readonly record struct Comp : IComparable<Comp>
     /// </summary>
     public bool Matches(Comp other) => Expression.Matches(other.Expression);
     */
-    
+
     internal readonly TypeExpression Expression;
 
     internal Comp(TypeExpression expression)

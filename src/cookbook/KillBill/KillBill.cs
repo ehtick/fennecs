@@ -1,4 +1,4 @@
-﻿// KillBill.cs (type declarations at the bottom of this file)
+// KillBill.cs (type declarations at the bottom of this file)
 
 using fennecs;
 // ReSharper disable HeapView.CanAvoidClosure
@@ -57,17 +57,17 @@ Console.WriteLine("This is us (and our grudges): \n" + us);
 betrayingVipers.For((in EntityRef them, ref Location theirLocation) =>
 {
     Console.WriteLine();
-    
+
     ref var ourLocation = ref us.Ref<Location>();
     ourLocation = theirLocation;
 
     // Knock knock.
     Console.WriteLine($"Suddenly, in {theirLocation}:");
     Console.WriteLine($"Oh, hello {them}!");
-    Console.WriteLine("Remember us?"); 
-    Console.WriteLine($"They do. They remember everything! " + 
+    Console.WriteLine("Remember us?");
+    Console.WriteLine($"They do. They remember everything! " +
                       $"They admit their Betrayal is {them.Has<Betrayed>(us)}!");
-    
+
     // Get our revenge.
     them.Despawn();
 });
@@ -101,4 +101,4 @@ internal readonly struct Location(string there)
     public static implicit operator Location(string location) => new(location);
     public override string ToString() => there;
 }
-# endregion
+#endregion

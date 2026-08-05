@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 
 namespace fennecs;
@@ -19,7 +19,7 @@ public partial class World
     public struct WorldLock : IDisposable
     {
         private World _world;
-        
+
         internal WorldLock(World world)
         {
             _world = world;
@@ -63,7 +63,7 @@ public partial class World
                     break;
 
                 case Opcode.Batch:
-                    var batch = (Batch) op.Data;
+                    var batch = (Batch)op.Data;
                     Commit(batch);
                     batch.Dispose();
                     break;

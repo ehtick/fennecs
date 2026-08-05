@@ -1,4 +1,4 @@
-﻿// Thanos.cs (type declarations at bottom of file)
+// Thanos.cs (type declarations at bottom of file)
 
 using fennecs;
 
@@ -15,7 +15,7 @@ using var template = world.Template()
     .Spawn(initialPopulation);
 
 // Life. Unchecked, it will cease to exist. It needs correcting.
-var population = world.Query().Has<Alive>().Compile();  
+var population = world.Query().Has<Alive>().Compile();
 Console.WriteLine($"Entities before Thanos Snap: {population.Count}");
 
 // The hardest choices require the strongest wills. (and two dumb coin flips?) 
@@ -40,7 +40,7 @@ var thanosStream = population.Stream<Alive>()
 
 
 // (Aside: Thanos flunked probabilistics. Here's what's truly going on!)
-var unluckyQuery = world.Query().Has<Unlucky>().Compile();  
+var unluckyQuery = world.Query().Has<Unlucky>().Compile();
 var luckyQuery = world.Query().Has<Lucky>().Compile();
 var bothQuery = world.Query().Has<Unlucky>().Not<Lucky>().Compile();
 

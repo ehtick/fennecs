@@ -1,11 +1,14 @@
-﻿using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.Arm;
 using System.Runtime.Intrinsics.X86;
+
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Order;
+
 using fennecs;
-using fennecs_Components;
 using fennecs.pools;
+
+using fennecs_Components;
 
 namespace Benchmark.ECS;
 
@@ -56,8 +59,8 @@ public class DorakuBenchmarks
             }
 
             _world.Spawn().Add<Component1>()
-                .Add(new Component2 {Value = 1})
-                .Add(new Component3 {Value = 1});
+                .Add(new Component2 { Value = 1 })
+                .Add(new Component3 { Value = 1 });
         }
 
         _query.Query.Warmup();
@@ -83,7 +86,7 @@ public class DorakuBenchmarks
     [Benchmark(Description = "fennecs (For)", Baseline = true)]
     public void fennecs_For()
     {
-        _query.For(static delegate(ref Component1 c1, ref Component2 c2, ref Component3 c3) { c1.Value = c1.Value + c2.Value + c3.Value; });
+        _query.For(static delegate (ref Component1 c1, ref Component2 c2, ref Component3 c3) { c1.Value = c1.Value + c2.Value + c3.Value; });
     }
 
 
@@ -268,9 +271,9 @@ public class DorakuBenchmarks
 
         unsafe
         {
-            var p1 = (int*) mem1.Pointer;
-            var p2 = (int*) mem2.Pointer;
-            var p3 = (int*) mem3.Pointer;
+            var p1 = (int*)mem1.Pointer;
+            var p2 = (int*)mem2.Pointer;
+            var p3 = (int*)mem3.Pointer;
 
             var vectorSize = Vector256<int>.Count;
             var vectorEnd = count - count % vectorSize;
@@ -301,9 +304,9 @@ public class DorakuBenchmarks
 
         unsafe
         {
-            var p1 = (int*) mem1.Pointer;
-            var p2 = (int*) mem2.Pointer;
-            var p3 = (int*) mem3.Pointer;
+            var p1 = (int*)mem1.Pointer;
+            var p2 = (int*)mem2.Pointer;
+            var p3 = (int*)mem3.Pointer;
 
             var vectorSize = Vector128<int>.Count;
             var i = range.Item1;
@@ -335,9 +338,9 @@ public class DorakuBenchmarks
 
         unsafe
         {
-            var p1 = (int*) mem1.Pointer;
-            var p2 = (int*) mem2.Pointer;
-            var p3 = (int*) mem3.Pointer;
+            var p1 = (int*)mem1.Pointer;
+            var p2 = (int*)mem2.Pointer;
+            var p3 = (int*)mem3.Pointer;
 
             var vectorSize = Vector128<int>.Count;
             var i = range.Item1;

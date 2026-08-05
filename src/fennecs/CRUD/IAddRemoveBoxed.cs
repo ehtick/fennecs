@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 
 namespace fennecs.CRUD;
 
@@ -14,7 +14,7 @@ public interface IAddRemoveBoxed<out SELF>
     /// ⚠️ To differentiate from its overloads for Object Links, use default or Match.Plain for match, or Wildcards like Match.Any, Match.Plain, etc.
     /// </remarks>
     public bool Has(Type type, Match match);
-    
+
     /// <summary>
     /// Boxes the value of a Component of a specific type, with optional match expression for relations.
     /// </summary>
@@ -24,13 +24,13 @@ public interface IAddRemoveBoxed<out SELF>
     /// <returns>true if the Entity has a Component of that type</returns>
     /// <remarks>Semantically does not support Wildcards! (must identify a single specific Component)</remarks>
     public bool Get([MaybeNullWhen(false)] out object value, Type type, Match match = default);
-    
+
     /// <summary>
     /// Boxes the value of a Component of a specific type, with optional match expression for relations.
     /// </summary>
     /// <returns>boxed Component value, or null if the Entity does not have a component of that type</returns>
     public object? Get(Type type, Match match = default) => Get(out var value, type, match) ? value : null;
-    
+
     /// <summary>
     /// 'Typelessly' sets the value of a Component of a specific type, with optional match expression for relations.
     /// The component type will be the type that value.GetType() returns!
@@ -41,7 +41,7 @@ public interface IAddRemoveBoxed<out SELF>
     /// <throws><see cref="InvalidOperationException"/>if trying to add an already existing component or
     /// <see cref="ArgumentException"/>if match is a Wildcard</throws>
     public void Set(object value, Match match = default);
-    
+
     /// <summary>
     /// Removes the given component by type and optional match expression.
     /// </summary>

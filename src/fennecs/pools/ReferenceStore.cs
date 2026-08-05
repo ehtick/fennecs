@@ -51,7 +51,7 @@ internal class ReferenceStore(int capacity = 4096)
                 throw new KeyNotFoundException($"Key is not tracking an instance of {typeof(T)}.");
             }
 
-            return (T) reference.Item;
+            return (T)reference.Item;
         }
     }
 

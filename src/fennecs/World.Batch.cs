@@ -1,4 +1,4 @@
-﻿// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 
 namespace fennecs;
 
@@ -13,7 +13,7 @@ public partial class World
         }
 
         Commit(batch);
-        
+
         return true;
     }
 

@@ -14,15 +14,15 @@ public class RelationDespawn
     public void DespawnRelationTargetRemovesComponent(int relations)
     {
         using var world = new World();
-        
+
         var subject = world.Spawn();
-        
+
         world.Template()
             .Add<int>(default, subject)
             .Add(Link.With("relation target"))
             .Spawn(relations)
             .Dispose();
-        
+
         var targets = new List<Entity>(world.Query<int>(subject).Compile());
 
         var rnd = new Random(1234 + relations);
@@ -36,7 +36,7 @@ public class RelationDespawn
             var target = targets[rnd.Next(targets.Count)];
 
             Assert.True(subject.Has<int>(target));
-            
+
             target.Despawn();
             targets.Remove(target);
 
@@ -54,10 +54,10 @@ public class RelationDespawn
     public void DespawningBulkInSelfReferencedArchetypeIsPossible(int relations)
     {
         using var world = new World();
-        
+
         var subjects = new List<Entity>();
         var rnd = new Random(1234 + relations);
-        
+
         // Spawn the other Entities
         for (var i = 0; i < relations; i++)
         {
@@ -72,12 +72,12 @@ public class RelationDespawn
 
         var query = world.Query<int>(Match.Entity).Compile();
         Assert.Equal(relations, query.Count);
-        
-        query.Truncate(relations/2);
+
+        query.Truncate(relations / 2);
 
         Assert.Empty(query);
     }
-   
+
     [Theory]
     [InlineData(1)]
     [InlineData(2)]
@@ -88,10 +88,10 @@ public class RelationDespawn
     public void DespawningSingleInSelfReferencedArchetypeIsPossible(int relations)
     {
         using var world = new World();
-        
+
         var subjects = new List<Entity>();
         var rnd = new Random(1234 + relations);
-        
+
         for (var i = 0; i < relations; i++)
         {
             subjects.Add(world.Spawn());
@@ -100,7 +100,7 @@ public class RelationDespawn
         // Add single "survivor" relation
         var survivor = world.Spawn();
         survivor.Add(rnd.Next(), world.Spawn());
-        
+
         // Create a bunch of self-referential relations
         foreach (var self in subjects)
         {
@@ -108,17 +108,17 @@ public class RelationDespawn
         }
 
         var query = world.Query<int>(Match.Entity).Compile();
-        Assert.Equal(relations+1, query.Count);
-        
+        Assert.Equal(relations + 1, query.Count);
+
         // Create a bunch of self-referential relations
         foreach (var subject in subjects)
         {
             subject.Despawn();
         }
-        
+
         Assert.Single(query);
     }
-   
+
     [Theory]
     [InlineData(1)]
     [InlineData(2)]
@@ -129,10 +129,10 @@ public class RelationDespawn
     public void DespawningSingleInSelfReferencedArchetypeIsPossibleWithOtherRelations(int relations)
     {
         using var world = new World();
-        
+
         var subjects = new List<Entity>();
         var rnd = new Random(1234 + relations);
-        
+
         for (var i = 0; i < relations * 2; i++)
         {
             subjects.Add(world.Spawn());
@@ -147,18 +147,18 @@ public class RelationDespawn
         // Create a bunch of normal relations
         foreach (var self in subjects)
         {
-            self.Add(rnd.Next(), subjects[relations + rnd.Next(relations/2)]);
+            self.Add(rnd.Next(), subjects[relations + rnd.Next(relations / 2)]);
         }
 
         var query = world.Query<int>(Match.Entity).Compile();
-        Assert.Equal(relations*2, query.Count);
-        
+        Assert.Equal(relations * 2, query.Count);
+
         // Create a bunch of self-referential relations
         foreach (var subject in subjects)
         {
             subject.Despawn();
         }
-        
+
         Assert.Empty(query);
     }
 }

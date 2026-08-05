@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -20,7 +20,7 @@ internal interface IStorage
     /// The backing type of the elements stored.
     /// </summary>
     Type Type { get; }
-    
+
     /// <summary>
     /// Stores a boxed value at the given index.
     /// (use <c>Append</c> to add a new one)
@@ -81,7 +81,7 @@ internal interface IStorage
     public static IStorage Instantiate(TypeExpression expression)
     {
         var storageType = typeof(Storage<>).MakeGenericType(expression.Type);
-        var instance = (IStorage) Activator.CreateInstance(storageType)!;
+        var instance = (IStorage)Activator.CreateInstance(storageType)!;
         return instance;
     }
 
@@ -89,7 +89,7 @@ internal interface IStorage
     /// Returns the element at position Row as a boxed object.
     /// </summary>
     IStrongBox Box(int row);
-    
+
     /// <summary>
     /// Gets the value at index as a boxed object.
     /// </summary>
@@ -109,7 +109,7 @@ internal class Storage<T> : IStorage
     private const int InitialCapacity = 32;
 
     private static readonly ArrayPool<T> Pool = ArrayPool<T>.Create();
-    
+
     private T[] _data = Pool.Rent(InitialCapacity);
 
     /// <summary>
@@ -120,10 +120,10 @@ internal class Storage<T> : IStorage
     {
         Span[index] = value;
     }
-    
+
     /// <inheritdoc />
     public Type Type => typeof(T);
-    
+
     /// <inheritdoc />
     public void Store(int index, object value) => Store(index, (T)value);
 
@@ -181,7 +181,7 @@ internal class Storage<T> : IStorage
         }
 
         if (RuntimeHelpers.IsReferenceOrContainsReferences<T>()) FullSpan[(Count - removals)..Count].Clear();
-        
+
         Count -= removals;
     }
 
@@ -209,7 +209,7 @@ internal class Storage<T> : IStorage
     public void Clear()
     {
         if (Count <= 0) return;
-        
+
         if (RuntimeHelpers.IsReferenceOrContainsReferences<T>()) Span.Clear();
         Count = 0;
     }
@@ -294,7 +294,7 @@ internal class Storage<T> : IStorage
     /// <inheritdoc/>
     public void Move(int index, IStorage destination) => Move(index, (Storage<T>)destination);
 
-    
+
     /// <summary>
     /// Gets the value at index as a <see cref="IStrongBox"/>.
     /// </summary>
@@ -302,8 +302,8 @@ internal class Storage<T> : IStorage
     /// Value Types are copied, then boxed.
     /// </remarks>
     public IStrongBox Box(int row) => new StrongBox<T>(Span[row]);
-    
-    
+
+
     /// <summary>
     /// Gets the value at index as a boxed object.
     /// </summary>
@@ -311,8 +311,8 @@ internal class Storage<T> : IStorage
     /// Value Types are copied, then boxed.
     /// </remarks>
     public object Get(int row) => Span[row]!;
-    
-    
+
+
     /// <summary>
     /// Boxed / General migration method.
     /// </summary>

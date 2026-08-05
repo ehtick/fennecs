@@ -1,4 +1,4 @@
-﻿namespace fennecs.tests;
+namespace fennecs.tests;
 
 public class StorageTests
 {
@@ -93,7 +93,7 @@ public class StorageTests
 
         storage.Delete(1);
         Assert.Equal(5, storage.Count);
-        
+
         // Check if element was moved into gap from the back!
         Assert.Equal(420, storage[0]);
         Assert.Equal(69, storage[1]);
@@ -112,14 +112,14 @@ public class StorageTests
         }
         Assert.Equal(10, storage.Count);
         Assert.True(storage.Capacity >= 16);
-        
+
         storage.Delete(3, 5);
         storage.Compact();
         Assert.Equal(5, storage.Count);
         Assert.True(storage.Capacity >= 8);
     }
-    
-    
+
+
     [Fact]
     public void Storage_Identical_After_Compact()
     {
@@ -130,7 +130,7 @@ public class StorageTests
 
         storage.Delete(1);
         Assert.Equal(63, storage.Count);
-        Assert.True(storage.Capacity >= 64); 
+        Assert.True(storage.Capacity >= 64);
 
         storage.Compact(); // should internally resize down to 4, but the array pool might just return the same array.
         Assert.True(storage.Capacity >= 32);
@@ -180,19 +180,19 @@ public class StorageTests
     {
         var source = new Storage<string>();
         var destination = new Storage<string>();
-        
+
         destination.Append("world", 3);
-        
+
         source.Append("hello", 3);
 
 #pragma warning disable CA1859
         var genericSource = (IStorage)source;
 #pragma warning restore CA1859
         genericSource.Migrate(destination);
-        
+
         Assert.Equal(0, source.Count);
         Assert.Equal(6, destination.Count);
-        
+
         Assert.Equal("world", destination[0]);
         Assert.Equal("world", destination[1]);
         Assert.Equal("world", destination[2]);
@@ -210,16 +210,16 @@ public class StorageTests
 
         var destination = new Storage<string>();
         destination.Append("world", 3);
-        
-        
+
+
         source.Move(1, destination);
-        
+
         Assert.Equal(2, source.Count);
-        Assert.Equal(4, destination.Count); 
-        
+        Assert.Equal(4, destination.Count);
+
         Assert.Equal("hello", source[0]);
         Assert.Equal("hello", source[1]);
-        
+
         Assert.Equal("world", destination[0]);
         Assert.Equal("world", destination[1]);
         Assert.Equal("world", destination[2]);
@@ -235,11 +235,11 @@ public class StorageTests
 
         var destination = new Storage<string>();
         destination.Append("world", 3);
-        
+
         source.Migrate(destination);
-        
+
         Assert.Equal(6, destination.Count);
-        
+
         Assert.Equal("world", destination[0]);
         Assert.Equal("world", destination[1]);
         Assert.Equal("world", destination[2]);
@@ -256,9 +256,9 @@ public class StorageTests
 
         var destination = new Storage<string>();
         destination.Append("world", 3);
-        
+
         source.Migrate(destination);
-        
+
         Assert.Equal(0, source.Count);
     }
 
@@ -268,22 +268,22 @@ public class StorageTests
         var storage = new Storage<string>();
         storage.Append("world");
         Assert.Equal("world", storage.Span[0]);
-        
+
         object obj = "hello";
         storage.Store(0, obj);
         Assert.Equal(1, storage.Count);
         Assert.Equal("hello", storage.Span[0]);
     }
-    
+
     [Fact]
     public void Can_Get_Type()
     {
         var storage1 = new Storage<string>();
         Assert.Equal(typeof(string), storage1.Type);
-        
+
         var storage2 = new Storage<int>();
         Assert.Equal(typeof(int), storage2.Type);
-        
+
         var storage3 = new Storage<object>();
         Assert.Equal(typeof(object), storage3.Type);
     }

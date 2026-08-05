@@ -1,4 +1,4 @@
-﻿using fennecs;
+using fennecs;
 
 if (!Console.IsOutputRedirected) Console.Clear();
 
@@ -49,5 +49,5 @@ internal class OneRing
     {
         if (bearer.corrupted)
             Console.WriteLine($"{ring} corrupted its {bearer.race} bearer!");
-    } 
+    }
 }

@@ -1,4 +1,4 @@
-﻿namespace fennecs.tests.Query;
+namespace fennecs.tests.Query;
 
 public class QueryBatchTests
 {
@@ -399,15 +399,15 @@ public class QueryBatchTests
     {
         using var world = new World();
         const string doom = "doom";
-        
+
         var e1 = world.Spawn().Add(Link.With(doom));
 
         var linkQuery = world.Query<string>(Link.With(doom)).Compile();
         Assert.Single(linkQuery);
         Assert.Contains(e1, linkQuery);
-        
+
         linkQuery.Batch().Remove(Link.With(doom)).Submit();
-        
+
         Assert.Empty(linkQuery);
     }
 
@@ -423,7 +423,7 @@ public class QueryBatchTests
         intQuery.Batch().Remove<int>(target).Submit();
         Assert.False(e1.Has<int>(target));
     }
-    
+
 
     [Fact]
     public void Can_Create_Batched_Link()
@@ -489,7 +489,7 @@ public class QueryBatchTests
         var intQuery = world.Query<int>().Compile();
 
         Assert.Throws<InvalidOperationException>(() => intQuery.Truncate(1, fennecs.Query.TruncateMode.PerArchetype));
-        
+
         worldLock.Dispose();
     }
 
@@ -504,9 +504,9 @@ public class QueryBatchTests
         var e3 = world.Spawn().Add(567).Add("pre-existing");
 
         var intQuery = world.Query<int>().Stream();
-        
+
         intQuery.Blit(314);
-        
+
         Assert.Equal(3, intQuery.Count);
         Assert.True(e1.Has<int>());
         Assert.Equal(314, e1.Ref<int>());
@@ -527,20 +527,20 @@ public class QueryBatchTests
         var e3 = world.Spawn().Add(567).Add("pre-existing");
 
         var query = world.Query<int, string>().Stream();
-        
+
         query.Blit(314);
         query.Blit("works");
-        
+
         Assert.Equal(3, query.Count);
-        
+
         Assert.True(e1.Has<int>());
         Assert.Equal(314, e1.Ref<int>());
         Assert.Equal("works", e1.Ref<string>());
-        
+
         Assert.True(e2.Has<int>());
         Assert.Equal(314, e2.Ref<int>());
         Assert.Equal("works", e2.Ref<string>());
-        
+
         Assert.True(e3.Has<int>());
         Assert.Equal(314, e3.Ref<int>());
         Assert.Equal("works", e3.Ref<string>());
@@ -555,10 +555,10 @@ public class QueryBatchTests
         world.Spawn().Add(123.5f);
 
         var query = world.Query<int, string>().Stream();
-        
+
         query.Blit(314);
         query.Blit("works");
-        
+
         Assert.Equal(0, query.Count);
     }
 

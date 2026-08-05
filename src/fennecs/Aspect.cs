@@ -109,7 +109,7 @@ public sealed partial class Aspect : IEnumerable<Entity>
     /// via <see cref="fennecs.World.IsAlive"/> before trusting the index for a stored handle.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal bool Contains(Entity entity) => entity.Index < (uint) _meta.Length && _meta[entity.Index].Archetype is not null;
+    internal bool Contains(Entity entity) => entity.Index < (uint)_meta.Length && _meta[entity.Index].Archetype is not null;
 
 
     internal void EnsureCapacity(int capacity)
@@ -176,7 +176,7 @@ public sealed partial class Aspect : IEnumerable<Entity>
         var toMigrate = _archetypes.Where(a => a.Signature.Matches(types)).ToList();
 
         // Do not change the home archetype of the entity (relating to Entities having a relation with themselves)
-        var homeArchetype = entity.Index < (uint) _meta.Length ? _meta[entity.Index].Archetype : null;
+        var homeArchetype = entity.Index < (uint)_meta.Length ? _meta[entity.Index].Archetype : null;
 
         // And migrate them to a new Archetype without the relation
         foreach (var archetype in toMigrate)

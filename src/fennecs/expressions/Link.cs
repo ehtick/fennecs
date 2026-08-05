@@ -1,4 +1,4 @@
-﻿namespace fennecs;
+namespace fennecs;
 
 
 /// <summary>
@@ -28,7 +28,7 @@ public readonly record struct Link<T> where T : class
     internal T Target => Object;
 
     internal TypeExpression TypeExpression => TypeExpression.Of<T>(this);
-    
+
     /// <summary>
     /// The linked Object.
     /// </summary>
@@ -37,12 +37,12 @@ public readonly record struct Link<T> where T : class
     /// <summary>
     /// Create a Link expression to the Target object.
     /// </summary>
-    public static Link<T> With(T target) => new() {Object = target};
+    public static Link<T> With(T target) => new() { Object = target };
 
     /// <summary>
     /// Implicit conversion from Object to Link.
     /// </summary>
-    public static implicit operator Link<T>(T self) => new() {Object = self};
+    public static implicit operator Link<T>(T self) => new() { Object = self };
 
     /// <summary>
     /// Implicit conversion from Link to generic Target.
@@ -51,7 +51,7 @@ public readonly record struct Link<T> where T : class
     {
         return new(Key.Of(self.Object));
     }
-   
+
     /// <inheritdoc />
     public override string ToString() => $"Link {TypeExpression} -> {Object?.ToString() ?? "null"}";
 }

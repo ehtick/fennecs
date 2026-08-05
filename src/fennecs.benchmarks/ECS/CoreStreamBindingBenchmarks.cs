@@ -78,5 +78,6 @@ public class CoreStreamBindingBenchmarks
 
     [Benchmark]
     public void For_Arity5() => _stream5.For(static (ref Component0 _, ref Component1 _, ref Component2 _,
-        ref Component3 _, ref Component4 _) => { });
+        ref Component3 _, ref Component4 _) =>
+    { });
 }

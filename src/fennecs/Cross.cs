@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Collections;
 using System.Diagnostics;
 using fennecs.pools;
@@ -147,7 +147,7 @@ public static class Cross
         private readonly bool _allocated;
         private readonly bool _direct;
         private readonly bool _populated;
-        
+
         internal Join(Archetype archetype, ReadOnlySpan<TypeExpression> streamTypes)
         {
             Debug.Assert(streamTypes.Length == 2, "Not the right amount of stream types.");
@@ -296,7 +296,7 @@ public static class Cross
             Debug.Assert(_limiter is { Length: >= 3 });
             return FullPermutation(_counter.AsSpan(0, 3), _limiter.AsSpan(0, 3));
         }
-        
+
         internal bool Empty => !_populated;
 
 
@@ -536,6 +536,6 @@ public static class Cross
     }
 
     #endregion
-    
+
     private static readonly ArrayPool<int> ArrayPool = ArrayPool<int>.Create();
 }

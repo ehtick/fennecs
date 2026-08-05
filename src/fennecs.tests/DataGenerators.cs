@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 
 namespace fennecs.tests;
 
@@ -16,8 +16,8 @@ public class QueryCountGenerator : IEnumerable<object[]>
         // common powers of 2
         for (var i = 4; i <= 12; i++)
         {
-            yield return [(int) Math.Pow(2, i), true];
-            yield return [(int) Math.Pow(2, i), false];
+            yield return [(int)Math.Pow(2, i), true];
+            yield return [(int)Math.Pow(2, i), false];
         }
 
         yield return [151, true]; // prime number
@@ -70,8 +70,8 @@ public class QueryChunkGenerator : IEnumerable<object[]>
     {
         // base induction / interleaving / degenerate cases
         for (var i = 0; i <= 10; i++)
-        for (var j = 1; j <= 10; j++)
-            yield return [i, j, i % 2 == 0];
+            for (var j = 1; j <= 10; j++)
+                yield return [i, j, i % 2 == 0];
 
         yield return [100, 10, true]; //fits
         yield return [100, 1_000, false]; //undersized

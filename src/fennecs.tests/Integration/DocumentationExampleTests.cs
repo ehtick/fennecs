@@ -1,11 +1,11 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 namespace fennecs.tests.Integration;
 
 public class DocumentationExampleTests
 {
     record struct Position(Vector3 Value);
-    
+
     [Fact]
     public void QuickStart_Example_Works()
     {
@@ -16,20 +16,20 @@ public class DocumentationExampleTests
         var query = world.Query<Position>(Match.Plain).Stream();
 
         const float multiplier = 10f;
-        
-        foreach ((Entity, Position p) item in query)
+
+        foreach (var item in query)
         {
         }
-        
-        query.Job(multiplier,(uniform, ref pos) => { pos.Value *= uniform; });
-        query.For(multiplier,(uniform, in entity, ref pos) => { pos.Value *= uniform; });
+
+        query.Job(multiplier, (uniform, ref pos) => { pos.Value *= uniform; });
+        query.For(multiplier, (uniform, in entity, ref pos) => { pos.Value *= uniform; });
 
         var pos1 = world.GetComponent<Position>(entity1, Match.Plain);
         var expected = new Position(pos1.Value * multiplier);
         Assert.Equal(expected, pos1);
 
         var pos2 = world.GetComponent<Position>(entity2, Match.Plain);
-        expected = new Position( new Vector3(1, 2, 3) * multiplier * multiplier);
+        expected = new Position(new Vector3(1, 2, 3) * multiplier * multiplier);
         Assert.Equal(expected, pos2);
     }
 }

@@ -1,5 +1,7 @@
 using System.Numerics;
+
 using BenchmarkDotNet.Attributes;
+
 using fennecs;
 
 namespace Benchmark.ECS;
@@ -54,7 +56,7 @@ public class EntityPassingBenchmarks
         _stream.For((in e, ref v) =>
         {
             Entity stored = e;
-            v = Vector3.Cross(v, UniformConstantVector) + new Vector3((int) (stored.ToRaw() & 1), 0, 0);
+            v = Vector3.Cross(v, UniformConstantVector) + new Vector3((int)(stored.ToRaw() & 1), 0, 0);
         });
     }
 

@@ -143,7 +143,7 @@ public class WorldRegistryTests
         Assert.Contains("never spawned", world1.DescribeDead(neverSpawned));
 
         var real = world1.Spawn();
-        var forged = new Entity(world1.Tag, real.Index, (ushort) (real.Generation + 1));
+        var forged = new Entity(world1.Tag, real.Index, (ushort)(real.Generation + 1));
         Assert.Contains("does not exist yet", world1.DescribeDead(forged));
 
         // Fall-through: diagnosing a handle that is, in fact, alive.

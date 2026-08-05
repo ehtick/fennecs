@@ -1,9 +1,9 @@
-﻿using System.Collections;
-
-namespace fennecs.tests;
+using System.Collections;
 
 using System.Numerics;
 using fennecs;
+
+namespace fennecs.tests;
 /*
 public class Profiling(ITestOutputHelper output)
 {

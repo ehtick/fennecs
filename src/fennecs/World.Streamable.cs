@@ -1,4 +1,4 @@
-﻿namespace fennecs;
+namespace fennecs;
 
 public partial class World : Streamable
 {

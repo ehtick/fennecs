@@ -51,12 +51,12 @@ public class KeyTests
     public void ToString_Describes_Forged_Keys()
     {
         // A Wildcard nibble outside the recognized categories (reserved: Family).
-        var forgedWildcard = new Key((ulong) SecondaryKind.Family << Key.KindShift);
+        var forgedWildcard = new Key((ulong)SecondaryKind.Family << Key.KindShift);
         Assert.True(forgedWildcard.IsWildcard);
         Assert.StartsWith("wildcard[?-", forgedWildcard.ToString());
 
         // A specific (non-wildcard) Key that is neither an Entity nor an Object.
-        var forgedKey = new Key(((ulong) SecondaryKind.Family << Key.KindShift) | 42);
+        var forgedKey = new Key(((ulong)SecondaryKind.Family << Key.KindShift) | 42);
         Assert.False(forgedKey.IsWildcard);
         Assert.False(forgedKey.IsEntity);
         Assert.False(forgedKey.IsObject);

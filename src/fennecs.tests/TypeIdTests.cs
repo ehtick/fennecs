@@ -120,16 +120,16 @@ public class TypeIdTests
         var target1 = new { doot = "foo" };
         var typeExpression1 = TypeExpression.Of<object>(Link.With(target1));
         var typeExpression2 = TypeExpression.Of<object>(Link.With(target1));
-        
+
         Assert.Equal(typeExpression1, typeExpression2);
-        
-        var target2 = new { doot = "bar"};
+
+        var target2 = new { doot = "bar" };
         var typeExpression3 = TypeExpression.Of<object>(Link.With(target2));
         var typeExpression4 = TypeExpression.Of<object>(Link.With(target2));
-        
+
         Assert.False(ReferenceEquals(target1, target2));
         Assert.NotEqual(target1, target2);
-        
+
         Assert.Equal(typeExpression1, typeExpression2);
         Assert.Equal(typeExpression3, typeExpression4);
         Assert.NotEqual(typeExpression1, typeExpression3);
@@ -137,7 +137,7 @@ public class TypeIdTests
 
         var obj1 = new object();
         var obj2 = new object();
-        
+
         Assert.NotEqual(obj1, obj2);
         Assert.NotEqual(obj1.GetHashCode(), obj2.GetHashCode());
         Assert.False(ReferenceEquals(obj1, obj2));
@@ -145,7 +145,7 @@ public class TypeIdTests
 
     private struct Type1337;
     private struct Type1338;
-    
+
     [Fact]
     public void Can_Identify_Exotic_Type()
     {
@@ -157,7 +157,7 @@ public class TypeIdTests
         id2 = LanguageType.Identify(typeof(Dictionary<string, Type1338>));
         Assert.Equal(id1, id2);
     }
-    
+
     private struct Type1;
 
     private struct Type2;

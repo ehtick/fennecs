@@ -1,4 +1,4 @@
-﻿// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 
 using System.Collections;
 using System.Collections.Immutable;
@@ -12,12 +12,12 @@ namespace fennecs;
 internal readonly record struct Signature : IEnumerable<TypeExpression>, IComparable<Signature>
 {
     private readonly ImmutableSortedSet<TypeExpression> _set = ImmutableSortedSet<TypeExpression>.Empty;
-    
+
     private readonly int _hashCode;
 
     /// <inheritdoc />
     public override int GetHashCode() => _hashCode;
-    
+
     public bool Matches(TypeExpression type) => Contains(type);
 
     public bool Matches(IReadOnlySet<TypeExpression> types) => Overlaps(types);
@@ -64,7 +64,7 @@ internal readonly record struct Signature : IEnumerable<TypeExpression>, ICompar
     public Signature Intersect(IEnumerable<TypeExpression> other) => new(_set.Intersect(other));
 
 
-    
+
     /// <inheritdoc cref="ImmutableSortedSet{T}.IsProperSubsetOf"/>
     public bool IsProperSubsetOf(IEnumerable<TypeExpression> other) => _set.IsProperSubsetOf(other);
 
@@ -80,7 +80,7 @@ internal readonly record struct Signature : IEnumerable<TypeExpression>, ICompar
     /// <inheritdoc cref="ImmutableSortedSet{T}.IsSupersetOf"/>
     public bool IsSupersetOf(IEnumerable<TypeExpression> other) => _set.IsSupersetOf(other);
 
-    
+
     /// <inheritdoc cref="ImmutableSortedSet{T}.Overlaps"/>
     public bool Overlaps(IEnumerable<TypeExpression> other) => _set.Overlaps(other);
 
@@ -107,7 +107,7 @@ internal readonly record struct Signature : IEnumerable<TypeExpression>, ICompar
 
     /// <inheritdoc cref="ImmutableSortedSet{T}.Union"/>
     public Signature Union(IEnumerable<TypeExpression> other) => new(_set.Union(other));
-    
+
     /// <inheritdoc cref="ImmutableSortedSet{T}.SetEquals"/>
     public bool Equals(Signature other) => _set.SetEquals(other._set);
 
@@ -121,7 +121,7 @@ internal readonly record struct Signature : IEnumerable<TypeExpression>, ICompar
     public int CompareTo(Signature other)
     {
         if (other._set == default!) return 1;
-        
+
         var minCount = Math.Min(_set.Count, other._set.Count);
 
         for (var i = 0; i < minCount; i++)
@@ -129,7 +129,7 @@ internal readonly record struct Signature : IEnumerable<TypeExpression>, ICompar
             var cmp = _set.ElementAt(i).CompareTo(other._set.ElementAt(i));
             if (cmp != 0) return cmp;
         }
-        
+
         return _set.Count.CompareTo(other._set.Count);
     }
 
@@ -162,8 +162,8 @@ internal readonly record struct Signature : IEnumerable<TypeExpression>, ICompar
 
     /// <inheritdoc cref="Enumerable.ElementAt{TSource}(System.Collections.Generic.IEnumerable{TSource},System.Index)"/>
     public TypeExpression this[int index] => _set.ElementAt(index);
-    
-    
+
+
 
 
     /// <summary>
@@ -175,7 +175,7 @@ internal readonly record struct Signature : IEnumerable<TypeExpression>, ICompar
 
         var expansions = _set.SelectMany(type => type.Expand());
         expanded.UnionWith(expansions);
-        
+
         return new(expanded.ToImmutable());
     }
 }

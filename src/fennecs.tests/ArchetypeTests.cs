@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 
 namespace fennecs.tests;
 
@@ -18,7 +18,7 @@ public class ArchetypeTests(ITestOutputHelper output)
         Assert.Contains(typeof(int).ToString(), table.ToString());
         Assert.Contains(typeof(float).ToString(), table.ToString());
     }
-    
+
 
     [Fact]
     public void Matches_Requires_At_Least_One_Any_Type()
@@ -102,7 +102,7 @@ public class ArchetypeTests(ITestOutputHelper output)
         Assert.IsAssignableFrom<IStorage>(storage);
         Assert.IsAssignableFrom<Storage<string>>(storage);
     }
-    
+
     [Fact]
     public void Table_Matches_TypeExpression()
     {
@@ -126,7 +126,7 @@ public class ArchetypeTests(ITestOutputHelper output)
         var table = world.GetEntityMeta(other).Archetype;
 
         var count = 0;
-        foreach (var entity in (IEnumerable) table)
+        foreach (var entity in (IEnumerable)table)
         {
             count++;
             Assert.Equal(entity, entity);
@@ -168,28 +168,28 @@ public class ArchetypeTests(ITestOutputHelper output)
 
         world.Spawn();
         world.Spawn().Add(123);
-        
+
         var queryAll = world.Query().Compile();
         var queryInt = world.Query().Has<int>().Compile();
-        
+
         Assert.Equal(2, queryAll.Count);
         Assert.Single(queryInt);
     }
-    
+
     // Verifies fix to https://github.com/outfox/fennecs/issues/23
     [Fact]
     public void Remaining_Entity_Metas_Updated_Upon_Delete()
     {
         using var world = new World();
-        Entity e1 = world.Spawn().Add(1);
-        Entity e2 = world.Spawn().Add(2);
+        var e1 = world.Spawn().Add(1);
+        var e2 = world.Spawn().Add(2);
         e1.Despawn();
         Assert.Equal(2, e2.Ref<int>());
 
-        Entity e3 = world.Spawn().Add(3);
+        var e3 = world.Spawn().Add(3);
         e2.Despawn();
-        bool e3_seen_in_query_alive_and_with_val_3 = false;
-        bool dead_entity_in_query = false;
+        var e3_seen_in_query_alive_and_with_val_3 = false;
+        var dead_entity_in_query = false;
         world.Query<int>().Stream().For((in entity, ref val) =>
         {
             if (entity.Alive && val == 3)
@@ -205,8 +205,8 @@ public class ArchetypeTests(ITestOutputHelper output)
         Assert.True(e3_seen_in_query_alive_and_with_val_3);
         Assert.False(dead_entity_in_query);
 
-        bool e3_seen_in_world_iteration_alive_and_with_val_3 = false;
-        bool dead_entity_in_world_iteration = false;
+        var e3_seen_in_world_iteration_alive_and_with_val_3 = false;
+        var dead_entity_in_world_iteration = false;
         foreach (var entity in world)
         {
             if (entity.Alive && entity.Ref<int>() == 3)
@@ -234,15 +234,15 @@ public class ArchetypeTests(ITestOutputHelper output)
     public void Meta_Integrity_After_Despawn(int count)
     {
         using var world = new World();
-        
-        Entity e1 = world.Spawn().Add(1);
-        
+
+        var e1 = world.Spawn().Add(1);
+
         var entities = new Entity[count];
         for (var i = 0; i < entities.Length; i++)
         {
             entities[i] = world.Spawn().Add(i);
         }
-        
+
         world.Despawn(e1);
 
         for (var i = 0; i < entities.Length; i++)
@@ -254,7 +254,7 @@ public class ArchetypeTests(ITestOutputHelper output)
             Assert.Equal(entity, world.GetEntityMeta(entity).Archetype[world.GetEntityMeta(entity).Row]);
         }
     }
-    
+
     [Theory]
     [InlineData(0)]
     [InlineData(1)]
@@ -266,10 +266,10 @@ public class ArchetypeTests(ITestOutputHelper output)
     public void Components_Integrity_After_Despawn(int count)
     {
         using var world = new World();
-        
+
         var e1 = world.Spawn().Add(-1);
         var e2 = world.Spawn().Add(-2);
-        
+
         var entities = new List<Entity>(count);
         for (var i = 0; i < count; i++)
         {
@@ -281,7 +281,7 @@ public class ArchetypeTests(ITestOutputHelper output)
         for (var i = 0; i < count; i++)
         {
             var entity = entities[i];
-            entity.Add((short) i);
+            entity.Add((short)i);
         }
 
         world.Despawn(e2);
@@ -292,8 +292,8 @@ public class ArchetypeTests(ITestOutputHelper output)
             Assert.True(world.IsAlive(entity));
 
             // Components correct?
-            Assert.Equal(i, entity.Ref<int>());    
-            Assert.Equal(i, entity.Ref<short>());    
+            Assert.Equal(i, entity.Ref<int>());
+            Assert.Equal(i, entity.Ref<short>());
         }
     }
 
@@ -307,21 +307,21 @@ public class ArchetypeTests(ITestOutputHelper output)
     public void Components_Integrity_After_Truncate(int count)
     {
         using var world = new World();
-        
+
         var entities = new List<Entity>(count);
         for (var i = 0; i < count; i++)
         {
             entities.Add(world.Spawn().Add(i));
         }
-        
+
         world.GetEntityMeta(entities[0]).Archetype.Truncate(10);
         entities = entities.Take(10).ToList();
-        
+
 
         for (var i = 0; i < entities.Count; i++)
         {
             var entity = entities[i];
-            entity.Add((short) i);
+            entity.Add((short)i);
         }
 
         for (var i = 0; i < entities.Count; i++)
@@ -330,8 +330,8 @@ public class ArchetypeTests(ITestOutputHelper output)
             Assert.True(world.IsAlive(entity));
 
             // Components correct?
-            Assert.Equal(i, entity.Ref<int>());    
-            Assert.Equal(i, entity.Ref<short>());    
+            Assert.Equal(i, entity.Ref<int>());
+            Assert.Equal(i, entity.Ref<short>());
         }
     }
 
@@ -341,7 +341,7 @@ public class ArchetypeTests(ITestOutputHelper output)
         using var world = new World();
         var entity1 = world.Spawn().Add("foo").Add(123).Add(17.0f);
         _ = world.Spawn().Add(123).Add(17.0f);
-        
+
         var table1 = world.GetEntityMeta(entity1).Archetype;
         var table2 = world.GetEntityMeta(entity1).Archetype;
 
@@ -356,7 +356,7 @@ public class ArchetypeTests(ITestOutputHelper output)
         using var world = new World();
         var entity1 = world.Spawn().Add("foo").Add(123).Add(17.0f);
         var entity2 = world.Spawn().Add(123).Add(17.0f);
-        
+
         var table1 = world.GetEntityMeta(entity1).Archetype;
         var table2 = world.GetEntityMeta(entity2).Archetype;
 

@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 // ReSharper disable UnusedVariable
 
 namespace fennecs.tests.Integration;
@@ -29,7 +29,7 @@ public class ReadmeTests
                 velocity.Value -= uniform;
             }
         );
-        
+
         Assert.Equal(-1 * DeltaTime * 9.81f * Vector3.UnitZ, entity.Ref<Velocity>().Value);
     }
 }

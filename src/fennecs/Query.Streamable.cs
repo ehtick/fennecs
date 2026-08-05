@@ -1,4 +1,4 @@
-﻿namespace fennecs;
+namespace fennecs;
 
 /// <summary>
 /// Stream Factory Methods

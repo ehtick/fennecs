@@ -93,19 +93,19 @@ internal readonly record struct Key : IComparable<Key>
     #endregion
 
 
-    internal SecondaryKind Kind => (SecondaryKind) ((Value & KindMask) >> KindShift);
+    internal SecondaryKind Kind => (SecondaryKind)((Value & KindMask) >> KindShift);
 
     /// <summary>The sub and value fields; zero ⇔ this Key is a Wildcard (or Plain).</summary>
     internal ulong Payload => Value & PayloadMask;
 
     /// <summary>Entity index (Entity keys) or object hash code (Object keys).</summary>
-    internal uint Index => (uint) Value;
+    internal uint Index => (uint)Value;
 
     /// <summary>World tag of an Entity key.</summary>
-    internal byte WorldTag => (byte) ((Value & WorldMask) >> WorldShift);
+    internal byte WorldTag => (byte)((Value & WorldMask) >> WorldShift);
 
     /// <summary>Sub field: TypeId of the linked type for Object keys.</summary>
-    internal TypeID Sub => (TypeID) ((Value & SubMask) >> SubShift);
+    internal TypeID Sub => (TypeID)((Value & SubMask) >> SubShift);
 
 
     /// <summary>Is this Key a Wildcard? (matches a category of targets rather than one specific target)</summary>
@@ -128,9 +128,9 @@ internal readonly record struct Key : IComparable<Key>
     /// The Key consists of the linked type and the object's <see cref="object.GetHashCode"/>.
     /// </remarks>
     internal static Key Of<T>(T item) where T : class =>
-        new(((ulong) SecondaryKind.Object << KindShift)
-            | ((ulong) (ushort) LanguageType<T>.Id << SubShift)
-            | (uint) (item?.GetHashCode() ?? 0));
+        new(((ulong)SecondaryKind.Object << KindShift)
+            | ((ulong)(ushort)LanguageType<T>.Id << SubShift)
+            | (uint)(item?.GetHashCode() ?? 0));
 
 
     /// <summary>
@@ -145,16 +145,16 @@ internal readonly record struct Key : IComparable<Key>
     public static Key Plain => default;
 
     /// <summary>Wildcard: matches any target, INCLUDING Plain.</summary>
-    public static Key Any => new((ulong) SecondaryKind.Any << KindShift);
+    public static Key Any => new((ulong)SecondaryKind.Any << KindShift);
 
     /// <summary>Wildcard: matches any non-plain target (relations and links), EXCLUDING Plain.</summary>
-    public static Key Target => new((ulong) SecondaryKind.Target << KindShift);
+    public static Key Target => new((ulong)SecondaryKind.Target << KindShift);
 
     /// <summary>Wildcard: matches only Entity-Entity relation targets.</summary>
-    public static Key AnyEntity => new((ulong) SecondaryKind.Entity << KindShift);
+    public static Key AnyEntity => new((ulong)SecondaryKind.Entity << KindShift);
 
     /// <summary>Wildcard: matches only Entity-Object Link targets.</summary>
-    public static Key AnyObject => new((ulong) SecondaryKind.Object << KindShift);
+    public static Key AnyObject => new((ulong)SecondaryKind.Object << KindShift);
 
     #endregion
 

@@ -1,4 +1,4 @@
-﻿namespace fennecs.tests;
+namespace fennecs.tests;
 
 public static class ExpressionTests
 {
@@ -10,7 +10,7 @@ public static class ExpressionTests
         var matchAny = Comp<string>.Matching(Match.Any);
 
         var entity = world.Spawn();
-        
+
         var compPlain = Comp<string>.Plain;
         var compEntity = Comp<string>.Matching(entity);
         var compObject = Comp<string>.Matching("Erwin");
@@ -20,7 +20,7 @@ public static class ExpressionTests
         Assert.True(matchAny.Matches(compObject));
     }
 
-    
+
     [Fact]
     public static void Target_Matches_only_Targeted()
     {
@@ -36,8 +36,8 @@ public static class ExpressionTests
         Assert.True(matchTarget.Matches(compEntity));
         Assert.True(matchTarget.Matches(compObject));
     }
-    
-    
+
+
     [Fact]
     public static void Object_Matches_only_Object()
     {
@@ -53,8 +53,8 @@ public static class ExpressionTests
         Assert.False(matchObject.Matches(compEntity));
         Assert.True(matchObject.Matches(compObject));
     }
-    
-    
+
+
     [Fact]
     public static void Entity_Matches_only_Entity()
     {
@@ -70,8 +70,8 @@ public static class ExpressionTests
         Assert.True(matchObject.Matches(compEntity));
         Assert.False(matchObject.Matches(compObject));
     }
-    
-    
+
+
     [Fact]
     public static void Plain_Matches_only_Plain()
     {
@@ -87,8 +87,8 @@ public static class ExpressionTests
         Assert.False(matchPlain.Matches(compEntity));
         Assert.False(matchPlain.Matches(compObject));
     }
-    
-    
+
+
     [Fact]
     public static void Specific_Entity_Matches_only_Specific()
     {
@@ -96,12 +96,12 @@ public static class ExpressionTests
 
         var right = world.Spawn();
         var wrong = world.Spawn();
-        
+
         var matchObject = Comp<string>.Matching(right);
 
         var compEntityRight = Comp<string>.Matching(right);
         var compEntityWrong = Comp<string>.Matching(wrong);
-        
+
         Assert.True(matchObject.Matches(compEntityRight));
         Assert.False(matchObject.Matches(compEntityWrong));
     }
@@ -114,17 +114,17 @@ public static class ExpressionTests
         // CAUTION - string interning might cause flukes / weird artifacts
         const string right = "Erwin";
         const string wrong = "different";
-        
+
         var matchObject = Comp<string>.Matching(right);
 
         var compObjectRight = Comp<string>.Matching(right);
         var compObjectWrong = Comp<string>.Matching(wrong);
-        
+
         Assert.True(matchObject.Matches(compObjectRight));
         Assert.False(matchObject.Matches(compObjectWrong));
     }
 
-    
+
     [Fact]
     public static void Specific_Object_Matches_only_Specific()
     {
@@ -132,12 +132,12 @@ public static class ExpressionTests
 
         List<string> right = ["Erwin"];
         List<string> wrong = ["different"];
-        
+
         var matchObject = Comp<string>.Matching(right);
 
         var compObjectRight = Comp<string>.Matching(right);
         var compObjectWrong = Comp<string>.Matching(wrong);
-        
+
         Assert.True(matchObject.Matches(compObjectRight));
         Assert.False(matchObject.Matches(compObjectWrong));
     }
@@ -146,7 +146,7 @@ public static class ExpressionTests
     public static void Can_Expand_Plain()
     {
         var type = TypeExpression.Of<int>(Match.Plain);
-        
+
         var expanded = type.Expand();
         var anyInt = TypeExpression.Of<int>(Match.Any);
         Assert.Contains(anyInt, expanded);
@@ -157,7 +157,7 @@ public static class ExpressionTests
     public static void Can_Expand_EntityWildcard()
     {
         var type = TypeExpression.Of<int>(Match.Entity);
-        
+
         var expanded = type.Expand();
         var anyInt = TypeExpression.Of<int>(Match.Any);
         var targetInt = TypeExpression.Of<int>(Match.Target);
@@ -170,7 +170,7 @@ public static class ExpressionTests
     public static void Can_Expand_ObjectWildcard()
     {
         var type = TypeExpression.Of<int>(Match.Object);
-        
+
         var expanded = type.Expand();
         var anyInt = TypeExpression.Of<int>(Match.Any);
         var targetInt = TypeExpression.Of<int>(Match.Target);
@@ -183,7 +183,7 @@ public static class ExpressionTests
     public static void Can_Expand_AnyWildcard()
     {
         var type = TypeExpression.Of<int>(Match.Any);
-        
+
         var expanded = type.Expand();
         var targetInt = TypeExpression.Of<int>(Match.Target);
         var entityInt = TypeExpression.Of<int>(Match.Entity);
@@ -202,7 +202,7 @@ public static class ExpressionTests
         var world = new World();
         var entity = world.Spawn();
         var type = TypeExpression.Of<int>(entity);
-        
+
         var expanded = type.Expand();
         var anyInt = TypeExpression.Of<int>(Match.Any);
         var targetInt = TypeExpression.Of<int>(Match.Target);
@@ -217,7 +217,7 @@ public static class ExpressionTests
     public static void Can_Expand_Object()
     {
         var type = TypeExpression.Of<string>(Link.With("dieter"));
-        
+
         var expanded = type.Expand();
         var wildAny = TypeExpression.Of<string>(Match.Any);
         var wildTarget = TypeExpression.Of<string>(Match.Target);
@@ -232,7 +232,7 @@ public static class ExpressionTests
     public static void Can_Expand_Target()
     {
         var type = TypeExpression.Of<string>(Match.Target);
-        
+
         var expanded = type.Expand();
         var wildAny = TypeExpression.Of<string>(Match.Any);
         var wildEntity = TypeExpression.Of<string>(Match.Entity);
@@ -243,27 +243,27 @@ public static class ExpressionTests
         Assert.Equal(3, expanded.Count);
     }
 
-    
+
     [Fact]
     public static void ManagedFlagIsAccurate()
     {
         var comp1 = Comp<int>.Plain;
         var comp2 = Comp<int>.Matching(Match.Any);
         Assert.True(comp1.Expression.isUnmanaged);
-        
+
         Assert.True(comp2.Expression.isUnmanaged);
 
         var comp3 = Comp<string>.Plain;
         Assert.False(comp3.Expression.isUnmanaged);
     }
 
-    
+
     [Fact]
     public static void SIMDsizeIsAccurate()
     {
         var comp1 = Comp<int>.Plain;
         var comp2 = Comp<int>.Matching(Match.Any);
-        
+
         Assert.Equal(4, comp1.SIMDsize);
         Assert.Equal(4, comp2.SIMDsize);
 

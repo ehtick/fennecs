@@ -20,7 +20,7 @@ public partial class Aspect
         {
             // Lazy membership: the first Component owned by this Aspect joins the Entity
             // directly into the {Entity, T} Archetype. (single insert, no intermediate move)
-            EnsureCapacity((int) entity.Index + 1);
+            EnsureCapacity((int)entity.Index + 1);
             var signature = new Signature(Comp<EntityIndex>.Plain.Expression).Add(typeExpression);
             var archetype = GetArchetype(signature);
             archetype.JoinWith(entity, typeExpression, data);
@@ -91,7 +91,7 @@ public partial class Aspect
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal bool HasComponent(Entity entity, TypeExpression typeExpression)
     {
-        if (entity.Index >= (uint) _meta.Length) return false;
+        if (entity.Index >= (uint)_meta.Length) return false;
 
         var archetype = _meta[entity.Index].Archetype;
         if (archetype is null) return false;
@@ -108,12 +108,12 @@ public partial class Aspect
     {
         // Single lookup: the storage dictionary probe subsumes the signature match
         // (for the specific, non-wildcard expressions this method is documented for).
-        if (entity.Index < (uint) _meta.Length)
+        if (entity.Index < (uint)_meta.Length)
         {
             var (table, row) = _meta[entity.Index];
             if (table is not null && table.TryGetStorage(TypeExpression.Of<T>(match), out var storage))
             {
-                return ref ((Storage<T>) storage).Span[row];
+                return ref ((Storage<T>)storage).Span[row];
             }
         }
 
@@ -132,7 +132,7 @@ public partial class Aspect
     internal Span<T> ContiguousSlice<T>(Entity first, Match match, int count)
     {
         var (table, row) = _meta[first.Index];
-        var storage = (Storage<T>) table!.GetStorage(TypeExpression.Of<T>(match));
+        var storage = (Storage<T>)table!.GetStorage(TypeExpression.Of<T>(match));
         return storage.AsMemory(row, count).Span;
     }
 

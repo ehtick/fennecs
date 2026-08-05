@@ -1,4 +1,4 @@
-﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes;
 
 namespace Benchmark.Conceptual;
 
@@ -40,7 +40,7 @@ public class Fibonacci
         }
         return a;
     }
-    
+
     [Benchmark]
     public long RecursiveMemoized()
     {
@@ -56,13 +56,13 @@ public class Fibonacci
             memo[n] = FibonacciRecursiveMemoized(n - 1, memo) + FibonacciRecursiveMemoized(n - 2, memo);
         return memo[n];
     }
-    
+
     [Benchmark]
     public long IterativeMemoized()
     {
         return FibonacciIterativeArray(sequence);
     }
-    
+
     private static long FibonacciIterativeArray(long n)
     {
         var memo = new long[n + 1];

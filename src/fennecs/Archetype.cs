@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 
 using System.Collections;
-using System.Text;
 using System.Runtime.CompilerServices;
+using System.Text;
 using fennecs.pools;
 
 // ReSharper disable ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
@@ -18,7 +18,7 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
     /// The TypeExpressions that define this Archetype.
     /// </summary>
     internal readonly Signature Signature;
-    
+
     /// <summary>
     /// Expanded Signature with all Wildcards resolved for fast, set-level matching.
     /// </summary>
@@ -38,8 +38,8 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
     /// Does this Archetype currently contain no Entities?
     /// </summary>
     public bool IsEmpty => Count == 0;
-    
-    
+
+
     /// <summary>
     /// The Aspect this Archetype is a part of. (Archetypes belong to exactly one Aspect of a World)
     /// </summary>
@@ -66,7 +66,7 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
     {
         Aspect = aspect;
         Storages = new IStorage[signature.Count];
-        
+
         Signature = signature;
         MatchSignature = signature.Expand();
 
@@ -77,7 +77,7 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
             _storageIndices.Add(type, index);
             Storages[index] = IStorage.Instantiate(type);
         }
-        
+
         // Get quick lookup for the entity column (non-relational)
         // CAVEAT: This isn't necessarily at index 0 because another
         // TypeExpression may have been created before the first TE of EntityIndex.
@@ -85,8 +85,8 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
     }
 
 
-    private void Match<T>(TypeExpression expression, PooledList<Storage<T>> result) 
-        //, ImmutableSortedSet<TypeExpression>? subset = default!, IImmutableSet<TypeExpression>? exclude = default!)
+    private void Match<T>(TypeExpression expression, PooledList<Storage<T>> result)
+    //, ImmutableSortedSet<TypeExpression>? subset = default!, IImmutableSet<TypeExpression>? exclude = default!)
     {
         foreach (var (type, index) in _storageIndices)
         {
@@ -95,7 +95,7 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
 
             if (expression.Matches(type))
             {
-                result.Add((Storage<T>) Storages[index]);
+                result.Add((Storage<T>)Storages[index]);
             }
         }
     }
@@ -108,7 +108,7 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
         return result;
     }
 
-    
+
     internal bool Matches(TypeExpression type)
     {
         var yes = MatchSignature.Matches(type);
@@ -161,7 +161,7 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
     {
         var excess = Math.Clamp(Count - maxEntityCount, 0, Count);
         if (excess <= 0) return;
-        
+
         var toDelete = ((ReadOnlySpan<EntityIndex>)EntityStorage.Span).Slice(Count - excess, excess);
 
         foreach (var storage in Storages)
@@ -171,7 +171,7 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
 
             //Must call before World removes Dependencies (can have dependencies in same archetype!)
             //TODO: Urgently needs unit test to rule out dangerous conflicts!
-            storage.Delete(Count-excess, excess);
+            storage.Delete(Count - excess, excess);
         }
 
         World.Recycle(this, toDelete);
@@ -206,7 +206,7 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
     internal void Migrate(Archetype destination, PooledList<TypeExpression> additions, PooledList<object> backFills, AddConflict addMode)
     {
         if (IsEmpty) return;
-        
+
         Invalidate();
         destination.Invalidate();
 
@@ -223,7 +223,7 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
                 Fill(type, value); //Fill with value to replace before migrating.
             }
         }
-        
+
         // Certain Add-modes permit operating on archetypes that themselves are in the query.
         // No more migrations are needed at this point (they would be semantically idempotent)
         if (destination == this) return;
@@ -250,7 +250,7 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
             var value = backFills[additions.IndexOf(type)];
             destination.BackFill(type, value, addedCount);
         }
-        
+
         // Update all Meta info to mark Entities as moved.
         destination.PatchMetas(addedStart, addedCount);
     }
@@ -267,7 +267,7 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
     /// <summary>
     /// Fills the appropriate storage of the archetype with the provided value.
     /// </summary>
-    internal void Fill<T>(TypeExpression type, T value) where T: notnull
+    internal void Fill<T>(TypeExpression type, T value) where T : notnull
     {
         // DeferredOperation sends data as objects
         if (typeof(T).IsAssignableFrom(typeof(object)))
@@ -276,7 +276,7 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
             sysArray.Blit(value);
             return;
         }
-        
+
         Span<TypeExpression> span = [type];
         using var join = CrossJoin<T>(span);
         if (join.Empty) return;
@@ -291,7 +291,7 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
     internal Storage<T> GetStorage<T>(Match match)
     {
         var type = TypeExpression.Of<T>(match);
-        return (Storage<T>) GetStorage(type);
+        return (Storage<T>)GetStorage(type);
     }
 
 
@@ -316,9 +316,9 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
     /// (a single dictionary probe — for wildcards, match against <see cref="MatchSignature"/> instead)
     /// </summary>
     internal bool HasStorage(TypeExpression typeExpression) => _storageIndices.ContainsKey(typeExpression);
-    
-    
-    internal void BackFill<T>(TypeExpression typeExpression, T value, int additions) where T: notnull
+
+
+    internal void BackFill<T>(TypeExpression typeExpression, T value, int additions) where T : notnull
     {
         // DeferredOperation sends data as objects (decorated with TypeExpressions)
         if (typeof(T).IsAssignableFrom(typeof(object)))
@@ -327,8 +327,8 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
             iStorage.Append(value, additions);
             return;
         }
-        
-        var storage = (Storage<T>) GetStorage(typeExpression);
+
+        var storage = (Storage<T>)GetStorage(typeExpression);
         storage.Append(value);
     }
 
@@ -356,9 +356,9 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
 
         // If we cycled an Entity from the end of the storages, need Row update.
         if (source.Count > entry) source.PatchMetas(entry);
-        
+
         // Entity was moved, needs both Archetype and Row update.
-        destination.PatchMetas(destination.Count-1);
+        destination.PatchMetas(destination.Count - 1);
     }
 
     internal Component[] GetRow(int row)
@@ -372,7 +372,7 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
             if (storage == EntityStorage) continue;
             components.Add(new(expression, storage.Box(row), World));
         }
-        
+
         return components.ToArray();
     }
 
@@ -408,11 +408,11 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
     {
         return GetEnumerator();
     }
-    
+
 
     /// <inheritdoc />
     public override int GetHashCode() => Signature.GetHashCode();
-    
+
 
     /// <summary>
     /// Returns (mints) the Entity at the given index, injecting its World tag and current generation.
@@ -456,7 +456,7 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
     #endregion
 
 
-    
+
     #region Inner Joins
     /*
     internal Cross.Join<C0> InnerJoin<C0>(ReadOnlySpan<TypeExpression> streamTypes)
@@ -547,7 +547,7 @@ public sealed class Archetype : IEnumerable<Entity>, IComparable<Archetype>
         foreach (var entity in entities) EntityStorage.Append(new EntityIndex(entity.Index));
         PatchMetas(first, count);
     }
-    
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void Invalidate() => Interlocked.Increment(ref Version);
 }

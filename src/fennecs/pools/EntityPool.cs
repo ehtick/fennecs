@@ -29,20 +29,20 @@ internal class EntityPool
 
     public EntityPool(byte worldTag, int initialCapacity = 4096)
     {
-        _midBits = Entity.KindBits | ((ulong) worldTag << Key.WorldShift);
+        _midBits = Entity.KindBits | ((ulong)worldTag << Key.WorldShift);
 
-        _generations = new ushort[BitOperations.RoundUpToPowerOf2((uint) Math.Max(initialCapacity + 1, 16))];
+        _generations = new ushort[BitOperations.RoundUpToPowerOf2((uint)Math.Max(initialCapacity + 1, 16))];
         _generations.AsSpan(1).Fill(1); // index 0 reserved; generations start at 1
 
         _recycled = new(initialCapacity * 2);
         for (var i = 0; i < initialCapacity; i++)
         {
-            _recycled.Enqueue((uint) ++_created);
+            _recycled.Enqueue((uint)++_created);
         }
     }
 
 
-    private Entity MakeEntity(uint index) => new(((ulong) _generations[index] << Key.GenShift) | _midBits | index);
+    private Entity MakeEntity(uint index) => new(((ulong)_generations[index] << Key.GenShift) | _midBits | index);
 
 
     /// <summary>
@@ -64,8 +64,8 @@ internal class EntityPool
     {
         var index = entity.Index;
         return index != 0
-               && index <= (uint) _created
-               && (ushort) (entity.Value >> 32) == (ushort) (_midBits >> 32)
+               && index <= (uint)_created
+               && (ushort)(entity.Value >> 32) == (ushort)(_midBits >> 32)
                && entity.Generation == _generations[index];
     }
 
@@ -74,7 +74,7 @@ internal class EntityPool
     {
         if (_recycled.TryDequeue(out var index)) return MakeEntity(index);
 
-        var newIndex = (uint) Interlocked.Increment(ref _created);
+        var newIndex = (uint)Interlocked.Increment(ref _created);
         EnsureGenerations(newIndex);
         return MakeEntity(newIndex);
     }
@@ -93,8 +93,8 @@ internal class EntityPool
         // Mint fresh indices for the remainder.
         if (i < destination.Length)
         {
-            EnsureGenerations((uint) (_created + destination.Length - i));
-            while (i < destination.Length) destination[i++] = MakeEntity((uint) ++_created);
+            EnsureGenerations((uint)(_created + destination.Length - i));
+            while (i < destination.Length) destination[i++] = MakeEntity((uint)++_created);
         }
     }
 
@@ -120,10 +120,10 @@ internal class EntityPool
 
     private void EnsureGenerations(uint maxIndex)
     {
-        if (maxIndex < (uint) _generations.Length) return;
+        if (maxIndex < (uint)_generations.Length) return;
 
         var last = _generations.Length;
-        Array.Resize(ref _generations, (int) BitOperations.RoundUpToPowerOf2(maxIndex + 1));
+        Array.Resize(ref _generations, (int)BitOperations.RoundUpToPowerOf2(maxIndex + 1));
         _generations.AsSpan(last).Fill(1);
     }
 }

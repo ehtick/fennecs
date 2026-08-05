@@ -1,4 +1,4 @@
-﻿namespace fennecs.CRUD;
+namespace fennecs.CRUD;
 
 /// <summary>
 /// Objects of this type can perform Add and Remove operations on Entities or sets of Entities.
@@ -27,7 +27,7 @@ public interface IAddRemove<out SELF> where SELF : allows ref struct
     /// </summary>
     /// <returns>itself (fluent pattern)</returns>
     public SELF Add<T>(Entity target) where T : notnull, new();
-    
+
     /// <summary>
     /// Add a Relation Component backed by a value of type R to the Entity/Entities.
     /// </summary>

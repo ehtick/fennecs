@@ -35,15 +35,15 @@ internal readonly record struct TypeExpression : IComparable<TypeExpression>
     {
         Debug.Assert(typeId > 0, "TypeExpression must have a TypeId.");
         Debug.Assert((typeId & ~0xFFF) == 0, "TypeId must fit in 12 bits.");
-        _value = ((ulong) kind << 60) | ((ulong) (ushort) typeId << 48) | key.Value;
+        _value = ((ulong)kind << 60) | ((ulong)(ushort)typeId << 48) | key.Value;
     }
 
 
     /// <summary>The storage kind of this expression. (always <see cref="PrimaryKind.Data"/> today)</summary>
-    internal PrimaryKind Kind => (PrimaryKind) (_value >> 60);
+    internal PrimaryKind Kind => (PrimaryKind)(_value >> 60);
 
     /// <summary>The TypeId of the backing Component type.</summary>
-    public TypeID TypeId => (TypeID) ((_value >> 48) & 0xFFF);
+    public TypeID TypeId => (TypeID)((_value >> 48) & 0xFFF);
 
     /// <summary>The secondary Key of this expression (its relation or link target, or a Wildcard).</summary>
     internal Key Key => new(_value & Key.Mask);
@@ -67,7 +67,7 @@ internal readonly record struct TypeExpression : IComparable<TypeExpression>
 
     internal bool isUnmanaged => LanguageType.FlagsById(TypeId).HasFlag(TypeFlags.Unmanaged);
 
-    internal int SIMDsize => (int) (LanguageType.FlagsById(TypeId) & TypeFlags.SIMDSize);
+    internal int SIMDsize => (int)(LanguageType.FlagsById(TypeId) & TypeFlags.SIMDSize);
 
     /// <summary>
     /// Get the backing Component type that this <see cref="TypeExpression"/> represents.

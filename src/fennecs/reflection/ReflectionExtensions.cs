@@ -1,4 +1,4 @@
-﻿namespace fennecs.reflection;
+namespace fennecs.reflection;
 
 /// <summary>
 /// Extension Methods that use some sort of Reflection under the hood.
@@ -37,8 +37,8 @@ public static class ReflectionExtensions
         var filtered = components.Where(c => c.Type.IsAssignableTo(typeof(T))).Select(c => c.Box.Value).Cast<T>().ToArray();
         return filtered;
     }
-    
-    
+
+
     /// <summary>
     /// Returns true if the entity has any Components that are <see cref="Type.IsAssignableTo"/> to the Type Parameter <c>T</c>.
     /// </summary>

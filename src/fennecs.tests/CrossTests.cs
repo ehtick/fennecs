@@ -1,17 +1,17 @@
-﻿using System.Collections;
+using System.Collections;
 
 namespace fennecs.tests;
 
 public class CrossTests
 {
     [Theory]
-    [InlineData(new[] {1, 1, 1})]
-    [InlineData(new[] {1, 1, 3})]
-    [InlineData(new[] {1, 5, 1})]
-    [InlineData(new[] {1, 1, 5})]
-    [InlineData(new[] {5, 1, 1})]
-    [InlineData(new[] {9, 5, 3})]
-    [InlineData(new[] {42, 23, 69})]
+    [InlineData(new[] { 1, 1, 1 })]
+    [InlineData(new[] { 1, 1, 3 })]
+    [InlineData(new[] { 1, 5, 1 })]
+    [InlineData(new[] { 1, 1, 5 })]
+    [InlineData(new[] { 5, 1, 1 })]
+    [InlineData(new[] { 9, 5, 3 })]
+    [InlineData(new[] { 42, 23, 69 })]
     private void CrossJoin_Counts_All(int[] limiter)
     {
         int[] counter = [0, 0, 0];

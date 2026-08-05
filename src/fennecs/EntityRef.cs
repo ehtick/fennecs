@@ -75,7 +75,7 @@ public readonly ref struct EntityRef : IAddRemove<EntityRef>, IHasTyped
     /// <exception cref="InvalidOperationException">If the Entity does not have such a Component.</exception>
     public ref C Ref<C>(Match match = default) where C : notnull
     {
-        if (_archetype.TryGetStorage(TypeExpression.Of<C>(match), out var storage)) return ref ((Storage<C>) storage).Span[_row];
+        if (_archetype.TryGetStorage(TypeExpression.Of<C>(match), out var storage)) return ref ((Storage<C>)storage).Span[_row];
 
         // Component may live in another Aspect of the World (or not at all — the World throws).
         return ref World.GetComponent<C>(Entity, match);
@@ -111,7 +111,7 @@ public readonly ref struct EntityRef : IAddRemove<EntityRef>, IHasTyped
     /// <summary>
     /// Checks if the Entity has an Object Link of a specific type and specific target.
     /// </summary>
-    public bool Has<L>(Link<L> link) where L : class => Has<L>((Match) link);
+    public bool Has<L>(Link<L> link) where L : class => Has<L>((Match)link);
 
     #endregion
 

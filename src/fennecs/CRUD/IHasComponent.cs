@@ -1,4 +1,4 @@
-﻿namespace fennecs.CRUD;
+namespace fennecs.CRUD;
 
 /// <summary>
 /// Objects of this type can express the presence of Components on an Entity or set of Entities.

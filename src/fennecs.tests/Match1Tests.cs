@@ -1,4 +1,4 @@
-﻿namespace fennecs.tests;
+namespace fennecs.tests;
 
 public class Match1Tests
 {

@@ -1,4 +1,4 @@
-﻿namespace fennecs.tests.Integration;
+namespace fennecs.tests.Integration;
 
 public class BulkDespawnTests
 {

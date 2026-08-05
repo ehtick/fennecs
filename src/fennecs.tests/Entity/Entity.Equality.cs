@@ -33,7 +33,7 @@ public class EntityEqualityTests
     {
         using var world = new World();
         var entity1 = world.Spawn();
-        var entity3 = new Entity((byte) (entity1.WorldTag + 1), entity1.Index, entity1.Generation);
+        var entity3 = new Entity((byte)(entity1.WorldTag + 1), entity1.Index, entity1.Generation);
         Assert.NotEqual(entity1, entity3);
         Assert.True(entity1 != entity3);
         Assert.True(entity3 != entity1);
@@ -69,7 +69,7 @@ public class EntityEqualityTests
         var entity1 = world.Spawn();
         var entity2 = new Entity(entity1.ToRaw());
         Assert.True(entity1.Equals(entity2));
-        Assert.True(entity1.Equals((object) entity2));
+        Assert.True(entity1.Equals((object)entity2));
         // ReSharper disable once SuspiciousTypeConversion.Global
         Assert.False(entity1.Equals("can't touch this"));
     }
@@ -82,7 +82,7 @@ public class EntityEqualityTests
         var entity2 = world.Spawn();
         var entity3 = new Entity(entity1.ToRaw());
         var entity4 = new Entity(entity2.ToRaw());
-        var set = new HashSet<Entity> {entity1, entity2, entity3, entity4};
+        var set = new HashSet<Entity> { entity1, entity2, entity3, entity4 };
         Assert.Equal(2, set.Count);
     }
 }

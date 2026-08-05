@@ -1,4 +1,4 @@
-﻿// StarTrek.cs (type declarations at bottom of file)
+// StarTrek.cs (type declarations at bottom of file)
 
 using fennecs;
 

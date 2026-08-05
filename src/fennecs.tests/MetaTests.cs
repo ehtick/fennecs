@@ -1,4 +1,4 @@
-﻿namespace fennecs.tests;
+namespace fennecs.tests;
 
 public class MetaTests
 {
@@ -72,7 +72,7 @@ public class MetaTests
         Assert.Equal(2, meta2.Row);
     }
 
-    
+
     [Fact]
     private void Meta_Integrity_Preserved_On_Migrate_with_Swap()
     {

@@ -1,4 +1,4 @@
-﻿namespace fennecs;
+namespace fennecs;
 
 /// <summary>
 /// Match Expressions
@@ -61,7 +61,7 @@ public readonly record struct Match
     /// </summary>
     /// <inheritdoc cref="Any"/>
     public static Match Target => new(Key.Target);
-    
+
     /// <summary>
     /// <para>Wildcard match expression for Entity iteration. <br/>This matches all <b>Entity-Object</b> Links of the given Stream Type.
     /// </para>

@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
@@ -17,9 +17,9 @@ public class SIMDTests
         {
             Assert.Equal(Vector4.Zero, array[i]);
         }
-        
+
         array.AsSpan().Fill(UniformConstantVector);
-        
+
         for (var i = 0; i < array.Length; i++)
         {
             Assert.Equal(UniformConstantVector, array[i]);
@@ -32,12 +32,12 @@ public class SIMDTests
         var array = new Vector4[100000];
 
         var mem = array.AsMemory();
-        
+
         using var handle = mem.Pin();
         unsafe
         {
             var length = mem.Length * sizeof(Vector4) / sizeof(float);
-            
+
             var p1 = (float*)handle.Pointer;
 
             var uHalf = UniformConstantVector.AsVector128();
@@ -58,7 +58,7 @@ public class SIMDTests
             }
         }
 
-        
+
         foreach (var t in array)
         {
             Assert.Equal(UniformConstantVector, t);
@@ -70,9 +70,9 @@ public class SIMDTests
     public void CanSimdWriteIntArray()
     {
         var array = new int[100000];
-        
+
         var mem = array.AsMemory();
-        
+
         using var handle = mem.Pin();
         var count = mem.Length;
 

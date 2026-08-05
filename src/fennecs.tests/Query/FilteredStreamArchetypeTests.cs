@@ -1,6 +1,7 @@
-namespace fennecs.tests.Query;
 
 using fennecs;
+
+namespace fennecs.tests.Query;
 
 public class FilteredStreamArchetypeTests
 {

@@ -725,7 +725,7 @@ public class WorldTests(ITestOutputHelper output)
         Assert.Single(query);
         Assert.Equal(1, world.Count);
     }
-    
+
     struct Predicted;
 
     [Fact]
@@ -788,7 +788,7 @@ public class WorldTests(ITestOutputHelper output)
         var target1 = world.Spawn();
         var target2 = world.Spawn();
         world.Spawn().Add(new Predicted(), target1).Add(new Predicted(), target2);
-        
+
         var quickCount = 0;
         quickStream.For(
             (in _, ref _) =>

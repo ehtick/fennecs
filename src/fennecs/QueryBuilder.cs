@@ -1,4 +1,4 @@
-﻿using fennecs.pools;
+using fennecs.pools;
 
 namespace fennecs;
 
@@ -75,7 +75,7 @@ public abstract class QueryBuilderBase<QB> : IDisposable where QB : QueryBuilder
         return (QB)this;
     }
 
-    
+
     /// <summary>
     /// QueryBuilder includes only Entities that have the given Component, Relation, or Object Link.
     /// </summary>
@@ -144,10 +144,10 @@ public abstract class QueryBuilderBase<QB> : IDisposable where QB : QueryBuilder
         _mask.Any(TypeExpression.Of<T>(link));
         return (QB)this;
     }
-    
+
     #endregion
 
-    # region IDisposable
+    #region IDisposable
 
     /// <inheritdoc cref="IDisposable"/>
     public void Dispose()
@@ -204,7 +204,7 @@ public class QueryBuilder<C1, C2, C3>(World world, Match match1, Match match2, M
 
 /// <inheritdoc cref="QueryBuilderBase{QB}"/>
 public class QueryBuilder<C1, C2, C3, C4>(World world, Match match1, Match match2, Match match3, Match match4)
-    : QueryBuilderBase<QueryBuilder<C1, C2, C3, C4>>(world, [ TypeExpression.Of<C1>(match1), TypeExpression.Of<C2>(match2), TypeExpression.Of<C3>(match3), TypeExpression.Of<C4>(match4) ])
+    : QueryBuilderBase<QueryBuilder<C1, C2, C3, C4>>(world, [TypeExpression.Of<C1>(match1), TypeExpression.Of<C2>(match2), TypeExpression.Of<C3>(match3), TypeExpression.Of<C4>(match4)])
     where C1 : notnull
     where C2 : notnull
     where C3 : notnull
@@ -219,7 +219,7 @@ public class QueryBuilder<C1, C2, C3, C4>(World world, Match match1, Match match
 
 /// <inheritdoc cref="QueryBuilderBase{QB}"/>
 public class QueryBuilder<C1, C2, C3, C4, C5>(World world, Match match1, Match match2, Match match3, Match match4, Match match5)
-    : QueryBuilderBase<QueryBuilder<C1, C2, C3, C4, C5>>(world, [ TypeExpression.Of<C1>(match1), TypeExpression.Of<C2>(match2), TypeExpression.Of<C3>(match3), TypeExpression.Of<C4>(match4), TypeExpression.Of<C5>(match5) ])
+    : QueryBuilderBase<QueryBuilder<C1, C2, C3, C4, C5>>(world, [TypeExpression.Of<C1>(match1), TypeExpression.Of<C2>(match2), TypeExpression.Of<C3>(match3), TypeExpression.Of<C4>(match4), TypeExpression.Of<C5>(match5)])
     where C1 : notnull
     where C2 : notnull
     where C3 : notnull

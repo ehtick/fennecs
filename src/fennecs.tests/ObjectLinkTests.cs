@@ -1,4 +1,4 @@
-﻿namespace fennecs.tests;
+namespace fennecs.tests;
 
 public class ObjectLinkTests(ITestOutputHelper output)
 {
@@ -52,7 +52,7 @@ public class ObjectLinkTests(ITestOutputHelper output)
     public void Can_Unlink_Objects_via_Builder()
     {
         //TODO: This test intermittently fails! May be due to string interning or concurrent test runners.
-        
+
         using var world = new World();
         var query = world.Query<string>(Match.Any).Stream();
 

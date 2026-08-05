@@ -1,6 +1,8 @@
-﻿using System.Numerics;
+using System.Numerics;
 using System.Threading.Channels;
+
 using BenchmarkDotNet.Attributes;
+
 using fennecs;
 
 namespace Benchmark.Conceptual;
@@ -12,7 +14,7 @@ struct WorkLoad : IAsyncEnumerable<bool>
         await Task.Yield();
         yield return true;
     }
-    
+
 }
 
 [ShortRunJob]
@@ -22,13 +24,13 @@ public class AsyncStreams
 
     [Params(1_000, 1_000_000)]
     public int entityCount { get; set; }
-    
+
     [GlobalSetup]
     public void Setup()
     {
         _channel = Channel.CreateUnbounded<Work<Vector3, Vector3>>();
     }
-    
+
     [Benchmark]
     public async Task ProduceAndConsume()
     {

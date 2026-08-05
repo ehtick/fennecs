@@ -178,7 +178,7 @@ public partial class World
 
         if (entity.WorldTag != Tag) return $"Entity {entity} belongs to another World (world tag {entity.WorldTag}; this is World \"{Name}\" with tag {Tag}).";
 
-        if (entity.Index == 0 || entity.Index > (uint) _entityPool.Created) return $"Entity {entity} was never spawned in this World.";
+        if (entity.Index == 0 || entity.Index > (uint)_entityPool.Created) return $"Entity {entity} was never spawned in this World.";
 
         var current = _entityPool.GenerationOf(entity.Index);
 

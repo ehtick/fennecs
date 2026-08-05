@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 // ReSharper disable StaticMemberInGenericType
 
 namespace fennecs.pools;
@@ -13,15 +13,15 @@ internal class PooledList<T> : List<T>, IDisposable
     /// Starting capacity of a new instance.
     /// </summary>
     public static int DefaultInstanceCapacity = 64;
-    
+
     /// <summary>
     /// Maximum capacity of a returned instance.
     /// </summary>
     public static int ReturnedInstanceCapacityLimit = 512;
 
-    
+
     private static readonly ConcurrentBag<PooledList<T>> Recycled = [];
-    
+
 
     private const int BagCapacity = 32;
     // Stryker disable all : prefill is a tuning optimization, not behavior
@@ -30,7 +30,7 @@ internal class PooledList<T> : List<T>, IDisposable
         for (var i = 0; i < BagCapacity; i++) Recycled.Add(new());
     }
     // Stryker restore all
-    
+
     /// <summary>
     /// Rents a List from the Pool.
     /// </summary>
@@ -41,7 +41,7 @@ internal class PooledList<T> : List<T>, IDisposable
     {
         return Recycled.TryTake(out var list) ? list : new();
     }
-    
+
     /// <summary>
     /// Clears the List and returns it to the Pool.
     /// </summary>
@@ -53,7 +53,7 @@ internal class PooledList<T> : List<T>, IDisposable
         Capacity = Math.Clamp(Capacity, DefaultInstanceCapacity, ReturnedInstanceCapacityLimit);
         Recycled.Add(this);
     }
-    
+
     private PooledList() : base(DefaultInstanceCapacity)
     {
     }

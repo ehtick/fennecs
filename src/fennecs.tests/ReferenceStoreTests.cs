@@ -1,4 +1,4 @@
-﻿using fennecs.pools;
+using fennecs.pools;
 
 namespace fennecs.tests;
 

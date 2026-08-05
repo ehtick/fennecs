@@ -1,18 +1,18 @@
-﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes;
 
 namespace Benchmark.Conceptual;
 
 [ShortRunJob]
 public class SimpleArrayBenchmarks
 {
-    [Params(1_000, 1_000_000)] 
+    [Params(1_000, 1_000_000)]
     public int entityCount { get; set; }
 
     private static readonly Random random = new(1337);
 
     private int[] _input = null!;
     private int[] _output = null!;
-    
+
     [GlobalSetup]
     public void Setup()
     {
@@ -57,12 +57,12 @@ public class SimpleArrayBenchmarks
         }
     }
 
-    
-    
+
+
     [Benchmark]
     public void PerItemCopyParallel()
     {
-        Parallel.For((long) 0, entityCount, i =>
+        Parallel.For((long)0, entityCount, i =>
         {
             _output[i] = _input[i];
         });

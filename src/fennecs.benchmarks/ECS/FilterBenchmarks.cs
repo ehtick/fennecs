@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Order;
@@ -20,13 +20,13 @@ public class FilterBenchmarks
     private static readonly Random Random = new(1337);
 
     private World _world = null!;
-    
+
     private const int Threshold = 50;
-    
+
     private bool ComponentFilter(in int i) => i >= Threshold;
 
     private static readonly Vector3 UniformConstantVector = new(3, 4, 5);
-    
+
     private Stream<Vector3, int> _streamV3;
     private FilteredStream<Vector3, int> _streamV3Top10Percent;
     private Vector3[] _vectorsRaw = null!;
@@ -41,7 +41,7 @@ public class FilterBenchmarks
 
         _vectorsRaw = new Vector3[EntityCount];
         _intsRaw = new int[EntityCount];
- 
+
         for (var i = 0; i < EntityCount; i++)
         {
             _vectorsRaw[i] = new(Random.NextSingle(), Random.NextSingle(), Random.NextSingle());
@@ -50,8 +50,8 @@ public class FilterBenchmarks
             _world.Spawn().Add(_vectorsRaw[i]).Add(_intsRaw[i]);
         }
     }
-    
-    
+
+
     [Benchmark]
     public void ManualInteger()
     {
@@ -71,7 +71,7 @@ public class FilterBenchmarks
             v = UniformConstantVector + v;
         });
     }
-    
+
     [Benchmark]
     public void FilterInteger()
     {

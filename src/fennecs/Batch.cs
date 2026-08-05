@@ -1,4 +1,4 @@
-﻿using fennecs.CRUD;
+using fennecs.CRUD;
 using fennecs.pools;
 
 namespace fennecs;
@@ -124,7 +124,7 @@ public readonly struct Batch : IDisposable, IAddRemove<Batch>
 
     /// <inheritdoc />
     public Batch Add<T>(Entity target) where T : notnull, new() => AddComponent<T>(new(), target);
-    
+
     /// <inheritdoc />
     public Batch Remove<T>() where T : notnull => RemoveComponent<T>(Match.Plain);
 

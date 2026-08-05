@@ -1,4 +1,4 @@
-﻿namespace fennecs.tests.Conceptual;
+namespace fennecs.tests.Conceptual;
 
 public class SharedRecord(ITestOutputHelper output)
 {

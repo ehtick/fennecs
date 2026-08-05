@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.ComponentModel;
 using System.Numerics;
 
@@ -115,16 +115,16 @@ public class Scenarios
         var debug3 = world.Query().Compile().Stream<MemberOf>(Entity.Any);
         var debug4 = world.Stream<MemberOf>(Entity.Any);
 
-        var debug5 = world.Query().Has<MemberOf>(Entity.Any).Has<LeftClicked>(Entity.Any).Compile().Stream<MemberOf,LeftClicked>(Entity.Any);
-        var debug6 = world.Query<MemberOf,LeftClicked>(Entity.Any).Stream();
-        var debug7 = world.Query().Compile().Stream<MemberOf,LeftClicked>(Entity.Any);
-        var debug8 = world.Stream<MemberOf,LeftClicked>(Entity.Any);
+        var debug5 = world.Query().Has<MemberOf>(Entity.Any).Has<LeftClicked>(Entity.Any).Compile().Stream<MemberOf, LeftClicked>(Entity.Any);
+        var debug6 = world.Query<MemberOf, LeftClicked>(Entity.Any).Stream();
+        var debug7 = world.Query().Compile().Stream<MemberOf, LeftClicked>(Entity.Any);
+        var debug8 = world.Stream<MemberOf, LeftClicked>(Entity.Any);
 
         Assert.Single(debug1);
         Assert.Single(debug2);
         Assert.Single(debug3);
         Assert.Single(debug4);
-        
+
         Assert.Single(debug5);
         Assert.Single(debug6);
         Assert.Single(debug7);
@@ -135,7 +135,7 @@ public class Scenarios
     {
     };
 
-    
+
     [Fact]
     private void CanWorkOnLowCountEntitiesWithComfortableAddSemantics()
     {
@@ -167,7 +167,7 @@ public class Scenarios
         }
 
         ref var modified = ref camera2.Ref<Moving>();
-        
+
         Assert.Equal(original, modified);
         Assert.True(camera1.Has<Moving>());
     }

@@ -1,4 +1,4 @@
-﻿using fennecs.CRUD;
+using fennecs.CRUD;
 using fennecs.pools;
 
 namespace fennecs;
@@ -70,7 +70,7 @@ public sealed class EntityTemplate : IDisposable, IAddRemove<EntityTemplate>
 
     #endregion
 
-    
+
     /// <inheritdoc cref="Entity.Add{T}()"/>
     /// <summary> Adds a Component of the given type to the Template's configuration state.
     /// If the EntityTemplate already contains a Component of the same type, it will be replaced.
@@ -88,23 +88,23 @@ public sealed class EntityTemplate : IDisposable, IAddRemove<EntityTemplate>
 
     /// <inheritdoc />
     public EntityTemplate Add<C>() where C : notnull, new() => Add(new C());
-    
-    
+
+
     /// <inheritdoc />
     public EntityTemplate Add<R>(R value, Entity relation) where R : notnull
     {
         var type = TypeExpression.Of<R>(relation);
         return AddComponent(type, value);
     }
-    
-    
+
+
     /// <inheritdoc cref="Entity.Add{T}(Link{T})"/>
     public EntityTemplate Add<T>(Link<T> target) where T : class
     {
         var type = TypeExpression.Of<T>(target);
         return AddComponent(type, target.Object);
     }
-    
+
 
     /// <inheritdoc cref="Entity.Remove{C}()"/>
     /// <summary>
@@ -140,10 +140,10 @@ public sealed class EntityTemplate : IDisposable, IAddRemove<EntityTemplate>
         var type = TypeExpression.Of<T>(entity);
         return RemoveComponent(type);
     }
-    
+
     /// <inheritdoc />
     public EntityTemplate Remove<L>(L linkedObject) where L : class => Remove(Link<L>.With(linkedObject));
-    
+
     /// <inheritdoc cref="Entity.Remove{C}()"/>
     /// <summary>
     /// Removes the Object Link component to the given Object from the Template.
@@ -153,7 +153,7 @@ public sealed class EntityTemplate : IDisposable, IAddRemove<EntityTemplate>
     {
         return RemoveComponent(link.TypeExpression);
     }
-    
+
     /// <summary>
     /// Declares a required plain Component of type <typeparamref name="C0"/>: every <c>Spawn</c> on the
     /// resulting template must provide a value for it, enforced at compile time.

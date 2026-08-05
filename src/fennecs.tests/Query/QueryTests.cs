@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Numerics;
 // ReSharper disable HeapView.CanAvoidClosure
 
@@ -415,8 +415,8 @@ public class QueryTests
         Assert.Equal(2, query.Count);
 
         //After switching to sorted sets, this became a tad less predictable (opposite should be true?)
-        Assert.True (entity23 == query[0] || entity23 == query[1]);
-        Assert.True (entity42 == query[0] || entity42 == query[1]);
+        Assert.True(entity23 == query[0] || entity23 == query[1]);
+        Assert.True(entity42 == query[0] || entity42 == query[1]);
     }
 
 
@@ -588,60 +588,60 @@ public class QueryTests
         Assert.True(query.Count <= targetSize);
     }
 
-/*
-    [Theory]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(2)]
-    [InlineData(69)]
-    [InlineData(1_000)]
-    public void Truncate_Honors_Filter_Exclude(int entityCount)
-    {
-        using var world = new World(entityCount * 2 + 2);
-        world.Template().Add<int>().Spawn(entityCount).Dispose();
-        world.Template().Add<int>().Add<string>("don't truncate me, senpai").Spawn(entityCount).Dispose();
+    /*
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(69)]
+        [InlineData(1_000)]
+        public void Truncate_Honors_Filter_Exclude(int entityCount)
+        {
+            using var world = new World(entityCount * 2 + 2);
+            world.Template().Add<int>().Spawn(entityCount).Dispose();
+            world.Template().Add<int>().Add<string>("don't truncate me, senpai").Spawn(entityCount).Dispose();
 
-        var query = world.Query<int>().Compile();
-        Assert.Equal(entityCount * 2, query.Count);
+            var query = world.Query<int>().Compile();
+            Assert.Equal(entityCount * 2, query.Count);
 
-        query.Exclude<string>(Match.Any);
-        Assert.Equal(entityCount, query.Count);
+            query.Exclude<string>(Match.Any);
+            Assert.Equal(entityCount, query.Count);
 
-        query.Truncate(0);
-        Assert.Equal(0, query.Count);
+            query.Truncate(0);
+            Assert.Equal(0, query.Count);
 
-        query.ClearFilters();
-        Assert.Equal(entityCount, query.Count);
+            query.ClearFilters();
+            Assert.Equal(entityCount, query.Count);
 
-        Assert.All(query, e => Assert.True(e.Has<string>()));
-    }
-    [Theory]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(2)]
-    [InlineData(69)]
-    [InlineData(1_000)]
-    public void Truncate_Honors_Filter_Subset(int entityCount)
-    {
-        using var world = new World();
-        world.Template().Add<int>().Spawn(entityCount).Dispose();
-        world.Template().Add<int>().Add<string>("PLEASE TRUNCATE ME!").Spawn(entityCount).Dispose();
+            Assert.All(query, e => Assert.True(e.Has<string>()));
+        }
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(69)]
+        [InlineData(1_000)]
+        public void Truncate_Honors_Filter_Subset(int entityCount)
+        {
+            using var world = new World();
+            world.Template().Add<int>().Spawn(entityCount).Dispose();
+            world.Template().Add<int>().Add<string>("PLEASE TRUNCATE ME!").Spawn(entityCount).Dispose();
 
-        var query = world.Query<int>().Compile();
-        Assert.Equal(entityCount * 2, query.Count);
+            var query = world.Query<int>().Compile();
+            Assert.Equal(entityCount * 2, query.Count);
 
-        query.Subset<string>(Match.Any);
-        Assert.Equal(entityCount, query.Count);
+            query.Subset<string>(Match.Any);
+            Assert.Equal(entityCount, query.Count);
 
-        query.Truncate(0);
-        Assert.Equal(0, query.Count);
+            query.Truncate(0);
+            Assert.Equal(0, query.Count);
 
-        query.ClearFilters();
-        Assert.Equal(entityCount, query.Count);
+            query.ClearFilters();
+            Assert.Equal(entityCount, query.Count);
 
-        Assert.All(query, e => Assert.False(e.Has<string>()));
-    }
-*/
+            Assert.All(query, e => Assert.False(e.Has<string>()));
+        }
+    */
 
 
     [Fact]

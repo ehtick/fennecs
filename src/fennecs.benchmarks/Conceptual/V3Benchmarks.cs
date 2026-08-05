@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+using System.Numerics;
+
 using BenchmarkDotNet.Attributes;
 
 namespace Benchmark.Conceptual;
@@ -7,7 +8,7 @@ namespace Benchmark.Conceptual;
 [MemoryDiagnoser]
 public class V3Benchmarks
 {
-    [Params(1_000, 1_000_000)] 
+    [Params(1_000, 1_000_000)]
     // ReSharper disable once UnusedAutoPropertyAccessor.Global
     public int entityCount { get; set; }
 
@@ -15,7 +16,7 @@ public class V3Benchmarks
 
     private Vector3[] _input = null!;
     private float[] _output = null!;
-    
+
     [GlobalSetup]
     public void Setup()
     {
@@ -48,22 +49,22 @@ public class V3Benchmarks
     public unsafe void PerItemIncrementArrayHalfSizeUnsafe()
     {
         var lim = _input.Length;
-        var len = lim/2;
+        var len = lim / 2;
 
-        fixed (Vector3* f = _input) ((nint*) f)[-sizeof(nint)] = len;
-        
+        fixed (Vector3* f = _input) ((nint*)f)[-sizeof(nint)] = len;
+
         for (var i = 0; i < len; i++)
         {
             _input[i] += new Vector3(1, 2, 3);
         }
 
-        fixed (Vector3* f = _input) ((nint*) f)[-sizeof(nint)] = lim;
+        fixed (Vector3* f = _input) ((nint*)f)[-sizeof(nint)] = lim;
     }
 
     [Benchmark]
     public void PerItemIncrementSpanHalfSize()
     {
-        var span = _input.AsSpan(0, _input.Length/2);
+        var span = _input.AsSpan(0, _input.Length / 2);
         var lim = span.Length;
         for (var i = 0; i < lim; i++)
         {
@@ -94,7 +95,7 @@ public class V3Benchmarks
 
     private void VectorIncrement(ref Vector3 val)
     {
-        val += new Vector3(1, 2, 3);   
+        val += new Vector3(1, 2, 3);
     }
 
     [Benchmark]
@@ -110,7 +111,7 @@ public class V3Benchmarks
     private delegate void VectorIncrementDelegate<T>(ref T val);
 
     private VectorIncrementDelegate<Vector3> _incrementDelegate = null!;
-    
+
     [Benchmark]
     public void PerItemIncrementSpanDelegate()
     {
@@ -122,7 +123,7 @@ public class V3Benchmarks
     {
         PerItemIncrementSpanDelegateImpl((ref Vector3 val) => { val += new Vector3(1, 2, 3); });
     }
-    
+
     [Benchmark]
     public void PerItemIncrementSpanLocalDelegate()
     {

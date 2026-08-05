@@ -1,5 +1,7 @@
-﻿using System.Numerics;
+using System.Numerics;
+
 using BenchmarkDotNet.Attributes;
+
 using fennecs;
 using fennecs.pools;
 
@@ -28,7 +30,7 @@ public class ChunkingBenchmarks
     {
         PooledList<Work<Vector3>>.Rent().Dispose();
         PooledList<UniformWork<Vector3, Vector3>>.Rent().Dispose();
-        
+
         //ThreadPool.SetMaxThreads(24, 24);
         using var countdown = new CountdownEvent(500);
         for (var i = 0; i < 500; i++)
@@ -96,12 +98,12 @@ public class ChunkingBenchmarks
     [Benchmark]
     public void CrossProduct_Job()
     {
-        _queryV3.Job(delegate(ref Vector3 v) { v = Vector3.Cross(v, UniformConstantVector); });
+        _queryV3.Job(delegate (ref Vector3 v) { v = Vector3.Cross(v, UniformConstantVector); });
     }
 
     [Benchmark]
     public void CrossProduct_JobU()
     {
-        _queryV3.Job(UniformConstantVector, delegate( Vector3 uniform, ref Vector3 v) { v = Vector3.Cross(v, uniform); });
+        _queryV3.Job(UniformConstantVector, delegate (Vector3 uniform, ref Vector3 v) { v = Vector3.Cross(v, uniform); });
     }
 }

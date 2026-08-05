@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -23,17 +23,17 @@ public partial class World : IDisposable, IEnumerable<Entity>, IAspect
 
 
     #region Config
-        /// <summary>
-        /// Optional name for the World.
-        /// </summary>
-        public string Name { get; init; }
-        
-        /// <summary>
-        /// Flags denoting this World's Garbage Collection Strategy.
-        /// </summary>
-        public GCAction GCBehaviour { get; init; } = GCAction.DefaultBeta;
+    /// <summary>
+    /// Optional name for the World.
+    /// </summary>
+    public string Name { get; init; }
+
+    /// <summary>
+    /// Flags denoting this World's Garbage Collection Strategy.
+    /// </summary>
+    public GCAction GCBehaviour { get; init; } = GCAction.DefaultBeta;
     #endregion
-    
+
     /// <summary>
     /// Flags to compose Garbage Collection Strategies.
     /// </summary>
@@ -44,7 +44,7 @@ public partial class World : IDisposable, IEnumerable<Entity>, IAspect
         /// Default GC Strategy for the beta phase.
         /// </summary>
         DefaultBeta = ManualOnly | CompactStagnantArchetypes | DisposeEmptyRelationArchetypes,
-        
+
         /// <summary>
         /// Do nothing.
         /// </summary>
@@ -65,7 +65,7 @@ public partial class World : IDisposable, IEnumerable<Entity>, IAspect
         /// Compact the Meta Table
         /// </summary>
         CompactMeta = 8,
-        
+
         /// <summary>
         /// No Automatic GC, call World.GC() manually.
         /// </summary>
@@ -84,7 +84,7 @@ public partial class World : IDisposable, IEnumerable<Entity>, IAspect
         InvokeOnBulkDespawn = 512,
     }
     #region Query
-    
+
     /// <summary>
     /// Universal Query, matching all Entities in the World.
     /// </summary>
@@ -99,7 +99,7 @@ public partial class World : IDisposable, IEnumerable<Entity>, IAspect
     }
 
     #endregion
-    
+
     #region Entity Spawn, Liveness, and Despawn
 
     /// <summary>
@@ -197,7 +197,7 @@ public partial class World : IDisposable, IEnumerable<Entity>, IAspect
     /// <param name="entity">the Entity to despawn.</param>
     public void Despawn(Entity entity) => DespawnImpl(entity);
 
-    
+
     /// <summary>
     /// Checks if the entity is alive (was not despawned).
     /// </summary>
@@ -242,7 +242,7 @@ public partial class World : IDisposable, IEnumerable<Entity>, IAspect
     public void DespawnAllWith<T>(Match match = default)
     {
         var query = Query<EntityIndex>().Has<T>(match).Stream();
-        query.Raw(delegate(Memory<EntityIndex> entities)
+        query.Raw(delegate (Memory<EntityIndex> entities)
         {
             foreach (var index in entities.Span) DespawnImpl(EntityFor(index));
         });
@@ -339,9 +339,9 @@ public partial class World : IDisposable, IEnumerable<Entity>, IAspect
     public WorldLock Lock() => new(this);
 
     #endregion
-    
+
     #region IEnumerable
-    
+
     /// <inheritdoc />
     public IEnumerator<Entity> GetEnumerator()
     {
@@ -363,7 +363,7 @@ public partial class World : IDisposable, IEnumerable<Entity>, IAspect
     {
         return DebugString();
     }
-    
+
     /// <inheritdoc cref="ToString"/>
     public string DebugString()
     {

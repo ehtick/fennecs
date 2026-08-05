@@ -14,7 +14,7 @@ public class EntityTemplateTests
         Assert.NotNull(template);
     }
 
-    
+
     [Fact]
     public void Can_Dispose_Template_Once()
     {
@@ -44,7 +44,7 @@ public class EntityTemplateTests
         Assert.Throws<ObjectDisposedException>(() => template.Needs<int>());
     }
 
-    
+
     [Fact]
     public void Can_Spawn_One_Entity()
     {
@@ -98,7 +98,7 @@ public class EntityTemplateTests
         Assert.NotEqual(first, second);
     }
 
-    
+
     [Theory]
     [InlineData(0)]
     [InlineData(1)]
@@ -132,7 +132,7 @@ public class EntityTemplateTests
         using var query = world.Query<int>().Compile();
         Assert.Equal(amount, query.Count);
     }
-    
+
 
     [Theory]
     [InlineData(0)]
@@ -171,7 +171,7 @@ public class EntityTemplateTests
     {
         using var world = new World();
         using var template = world.Template();
-        
+
         template
             .Add(Random.Shared.Next())
             .Add(Random.Shared.NextSingle())
@@ -195,28 +195,28 @@ public class EntityTemplateTests
         template.Spawn(-1);
         template.Spawn(-2);
         template.Spawn(-69);
-        
+
         Assert.Equal(0, world.Count);
     }
 
 
     private record Type69;
     private struct Type42;
-    
+
     [Fact]
     public void Can_Add_Plain_Newable()
     {
         using var world = new World();
-        using var template1 = world.Template().Add<Type69>(); 
+        using var template1 = world.Template().Add<Type69>();
         template1.Spawn();
-        
+
         using var query1 = world.Query<Type69>().Compile();
         Assert.Single(query1);
         Assert.Equal(1, world.Count);
 
-        using var template2 = world.Template().Add<Type42>(); 
+        using var template2 = world.Template().Add<Type42>();
         template2.Spawn();
-        
+
         using var query2 = world.Query<Type42>().Compile();
         Assert.Single(query2);
         Assert.Equal(2, world.Count);
@@ -224,7 +224,7 @@ public class EntityTemplateTests
         var entity = world.Spawn();
         entity.Add<Type69>();
         entity.Add<Type42>();
-        
+
         Assert.Equal(2, query1.Count);
         Assert.Equal(2, query2.Count);
         Assert.Equal(3, world.Count);
@@ -235,16 +235,16 @@ public class EntityTemplateTests
     {
         using var world = new World();
         var other = world.Spawn();
-        using var template1 = world.Template().Add<Type69>(new(), other); 
+        using var template1 = world.Template().Add<Type69>(new(), other);
         template1.Spawn();
-        
+
         using var query1 = world.Query<Type69>(other).Compile();
         Assert.Single(query1);
         Assert.Equal(2, world.Count);
 
         using var template2 = world.Template().Add<Type42>(other);  // Newable implcit new()
         template2.Spawn();
-        
+
         using var query2 = world.Query<Type42>(other).Compile();
         Assert.Single(query2);
         Assert.Equal(3, world.Count);
@@ -252,7 +252,7 @@ public class EntityTemplateTests
         var entity = world.Spawn();
         entity.Add<Type69>(other);
         entity.Add<Type42>(other);
-        
+
         Assert.Equal(2, query1.Count);
         Assert.Equal(2, query2.Count);
         Assert.Equal(4, world.Count);
@@ -263,13 +263,13 @@ public class EntityTemplateTests
     {
         using var world = new World();
         var other = world.Spawn();
-        using var template1 = world.Template().Add<Type69>(new(), other); 
+        using var template1 = world.Template().Add<Type69>(new(), other);
         template1.Spawn();
-        
+
         using var query1 = world.Query<Type69>(other).Compile();
         Assert.Single(query1);
         Assert.Equal(2, world.Count);
-        
+
         template1.Remove<Type69>(other).Spawn();
         Assert.Single(query1);
         Assert.Equal(3, world.Count);
@@ -280,13 +280,13 @@ public class EntityTemplateTests
     {
         using var world = new World();
         var other = world.Spawn();
-        using var template1 = world.Template().Add(Link.With("hello")); 
+        using var template1 = world.Template().Add(Link.With("hello"));
         template1.Spawn();
-        
+
         using var query1 = world.Query<string>(Link.With("hello")).Compile();
         Assert.Single(query1);
         Assert.Equal(2, world.Count);
-        
+
         template1.Remove("hello").Spawn();
         Assert.Single(query1);
         Assert.Equal(3, world.Count);

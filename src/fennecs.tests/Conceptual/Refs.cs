@@ -1,4 +1,4 @@
-﻿namespace fennecs.tests.Conceptual;
+namespace fennecs.tests.Conceptual;
 
 public class Refs
 {
@@ -12,7 +12,7 @@ public class Refs
         var alice = world.Spawn();
         var eve = world.Spawn();
         var bob = world.Spawn();
-        
+
         bob.Add<Owes>(new(10M), alice);  // bob owes alice $10 (Relation Owes->alice)
         bob.Add<Owes>(new(23M), eve);    // and he owes eve $23 (Relation Owes->eve)
 
@@ -30,7 +30,7 @@ public class Refs
         {
             bob.Ref<Owes>(eve).Amount += 7M;
         }
-        
+
         Assert.Equal(30M, bob.Ref<Owes>(eve).Amount);
     }
 }

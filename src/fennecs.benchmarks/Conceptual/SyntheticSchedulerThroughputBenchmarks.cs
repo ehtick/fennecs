@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+using System.Numerics;
+
 using BenchmarkDotNet.Attributes;
 
 namespace Benchmark.Conceptual;
@@ -10,7 +11,7 @@ namespace Benchmark.Conceptual;
 public class SyntheticSchedulerThroughputBenchmarks
 {
     // ReSharper disable once UnusedAutoPropertyAccessor.Global
-    [Params(10_000, 1_000_000, 100_000_000)] 
+    [Params(10_000, 1_000_000, 100_000_000)]
     public int entityCount { get; set; }
 
     private static readonly Random random = new(1337);
@@ -29,7 +30,7 @@ public class SyntheticSchedulerThroughputBenchmarks
     }
 
     private static readonly Vector3 UniformConstantVector = new(3, 4, 5);
-    private static readonly ParallelOptions options = new() {MaxDegreeOfParallelism = 12};
+    private static readonly ParallelOptions options = new() { MaxDegreeOfParallelism = 12 };
 
     [Benchmark]
     public void Single_Direct_Array()
@@ -59,7 +60,7 @@ public class SyntheticSchedulerThroughputBenchmarks
     [Benchmark]
     public void Parallel2_Direct_Array()
     {
-        var opts = new ParallelOptions {MaxDegreeOfParallelism = 2};
+        var opts = new ParallelOptions { MaxDegreeOfParallelism = 2 };
         Parallel.For(0, _vectorsRaw.Length, opts,
             i => { _vectorsRaw[i] = Vector3.Cross(_vectorsRaw[i], UniformConstantVector); });
     }
@@ -222,7 +223,7 @@ public class SyntheticSchedulerThroughputBenchmarks
     [Benchmark]
     public void Parallel4_Direct_Array()
     {
-        var opts = new ParallelOptions {MaxDegreeOfParallelism = 4};
+        var opts = new ParallelOptions { MaxDegreeOfParallelism = 4 };
         Parallel.For(0, _vectorsRaw.Length, opts,
             i => { _vectorsRaw[i] = Vector3.Cross(_vectorsRaw[i], UniformConstantVector); });
     }
@@ -230,7 +231,7 @@ public class SyntheticSchedulerThroughputBenchmarks
     [Benchmark]
     public void Parallel10_Direct_Array()
     {
-        var opts = new ParallelOptions {MaxDegreeOfParallelism = 10};
+        var opts = new ParallelOptions { MaxDegreeOfParallelism = 10 };
         Parallel.For(0, _vectorsRaw.Length, opts,
             i => { _vectorsRaw[i] = Vector3.Cross(_vectorsRaw[i], UniformConstantVector); });
     }
@@ -238,7 +239,7 @@ public class SyntheticSchedulerThroughputBenchmarks
     [Benchmark]
     public void Parallel20_Direct_Array()
     {
-        var opts = new ParallelOptions {MaxDegreeOfParallelism = 20};
+        var opts = new ParallelOptions { MaxDegreeOfParallelism = 20 };
         Parallel.For(0, _vectorsRaw.Length, opts,
             i => { _vectorsRaw[i] = Vector3.Cross(_vectorsRaw[i], UniformConstantVector); });
     }

@@ -1,4 +1,4 @@
-﻿// Tsubasa.cs (type declarations at bottom of file)
+// Tsubasa.cs (type declarations at bottom of file)
 
 using fennecs;
 using Name = string;

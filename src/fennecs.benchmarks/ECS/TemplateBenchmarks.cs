@@ -1,11 +1,14 @@
-﻿using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.Arm;
 using System.Runtime.Intrinsics.X86;
+
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Order;
+
 using fennecs;
-using fennecs_Components;
 using fennecs.pools;
+
+using fennecs_Components;
 
 namespace Benchmark.ECS;
 

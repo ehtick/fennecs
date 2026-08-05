@@ -1,4 +1,4 @@
-﻿namespace fennecs.tests;
+namespace fennecs.tests;
 
 public class RelateTests(ITestOutputHelper output)
 {
@@ -7,7 +7,7 @@ public class RelateTests(ITestOutputHelper output)
     {
         using var world = new World();
         var entity = world.Spawn();
-        
+
         var target = Relate.To(entity);
         output.WriteLine(target.ToString());
         Assert.Equal(entity.Key.ToString(), target.ToString());

@@ -1,62 +1,61 @@
-﻿namespace fennecs.tests
+namespace fennecs.tests;
+
+internal struct Weight(int kilograms) : Fox<int>
 {
-    internal struct Weight(int kilograms) : Fox<int>
+    public int Value
     {
-        public int Value
-        {
-            get => kilograms;
-            set => kilograms = value;
-        }
-        public static implicit operator Weight(int kilograms) => new(kilograms); 
+        get => kilograms;
+        set => kilograms = value;
+    }
+    public static implicit operator Weight(int kilograms) => new(kilograms);
+}
+
+
+internal struct Size(int cm) : Fox<int>
+{
+    public int Value { get; set; } = cm;
+    public static implicit operator Size(int centimeters) => new(centimeters);
+}
+
+
+public class AliasingTests
+{
+    [Fact]
+    public void WeightIsNotSize()
+    {
+        var weight = new Weight(50);
+        var size = new Size(160);
+
+        // Cannot assign
+        // weight = size;
+
+        // Cannot compare
+        // Assert.NotEqual(weight, size);
     }
 
-
-    internal struct Size(int cm) : Fox<int>
+    [Fact]
+    public void FoxesCanBeStreamTypes()
     {
-        public int Value { get; set; } = cm;
-        public static implicit operator Size(int centimeters) => new(centimeters); 
-    }
+        using var world = new World();
+        world.Spawn()
+            .Add<Weight>(50)
+            .Add<Size>(150);
 
+        var query = world.Query<Weight, Size>().Stream();
 
-    public class AliasingTests
-    {
-        [Fact]
-        public void WeightIsNotSize()
+        query.For(static (ref weight, ref size) =>
         {
-            var weight = new Weight(50); 
-            var size = new Size(160);
+            Assert.Equal(50, weight.Value);
+            Assert.Equal(150, size.Value);
 
-            // Cannot assign
-            // weight = size;
-            
-            // Cannot compare
-            // Assert.NotEqual(weight, size);
-        }
+            weight.Value = 61;
+            size.Value = 155;
+        });
 
-        [Fact]
-        public void FoxesCanBeStreamTypes()
+        query.For(static (ref weight, ref size) =>
         {
-            using var world = new World();
-            world.Spawn()
-                .Add<Weight>(50)
-                .Add<Size>(150);
-            
-            var query = world.Query<Weight, Size>().Stream();
-            
-            query.For(static (ref weight, ref size) =>
-            {
-                Assert.Equal(50, weight.Value);
-                Assert.Equal(150, size.Value);
-
-                weight.Value = 61;
-                size.Value = 155;
-            });
-
-            query.For(static (ref weight, ref size) =>
-            {
-                Assert.Equal(61, weight.Value);
-                Assert.Equal(155, size.Value);
-            });
-        }
+            Assert.Equal(61, weight.Value);
+            Assert.Equal(155, size.Value);
+        });
     }
 }

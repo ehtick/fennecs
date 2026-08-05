@@ -1,4 +1,4 @@
-﻿// InitialD.cs (type declarations at bottom of file)
+// InitialD.cs (type declarations at bottom of file)
 
 using fennecs;
 
@@ -17,7 +17,8 @@ var ae86 = world.Spawn()
     .Add(takumi) // Add<Driver> reference type Component
     .Add(new Engine // Add<Engine> value type Component
     {
-        Horsepower = 130, Torque = 149,
+        Horsepower = 130,
+        Torque = 149,
     });
 
 Console.WriteLine($"Look, {takumi} is driving his dad's\n{ae86}");

@@ -90,24 +90,24 @@ public class EntityHasTests
     {
         using var world = new World();
         var other = world.Spawn();
-        
+
         var entity = world.Spawn().Add(123);
-        var interfaceEntity = (IHasTyped) entity;
+        var interfaceEntity = (IHasTyped)entity;
         Assert.True(entity.Has<int>());
-        
+
         entity.Add("123");
         Assert.True(interfaceEntity.Has<string>());
-        
+
         entity.Add(Link.With("666"));
         Assert.True(interfaceEntity.Has(Link.With("666")));
-        
+
         Assert.False(interfaceEntity.Has<int>(other));
         Assert.False(interfaceEntity.Has<string>(other));
 
         entity.Add(123, other);
         Assert.True(interfaceEntity.Has<int>(other));
         Assert.False(interfaceEntity.Has<string>(other));
-        
+
         entity.Add("123", other);
         Assert.True(interfaceEntity.Has<int>(other));
         Assert.True(interfaceEntity.Has<string>(other));

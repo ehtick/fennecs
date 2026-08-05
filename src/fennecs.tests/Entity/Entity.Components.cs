@@ -15,11 +15,11 @@ public class EntityComponentsTests(ITestOutputHelper output)
         entity.Add(69.420);
         entity.Add(new TypeA());
         entity.Add(Link.With("hello"));
-        
+
         var components = entity.Components;
         Assert.Equal(4, components.Count);
 
-        List<IStrongBox> expected  = [new StrongBox<int>(123), new StrongBox<double>(69.420), new StrongBox<TypeA>(new()), new StrongBox<string>("hello")];
+        List<IStrongBox> expected = [new StrongBox<int>(123), new StrongBox<double>(69.420), new StrongBox<TypeA>(new()), new StrongBox<string>("hello")];
         foreach (var component in components)
         {
             var found = expected.Aggregate(false, (current, box) => current | box.Value!.Equals(component.Box.Value));
@@ -52,18 +52,18 @@ public class EntityComponentsTests(ITestOutputHelper output)
     public void GottenComponentsCanBeRelations(int seed)
     {
         var random = new Random(seed);
-        
+
         using var world = new World();
         var entity = world.Spawn();
         var other = world.Spawn();
-        
+
         entity.Add(123, other);
         var literal = "hello" + random.Next();
         entity.Add(Link.With(literal));
-        
+
         var components = entity.Components;
         Assert.Equal(2, components.Count);
-        
+
         Assert.True(components[0].isRelation);
         Assert.False(components[1].isRelation);
         Assert.True(components[1].Box.Value is string);
@@ -77,9 +77,9 @@ public class EntityComponentsTests(ITestOutputHelper output)
         using var world = new World();
         var entity = world.Spawn();
         var other = world.Spawn();
-        
+
         entity.Add(123, other);
-        
+
         var components = entity.Components;
         Assert.Single(components);
         Assert.True(components[0].isRelation);
@@ -92,7 +92,7 @@ public class EntityComponentsTests(ITestOutputHelper output)
         using var world = new World();
         var entity = world.Spawn();
         entity.Add(123);
-        
+
         var components = entity.Components;
         Assert.Single(components);
         Assert.False(components[0].isRelation);

@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Immutable;
 
 namespace fennecs.tests;
@@ -328,7 +328,7 @@ public class SignatureTests
         var signature = new Signature(TypeExpression.Of<int>(Match.Plain), TypeExpression.Of<string>(Match.Plain));
         Assert.True(signature.CompareTo(default) > 0);
     }
-    
+
     [Fact]
     public void Differing_Signature_Of_Same_Length_Comparable_Complementary()
     {

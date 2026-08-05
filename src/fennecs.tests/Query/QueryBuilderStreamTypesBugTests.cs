@@ -21,16 +21,16 @@ public class QueryBuilderStreamTypesBugTests
     public void QueryBuilder1_Matches_Only_Entities_With_All_Components(bool hasC1, bool shouldMatch)
     {
         using var world = new World();
-        
+
         var entity = world.Spawn();
         if (hasC1) entity.Add(42);  // C1 - int
-        
+
         // Add a decoy Component to ensure entity exists in some archetype
         if (!hasC1) entity.Add('x');  // char as decoy
-        
+
         using var builder = world.Query<int>();
         var query = builder.Compile();
-        
+
         if (shouldMatch)
         {
             Assert.Single(query);
@@ -46,16 +46,16 @@ public class QueryBuilderStreamTypesBugTests
     public void QueryBuilder1_Matches_Entities_With_Extra_Components()
     {
         using var world = new World();
-        
+
         // Entity with C1 plus extra Components should still match
         var entity = world.Spawn()
             .Add(42)       // C1 - int (required)
             .Add("extra")  // Extra Component
             .Add(3.14f);   // Another extra Component
-        
+
         using var builder = world.Query<int>();
         var query = builder.Compile();
-        
+
         Assert.Single(query);
         Assert.Contains(entity, query);
     }
@@ -64,23 +64,23 @@ public class QueryBuilderStreamTypesBugTests
     public void Stream1_For_Only_Iterates_Entities_With_All_Components()
     {
         using var world = new World();
-        
+
         // Create entity without C1
         world.Spawn().Add('x');
-        
+
         // Create entity with C1
         world.Spawn().Add(42);
-        
+
         var stream = world.Query<int>().Stream();
         var count = 0;
         var foundValue = 0;
-        
+
         stream.For((ref int c1) =>
         {
             count++;
             foundValue = c1;
         });
-        
+
         Assert.Equal(1, count);
         Assert.Equal(42, foundValue);
     }
@@ -97,17 +97,17 @@ public class QueryBuilderStreamTypesBugTests
     public void QueryBuilder2_Matches_Only_Entities_With_All_Components(bool hasC1, bool hasC2, bool shouldMatch)
     {
         using var world = new World();
-        
+
         var entity = world.Spawn();
         if (hasC1) entity.Add(42);       // C1 - int
         if (hasC2) entity.Add("hello");  // C2 - string
-        
+
         // Add a decoy component to ensure entity exists in some archetype
         if (!hasC1 && !hasC2) entity.Add('x');
-        
+
         using var builder = world.Query<int, string>();
         var query = builder.Compile();
-        
+
         if (shouldMatch)
         {
             Assert.Single(query);
@@ -123,17 +123,17 @@ public class QueryBuilderStreamTypesBugTests
     public void QueryBuilder2_Count_With_All_Combinations()
     {
         using var world = new World();
-        
+
         // Create all 4 combinations
         world.Spawn().Add('x');                         // None
         world.Spawn().Add(1);                           // C1 only
         world.Spawn().Add("only-c2");                   // C2 only
         world.Spawn().Add(42).Add("both");              // C1+C2 - should match
         world.Spawn().Add(43).Add("both-2");            // C1+C2 - should match
-        
+
         using var builder = world.Query<int, string>();
         var query = builder.Compile();
-        
+
         Assert.Equal(2, query.Count);
     }
 
@@ -141,17 +141,17 @@ public class QueryBuilderStreamTypesBugTests
     public void QueryBuilder2_Matches_Entities_With_Extra_Components()
     {
         using var world = new World();
-        
+
         // Entity with C1+C2 plus extra Components should still match
         var entity = world.Spawn()
             .Add(42)       // C1 - int (required)
             .Add("hello")  // C2 - string (required)
             .Add(3.14f)    // Extra component
             .Add('x');     // Another extra component
-        
+
         using var builder = world.Query<int, string>();
         var query = builder.Compile();
-        
+
         Assert.Single(query);
         Assert.Contains(entity, query);
     }
@@ -160,27 +160,27 @@ public class QueryBuilderStreamTypesBugTests
     public void Stream2_For_Only_Iterates_Entities_With_All_Components()
     {
         using var world = new World();
-        
+
         // Create all non-matching combinations
         world.Spawn().Add('x');
         world.Spawn().Add(1);
         world.Spawn().Add("only-c2");
-        
+
         // Create matching entity
         world.Spawn().Add(42).Add("found");
-        
+
         var stream = world.Query<int, string>().Stream();
         var count = 0;
         var foundC1 = 0;
         var foundC2 = "";
-        
+
         stream.For((ref int c1, ref string c2) =>
         {
             count++;
             foundC1 = c1;
             foundC2 = c2;
         });
-        
+
         Assert.Equal(1, count);
         Assert.Equal(42, foundC1);
         Assert.Equal("found", foundC2);
@@ -202,18 +202,18 @@ public class QueryBuilderStreamTypesBugTests
     public void QueryBuilder3_Matches_Only_Entities_With_All_Components(bool hasC1, bool hasC2, bool hasC3, bool shouldMatch)
     {
         using var world = new World();
-        
+
         var entity = world.Spawn();
         if (hasC1) entity.Add(42);       // C1 - int
         if (hasC2) entity.Add("hello");  // C2 - string
         if (hasC3) entity.Add(3.14f);    // C3 - float
-        
+
         // Add a decoy component to ensure entity exists in some archetype
         if (!hasC1 && !hasC2 && !hasC3) entity.Add('x');
-        
+
         using var builder = world.Query<int, string, float>();
         var query = builder.Compile();
-        
+
         if (shouldMatch)
         {
             Assert.Single(query);
@@ -229,7 +229,7 @@ public class QueryBuilderStreamTypesBugTests
     public void QueryBuilder3_Count_With_All_Combinations()
     {
         using var world = new World();
-        
+
         // Create all 8 combinations (7 non-matching + 1 matching)
         world.Spawn().Add('x');                                  // None
         world.Spawn().Add(1);                                    // C1 only
@@ -240,10 +240,10 @@ public class QueryBuilderStreamTypesBugTests
         world.Spawn().Add("c2").Add(1.0f);                       // C2+C3
         world.Spawn().Add(42).Add("found").Add(3.14f);           // C1+C2+C3 - should match
         world.Spawn().Add(43).Add("found-2").Add(2.71f);         // C1+C2+C3 - should match
-        
+
         using var builder = world.Query<int, string, float>();
         var query = builder.Compile();
-        
+
         Assert.Equal(2, query.Count);
     }
 
@@ -251,7 +251,7 @@ public class QueryBuilderStreamTypesBugTests
     public void QueryBuilder3_Matches_Entities_With_Extra_Components()
     {
         using var world = new World();
-        
+
         // Entity with C1+C2+C3 plus extra Components should still match
         var entity = world.Spawn()
             .Add(42)       // C1 - int (required)
@@ -259,10 +259,10 @@ public class QueryBuilderStreamTypesBugTests
             .Add(3.14f)    // C3 - float (required)
             .Add('x')      // Extra component
             .Add(999L);    // Another extra component
-        
+
         using var builder = world.Query<int, string, float>();
         var query = builder.Compile();
-        
+
         Assert.Single(query);
         Assert.Contains(entity, query);
     }
@@ -271,7 +271,7 @@ public class QueryBuilderStreamTypesBugTests
     public void Stream3_For_Only_Iterates_Entities_With_All_Components()
     {
         using var world = new World();
-        
+
         // Create all 7 non-matching combinations
         world.Spawn().Add('x');
         world.Spawn().Add(1);
@@ -280,16 +280,16 @@ public class QueryBuilderStreamTypesBugTests
         world.Spawn().Add(1).Add("c2");
         world.Spawn().Add(1).Add(1.0f);
         world.Spawn().Add("c2").Add(1.0f);
-        
+
         // Create matching entity
         world.Spawn().Add(42).Add("found").Add(3.14f);
-        
+
         var stream = world.Query<int, string, float>().Stream();
         var count = 0;
         var foundC1 = 0;
         var foundC2 = "";
         var foundC3 = 0f;
-        
+
         stream.For((ref int c1, ref string c2, ref float c3) =>
         {
             count++;
@@ -297,7 +297,7 @@ public class QueryBuilderStreamTypesBugTests
             foundC2 = c2;
             foundC3 = c3;
         });
-        
+
         Assert.Equal(1, count);
         Assert.Equal(42, foundC1);
         Assert.Equal("found", foundC2);
@@ -330,19 +330,19 @@ public class QueryBuilderStreamTypesBugTests
         bool hasC1, bool hasC2, bool hasC3, bool hasC4, bool shouldMatch)
     {
         using var world = new World();
-        
+
         var entity = world.Spawn();
         if (hasC1) entity.Add(42);       // C1 - int
         if (hasC2) entity.Add("hello");  // C2 - string
         if (hasC3) entity.Add(3.14f);    // C3 - float
         if (hasC4) entity.Add(2.71);     // C4 - double
-        
+
         // Add a decoy component to ensure entity exists in some archetype
         if (!hasC1 && !hasC2 && !hasC3 && !hasC4) entity.Add('x');
-        
+
         using var builder = world.Query<int, string, float, double>();
         var query = builder.Compile();
-        
+
         if (shouldMatch)
         {
             Assert.Single(query);
@@ -358,7 +358,7 @@ public class QueryBuilderStreamTypesBugTests
     public void QueryBuilder4_Count_With_All_Combinations()
     {
         using var world = new World();
-        
+
         // Create all 16 combinations (15 non-matching)
         world.Spawn().Add('x');                                           // None
         world.Spawn().Add(1);                                             // C1
@@ -377,10 +377,10 @@ public class QueryBuilderStreamTypesBugTests
         world.Spawn().Add("c2").Add(1.0f).Add(1.0);                       // C2+C3+C4
         world.Spawn().Add(42).Add("found").Add(3.14f).Add(2.71);          // C1+C2+C3+C4 - should match
         world.Spawn().Add(43).Add("found-2").Add(2.71f).Add(3.14);        // C1+C2+C3+C4 - should match
-        
+
         using var builder = world.Query<int, string, float, double>();
         var query = builder.Compile();
-        
+
         Assert.Equal(2, query.Count);
     }
 
@@ -388,7 +388,7 @@ public class QueryBuilderStreamTypesBugTests
     public void QueryBuilder4_Matches_Entities_With_Extra_Components()
     {
         using var world = new World();
-        
+
         // Entity with C1+C2+C3+C4 plus extra Components should still match
         var entity = world.Spawn()
             .Add(42)       // C1 - int (required)
@@ -397,10 +397,10 @@ public class QueryBuilderStreamTypesBugTests
             .Add(2.71)     // C4 - double (required)
             .Add('x')      // Extra component
             .Add(999L);    // Another extra component
-        
+
         using var builder = world.Query<int, string, float, double>();
         var query = builder.Compile();
-        
+
         Assert.Single(query);
         Assert.Contains(entity, query);
     }
@@ -409,7 +409,7 @@ public class QueryBuilderStreamTypesBugTests
     public void Stream4_For_Only_Iterates_Entities_With_All_Components()
     {
         using var world = new World();
-        
+
         // Create all 15 non-matching combinations
         world.Spawn().Add('x');
         world.Spawn().Add(1);
@@ -426,17 +426,17 @@ public class QueryBuilderStreamTypesBugTests
         world.Spawn().Add(1).Add("c2").Add(1.0);
         world.Spawn().Add(1).Add(1.0f).Add(1.0);
         world.Spawn().Add("c2").Add(1.0f).Add(1.0);
-        
+
         // Create matching entity
         world.Spawn().Add(42).Add("found").Add(3.14f).Add(2.71);
-        
+
         var stream = world.Query<int, string, float, double>().Stream();
         var count = 0;
         var foundC1 = 0;
         var foundC2 = "";
         var foundC3 = 0f;
         var foundC4 = 0.0;
-        
+
         stream.For((ref int c1, ref string c2, ref float c3, ref double c4) =>
         {
             count++;
@@ -445,7 +445,7 @@ public class QueryBuilderStreamTypesBugTests
             foundC3 = c3;
             foundC4 = c4;
         });
-        
+
         Assert.Equal(1, count);
         Assert.Equal(42, foundC1);
         Assert.Equal("found", foundC2);
@@ -501,20 +501,20 @@ public class QueryBuilderStreamTypesBugTests
         bool hasC1, bool hasC2, bool hasC3, bool hasC4, bool hasC5, bool shouldMatch)
     {
         using var world = new World();
-        
+
         var entity = world.Spawn();
         if (hasC1) entity.Add(42);       // C1 - int
         if (hasC2) entity.Add("hello");  // C2 - string
         if (hasC3) entity.Add(3.14f);    // C3 - float
         if (hasC4) entity.Add(2.71);     // C4 - double
         if (hasC5) entity.Add(999L);     // C5 - long
-        
+
         // Add a decoy component to ensure entity exists in some archetype
         if (!hasC1 && !hasC2 && !hasC3 && !hasC4 && !hasC5) entity.Add('x');
-        
+
         using var builder = world.Query<int, string, float, double, long>();
         var query = builder.Compile();
-        
+
         if (shouldMatch)
         {
             Assert.Single(query);
@@ -530,7 +530,7 @@ public class QueryBuilderStreamTypesBugTests
     public void QueryBuilder5_Count_With_All_Combinations()
     {
         using var world = new World();
-        
+
         // Create all 32 combinations (31 non-matching)
         // 0 Components
         world.Spawn().Add('x');
@@ -571,10 +571,10 @@ public class QueryBuilderStreamTypesBugTests
         // 5 Components - should match
         world.Spawn().Add(42).Add("found").Add(3.14f).Add(2.71).Add(999L);
         world.Spawn().Add(43).Add("found-2").Add(2.71f).Add(3.14).Add(888L);
-        
+
         using var builder = world.Query<int, string, float, double, long>();
         var query = builder.Compile();
-        
+
         Assert.Equal(2, query.Count);
     }
 
@@ -582,7 +582,7 @@ public class QueryBuilderStreamTypesBugTests
     public void QueryBuilder5_Matches_Entities_With_Extra_Components()
     {
         using var world = new World();
-        
+
         // Entity with C1+C2+C3+C4+C5 plus extra Components should still match
         var entity = world.Spawn()
             .Add(42)       // C1 - int (required)
@@ -592,10 +592,10 @@ public class QueryBuilderStreamTypesBugTests
             .Add(999L)     // C5 - long (required)
             .Add('x')      // Extra component
             .Add((short)1);// Another extra component
-        
+
         using var builder = world.Query<int, string, float, double, long>();
         var query = builder.Compile();
-        
+
         Assert.Single(query);
         Assert.Contains(entity, query);
     }
@@ -604,7 +604,7 @@ public class QueryBuilderStreamTypesBugTests
     public void Stream5_For_Only_Iterates_Entities_With_All_Components()
     {
         using var world = new World();
-        
+
         // Create all 31 non-matching combinations
         // 0 components
         world.Spawn().Add('x');
@@ -642,10 +642,10 @@ public class QueryBuilderStreamTypesBugTests
         world.Spawn().Add(1).Add("c2").Add(1.0).Add(1L);
         world.Spawn().Add(1).Add(1.0f).Add(1.0).Add(1L);
         world.Spawn().Add("c2").Add(1.0f).Add(1.0).Add(1L);
-        
+
         // Create matching entity
         world.Spawn().Add(42).Add("found").Add(3.14f).Add(2.71).Add(999L);
-        
+
         var stream = world.Query<int, string, float, double, long>().Stream();
         var count = 0;
         var foundC1 = 0;
@@ -653,7 +653,7 @@ public class QueryBuilderStreamTypesBugTests
         var foundC3 = 0f;
         var foundC4 = 0.0;
         var foundC5 = 0L;
-        
+
         stream.For((ref int c1, ref string c2, ref float c3, ref double c4, ref long c5) =>
         {
             count++;
@@ -663,7 +663,7 @@ public class QueryBuilderStreamTypesBugTests
             foundC4 = c4;
             foundC5 = c5;
         });
-        
+
         Assert.Equal(1, count);
         Assert.Equal(42, foundC1);
         Assert.Equal("found", foundC2);

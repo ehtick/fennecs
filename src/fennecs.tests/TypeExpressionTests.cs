@@ -1,4 +1,4 @@
-﻿// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -52,8 +52,8 @@ public class TypeExpressionTests(ITestOutputHelper output)
         var random = new Random(4711);
         for (var i = 1; i < 4_094; i++)
         {
-            var index = (uint) random.Next();
-            var gen = (ushort) random.Next(1, ushort.MaxValue);
+            var index = (uint)random.Next();
+            var gen = (ushort)random.Next(1, ushort.MaxValue);
             var key = new Entity(1, index, gen).Key;
             var t1 = new TypeExpression(PrimaryKind.Data, (TypeID)i, key);
             var t2 = new TypeExpression(PrimaryKind.Data, (TypeID)(i + 1), key);
@@ -275,12 +275,12 @@ public class TypeExpressionTests(ITestOutputHelper output)
     public void Forged_Wildcard_Matches_only_Itself()
     {
         // A Wildcard nibble outside the recognized categories (reserved: Family).
-        var forged = new Key((ulong) SecondaryKind.Family << Key.KindShift);
+        var forged = new Key((ulong)SecondaryKind.Family << Key.KindShift);
         Assert.True(forged.IsWildcard);
 
-        var expression = new TypeExpression(PrimaryKind.Data, (TypeID) 5, forged);
+        var expression = new TypeExpression(PrimaryKind.Data, (TypeID)5, forged);
         Assert.True(expression.Matches(expression));
-        Assert.False(expression.Matches(new TypeExpression(PrimaryKind.Data, (TypeID) 5, Key.Plain)));
+        Assert.False(expression.Matches(new TypeExpression(PrimaryKind.Data, (TypeID)5, Key.Plain)));
     }
 
 
@@ -302,7 +302,7 @@ public class TypeExpressionTests(ITestOutputHelper output)
     {
         private int[] _data;
     }
-    
+
 
     [StructLayout(LayoutKind.Explicit, Size = 12)]
     private record struct TypeDoubleIntTight(double Value, int Value2)

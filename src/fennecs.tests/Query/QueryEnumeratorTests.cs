@@ -1,4 +1,4 @@
-﻿namespace fennecs.tests.Query;
+namespace fennecs.tests.Query;
 
 public static class QueryEnumeration
 {

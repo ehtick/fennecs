@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using System.Text;
 
 namespace fennecs.tests.Query;
@@ -340,11 +340,11 @@ public class QueryBuilderTests
         var builder1 = world.Query<Matrix4x4>();
         builder1.Dispose();
         Assert.Throws<ObjectDisposedException>(builder1.Dispose);
-        
+
         var builder2 = world.Query<string, Vector3>();
         builder2.Dispose();
         Assert.Throws<ObjectDisposedException>(builder2.Dispose);
-        
+
         var builder3 = world.Query<int, byte, string>();
         builder3.Dispose();
         Assert.Throws<ObjectDisposedException>(builder3.Dispose);

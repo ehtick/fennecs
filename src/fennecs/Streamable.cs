@@ -1,4 +1,4 @@
-﻿namespace fennecs;
+namespace fennecs;
 
 /// <summary>
 /// Streamable Objects allow creating <see cref="Stream{C}">Stream</see> Views of the Query or World, for one or more Stream Types.
@@ -16,7 +16,7 @@ public interface Streamable
     /// <returns>Stream View</returns>
     Stream<C> Stream<C>(Match match = default)
         where C : notnull;
-    
+
     /// <summary>
     /// Creates a Stream View of the Query with multiple Stream Types. Individual Match Targets may be specified for each type.
     /// </summary>
@@ -28,7 +28,7 @@ public interface Streamable
     Stream<C0, C1> Stream<C0, C1>(Match match0, Match match1)
         where C0 : notnull
         where C1 : notnull;
-    
+
     /// <summary>
     /// Creates a Stream View of the Query with multiple Stream Types
     /// </summary>

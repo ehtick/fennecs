@@ -1,4 +1,4 @@
-﻿namespace fennecs.tests.Conceptual;
+namespace fennecs.tests.Conceptual;
 
 internal class TupleQuery<TComponents> where TComponents : struct
 {

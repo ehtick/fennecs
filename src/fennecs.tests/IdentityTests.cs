@@ -84,7 +84,7 @@ public class EntityEncodingTests(ITestOutputHelper output)
 
         Assert.NotEqual(0u, entity.Index);
         Assert.Equal(world.Tag, entity.WorldTag);
-        Assert.Equal((ushort) 1, entity.Generation);
+        Assert.Equal((ushort)1, entity.Generation);
 
         // The Key drops the generation but keeps kind, world, and index.
         var key = entity.Key;
@@ -145,19 +145,19 @@ public class EntityEncodingTests(ITestOutputHelper output)
 
         //Indices
         for (var i = 1; i < idCount; i++)
-        //Generations
-        for (ushort g = 1; g < genCount; g++)
-        {
-            var entity = new Entity(1, (uint) i, g);
+            //Generations
+            for (ushort g = 1; g < genCount; g++)
+            {
+                var entity = new Entity(1, (uint)i, g);
 
-            Assert.NotEqual<Match>(new(entity.Key), Match.Any);
-            Assert.NotEqual<Match>(new(entity.Key), Match.Plain);
+                Assert.NotEqual<Match>(new(entity.Key), Match.Any);
+                Assert.NotEqual<Match>(new(entity.Key), Match.Plain);
 
-            if (ids.ContainsKey(entity.GetHashCode()))
-                Assert.Fail($"Collision of {entity} with {ids[entity.GetHashCode()]}, {entity.GetHashCode()}#==#{ids[entity.GetHashCode()].GetHashCode()}");
-            else
-                ids.Add(entity.GetHashCode(), entity);
-        }
+                if (ids.ContainsKey(entity.GetHashCode()))
+                    Assert.Fail($"Collision of {entity} with {ids[entity.GetHashCode()]}, {entity.GetHashCode()}#==#{ids[entity.GetHashCode()].GetHashCode()}");
+                else
+                    ids.Add(entity.GetHashCode(), entity);
+            }
     }
 
     [Fact]
@@ -174,8 +174,8 @@ public class EntityEncodingTests(ITestOutputHelper output)
         var random = new Random(420960);
         for (var i = 0; i < 1_000; i++)
         {
-            var index = (uint) random.Next();
-            var gen = (ushort) random.Next(1, ushort.MaxValue);
+            var index = (uint)random.Next();
+            var gen = (ushort)random.Next(1, ushort.MaxValue);
 
             var self = new Entity(1, index, gen);
             var other = new Entity(1, index, gen);

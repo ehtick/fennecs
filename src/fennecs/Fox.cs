@@ -1,4 +1,4 @@
-﻿using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics;
 
 namespace fennecs;
 
@@ -26,8 +26,8 @@ public interface Fox<T>
 /// (4 floats/ints)
 /// </summary>
 public interface Fox128<T> : Fox<Vector128<T>>;
-    
-    
+
+
 /// <summary>
 /// A 256-bit Fox, for SIMD operations.
 /// Promises that the struct will be 256 bits.

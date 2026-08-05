@@ -97,7 +97,7 @@ internal class LanguageType
     {
         if (RuntimeHelpers.IsReferenceOrContainsReferences<T>()) return default;
 
-        return TypeFlags.Unmanaged | ((TypeFlags) Unsafe.SizeOf<T>() & TypeFlags.SIMDSize);
+        return TypeFlags.Unmanaged | ((TypeFlags)Unsafe.SizeOf<T>() & TypeFlags.SIMDSize);
     }
 
     protected static void StoreFlags(TypeID id, TypeFlags flags) => FlagTable[id] = flags;
