@@ -107,7 +107,7 @@ internal interface IStorage
 internal class Storage<T> : IStorage
 {
     private const int InitialCapacity = 32;
-        
+
     private static readonly ArrayPool<T> Pool = ArrayPool<T>.Create();
     
     private T[] _data = Pool.Rent(InitialCapacity);
@@ -180,8 +180,7 @@ internal class Storage<T> : IStorage
             FullSpan[(index + removals)..Count].CopyTo(FullSpan[index..]);
         }
 
-        // Clear the space at the end.
-        FullSpan[(Count - removals)..Count].Clear();
+        if (RuntimeHelpers.IsReferenceOrContainsReferences<T>()) FullSpan[(Count - removals)..Count].Clear();
         
         Count -= removals;
     }
@@ -211,7 +210,7 @@ internal class Storage<T> : IStorage
     {
         if (Count <= 0) return;
         
-        Span.Clear();
+        if (RuntimeHelpers.IsReferenceOrContainsReferences<T>()) Span.Clear();
         Count = 0;
     }
 
@@ -227,7 +226,7 @@ internal class Storage<T> : IStorage
         var previous = _data;
         _data = Pool.Rent(newSize);
         previous.AsSpan(0, Count).CopyTo(_data);
-        Pool.Return(previous);
+        Pool.Return(previous, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
     }
 
     /// <summary>
@@ -241,7 +240,7 @@ internal class Storage<T> : IStorage
         var previous = _data;
         _data = Pool.Rent(newSize);
         previous.AsSpan(0, Count).CopyTo(_data);
-        Pool.Return(previous);
+        Pool.Return(previous, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
     }
 
 

@@ -31,4 +31,5 @@ BenchmarkSwitcher.FromTypes(
     typeof(CoreStreamBindingBenchmarks),
     typeof(CoreJobSchedulingBenchmarks),
     typeof(CoreFilteredRunnerBenchmarks),
+    typeof(CoreStorageLifecycleBenchmarks),
 ]).Run(args.Length > 0 ? args : ["--filter", "*"], config);

@@ -78,11 +78,9 @@ public class StorageTests
 
         storage.Clear();
         Assert.Equal(0, storage.Count);
-        Assert.Equal(0, storage[0]);
 
         storage.Clear(); // clear empty storage
         Assert.Equal(0, storage.Count);
-        Assert.Equal(0, storage[0]);
     }
 
     [Fact]
@@ -102,7 +100,6 @@ public class StorageTests
         Assert.Equal(420, storage[2]);
         Assert.Equal(69, storage[3]);
         Assert.Equal(69, storage[4]);
-        Assert.Equal(0, storage[5]);
     }
 
     [Fact]
@@ -366,6 +363,14 @@ public class StorageTests
     private struct GrowProbe;
     private struct CompactProbe;
     private struct NoOpProbe;
+    private sealed class ReferenceProbe;
+    private sealed class CompactReferenceProbe;
+
+    private struct MixedReferenceProbe
+    {
+        public object? Reference;
+        public int Value;
+    }
 
     private static T[] BackingArray<T>(Storage<T> storage) =>
         (T[])typeof(Storage<T>).GetField("_data", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(storage)!;
@@ -411,5 +416,78 @@ public class StorageTests
         storage.Compact();
 
         Assert.Same(backing, BackingArray(storage));
+    }
+
+
+    [Fact]
+    public void Clear_Releases_Contained_References()
+    {
+        var storage = new Storage<MixedReferenceProbe>();
+        storage.Append(new() { Reference = new(), Value = 42 });
+
+        storage.Clear();
+
+        Assert.Null(storage[0].Reference);
+        Assert.Equal(0, storage[0].Value);
+    }
+
+
+    [Fact]
+    public void Delete_Releases_Removed_References()
+    {
+        var storage = new Storage<ReferenceProbe>();
+        storage.Append(new(), 3);
+
+        storage.Delete(1);
+
+        Assert.Equal(2, storage.Count);
+        Assert.Null(storage[2]);
+    }
+
+
+    [Fact]
+    public void Migrate_Releases_Source_References()
+    {
+        var source = new Storage<ReferenceProbe>();
+        var destination = new Storage<ReferenceProbe>();
+        source.Append(new());
+
+        source.Migrate(destination);
+
+        Assert.Equal(0, source.Count);
+        Assert.Null(source[0]);
+        Assert.Equal(1, destination.Count);
+        Assert.NotNull(destination[0]);
+    }
+
+
+    [Fact]
+    public void EnsureCapacity_Clears_Returned_Reference_Array()
+    {
+        var storage = new Storage<ReferenceProbe>();
+        storage.Append(new());
+        var previous = BackingArray(storage);
+
+        storage.EnsureCapacity(previous.Length * 2);
+
+        Assert.Null(previous[0]);
+        Assert.NotNull(storage[0]);
+        Assert.Same(previous, PoolOf<ReferenceProbe>().Rent(previous.Length));
+    }
+
+
+    [Fact]
+    public void Compact_Clears_Returned_Reference_Array()
+    {
+        var storage = new Storage<CompactReferenceProbe>();
+        storage.Append(new(), 100);
+        storage.Delete(10, 90);
+        var previous = BackingArray(storage);
+
+        storage.Compact();
+
+        Assert.All(previous, Assert.Null);
+        Assert.NotNull(storage[0]);
+        Assert.Same(previous, PoolOf<CompactReferenceProbe>().Rent(previous.Length));
     }
 }
