@@ -4,6 +4,8 @@ namespace fennecs.tests.Stream;
 // nor crash the process (unhandled thread pool exception) — it surfaces as AggregateException.
 public class JobExceptionTests
 {
+    private struct Fragment;
+
     private static World Setup(out fennecs.Stream<int> stream)
     {
         var world = new World();
@@ -57,6 +59,27 @@ public class JobExceptionTests
         AssertJobFaults(() => stream.Job((ref int _, ref float _) => throw new InvalidOperationException("boom")));
 
         world.Spawn().Add(1);
+    }
+
+
+    [Fact]
+    public void Segmented_Job_Continues_Other_Segments_After_Exception()
+    {
+        var count = Math.Max(128, Environment.ProcessorCount * 4);
+        using var world = new World();
+        var targets = new Entity[count];
+        for (var i = 0; i < count; i++) targets[i] = world.Spawn();
+        for (var i = 0; i < count; i++) world.Spawn().Add(i).Add<Fragment>(targets[i]);
+
+        var stream = world.Query<int>().Stream();
+        var visited = 0;
+        AssertJobFaults(() => stream.Job((ref int value) =>
+        {
+            if (value < 2) throw new InvalidOperationException("boom");
+            Interlocked.Increment(ref visited);
+        }));
+
+        Assert.Equal(count - 2, visited);
     }
 
 

@@ -57,6 +57,13 @@ namespace fennecs
     for (var n = 1; n <= maxArity; n++)
     {
         var types = GenTypeList(n);
+        var segmentType = n == 1 ? "Memory<C0>" : $"({FormatList(n, "Memory<C{0}>")})";
+        var segmentValue = n == 1
+            ? "s0.AsMemory(start, length)"
+            : $"({GenList("s", n, ", ", ".AsMemory(start, length)")})";
+        var initialSegmentValue = n == 1
+            ? "job.Memory1"
+            : $"({string.Join(", ", Enumerable.Range(1, n).Select(i => $"job.Memory{i}"))})";
 #>
     /// <summary>
     /// Auto-generated Stream with arity <#= n #>.
@@ -211,6 +218,14 @@ namespace fennecs
 
             using var countdown = new CountdownEvent(initialCount: 1);
             using var jobs = PooledList<Work<<#= types #>>>.Rent();
+            var segment = 0;
+            var workerLimit = Concurrency + 1; // Allow the rounding remainder without batching the dense case.
+            var expectedSegments = 0;
+            foreach (var table in Archetypes)
+            {
+                expectedSegments += table.Count / chunkSize + Math.Sign(table.Count % chunkSize);
+            }
+            var batchSegments = expectedSegments > workerLimit;
 
             foreach (var table in Archetypes)
             {
@@ -223,28 +238,57 @@ namespace fennecs
                 {
                     for (var chunk = 0; chunk < partitions; chunk++)
                     {
-                        countdown.AddCount();
                         var start = chunk * chunkSize;
                         var length = Math.Min(chunkSize, count - start);
 
                         var <#= (n > 1 ? "(" : "") + GenList("s",n) + (n > 1 ? ")" : "")  #> = join.Select;
-                        var job = JobPool<Work<<#= types #>>>.Rent();
-<# for (var i=0;i<n;i++){ #>
-                        job.Memory<#= i+1 #> = s<#= i #>.AsMemory(start,length);
+                        Work<<#= types #>> job;
+                        if (!batchSegments || jobs.Count < workerLimit)
+                        {
+                            job = JobPool<Work<<#= types #>>>.Rent();
+<# for (var i=0;i<n;i++){ #>                            job.Memory<#= i+1 #> = s<#= i #>.AsMemory(start, length);
 <# } #>
-                        job.Action = action;
-                        job.CountDown = countdown;
-                        jobs.Add(job);
-
-                        ThreadPool.UnsafeQueueUserWorkItem(job, true);
+                            job.Action = action;
+                            job.CountDown = countdown;
+                            jobs.Add(job);
+                            if (!batchSegments)
+                            {
+                                countdown.AddCount();
+                                ThreadPool.UnsafeQueueUserWorkItem(job, true);
+                            }
+                        }
+                        else
+                        {
+                            job = jobs[segment % jobs.Count];
+                            if (job.Segments is null)
+                            {
+                                job.Segments = PooledList<<#= segmentType #>>.Rent();
+                                job.Segments.Add(<#= initialSegmentValue #>);
+                            }
+                            job.Segments.Add(<#= segmentValue #>);
+                        }
+                        segment++;
                     }
                 } while (join.Iterate());
+            }
+            if (batchSegments) foreach (var job in jobs)
+            {
+                countdown.AddCount();
+                ThreadPool.UnsafeQueueUserWorkItem(job, true);
             }
             countdown.Signal();
             countdown.Wait();
 
             List<Exception>? faults = null;
             Workloads.CollectFaults(ref faults, jobs);
+            foreach (var job in jobs)
+            {
+                job.Segments?.Dispose();
+                job.Segments = null;
+<# for (var i=0;i<n;i++){ #>                job.Memory<#= i+1 #> = default;
+<# } #>                job.Action = null!;
+                job.CountDown = null!;
+            }
             JobPool<Work<<#= types #>>>.Return(jobs);
             Workloads.Rethrow(faults);
         }
@@ -259,6 +303,14 @@ namespace fennecs
 
             using var countdown = new CountdownEvent(initialCount: 1);
             using var jobs = PooledList<UniformWork<U, <#= types #>>>.Rent();
+            var segment = 0;
+            var workerLimit = Concurrency + 1; // Allow the rounding remainder without batching the dense case.
+            var expectedSegments = 0;
+            foreach (var table in Archetypes)
+            {
+                expectedSegments += table.Count / chunkSize + Math.Sign(table.Count % chunkSize);
+            }
+            var batchSegments = expectedSegments > workerLimit;
 
             foreach (var table in Archetypes)
             {
@@ -271,29 +323,59 @@ namespace fennecs
                 {
                     for (var chunk = 0; chunk < partitions; chunk++)
                     {
-                        countdown.AddCount();
                         var start = chunk * chunkSize;
                         var length = Math.Min(chunkSize, count - start);
 
                         var <#= (n > 1 ? "(" : "") + GenList("s",n) + (n > 1 ? ")" : "")  #> = join.Select;
-                        var job = JobPool<UniformWork<U, <#= types #>>>.Rent();
-<# for (var i=0;i<n;i++){ #>
-                        job.Memory<#= i+1 #> = s<#= i #>.AsMemory(start,length);
+                        UniformWork<U, <#= types #>> job;
+                        if (!batchSegments || jobs.Count < workerLimit)
+                        {
+                            job = JobPool<UniformWork<U, <#= types #>>>.Rent();
+<# for (var i=0;i<n;i++){ #>                            job.Memory<#= i+1 #> = s<#= i #>.AsMemory(start, length);
 <# } #>
-                        job.Action = action;
-                        job.Uniform = uniform;
-                        job.CountDown = countdown;
-                        jobs.Add(job);
-
-                        ThreadPool.UnsafeQueueUserWorkItem(job, true);
+                            job.Action = action;
+                            job.Uniform = uniform;
+                            job.CountDown = countdown;
+                            jobs.Add(job);
+                            if (!batchSegments)
+                            {
+                                countdown.AddCount();
+                                ThreadPool.UnsafeQueueUserWorkItem(job, true);
+                            }
+                        }
+                        else
+                        {
+                            job = jobs[segment % jobs.Count];
+                            if (job.Segments is null)
+                            {
+                                job.Segments = PooledList<<#= segmentType #>>.Rent();
+                                job.Segments.Add(<#= initialSegmentValue #>);
+                            }
+                            job.Segments.Add(<#= segmentValue #>);
+                        }
+                        segment++;
                     }
                 } while (join.Iterate());
+            }
+            if (batchSegments) foreach (var job in jobs)
+            {
+                countdown.AddCount();
+                ThreadPool.UnsafeQueueUserWorkItem(job, true);
             }
             countdown.Signal();
             countdown.Wait();
 
             List<Exception>? faults = null;
             Workloads.CollectFaults(ref faults, jobs);
+            foreach (var job in jobs)
+            {
+                job.Segments?.Dispose();
+                job.Segments = null;
+<# for (var i=0;i<n;i++){ #>                job.Memory<#= i+1 #> = default;
+<# } #>                job.Action = null!;
+                job.Uniform = default!;
+                job.CountDown = null!;
+            }
             JobPool<UniformWork<U, <#= types #>>>.Return(jobs);
             Workloads.Rethrow(faults);
         }

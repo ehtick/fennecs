@@ -37,6 +37,7 @@ public class CrossTests
     }
 
     internal static TypeExpression Plain<T>() => TypeExpression.Of<T>(Match.Plain);
+    internal static TypeExpression Any<T>() => TypeExpression.Of<T>(Match.Any);
 
 
     [Fact]
