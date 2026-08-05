@@ -11,6 +11,42 @@ public class SharedPoolTests;
 [Collection(nameof(SharedPoolTests))]
 public class CrossDisposalTests
 {
+    private static void AssertDirectDispose<TJoin>(TJoin join,
+        (int[] Counter, int[] Limiter, IEnumerable[] Storages) state) where TJoin : IDisposable
+    {
+        Assert.Null(state.Counter);
+        Assert.Null(state.Limiter);
+        Assert.All(state.Storages, storage => Assert.Null(storage));
+        join.Dispose();
+    }
+
+
+    [Fact]
+    public void Direct_Join_Dispose_Has_No_Pooled_State()
+    {
+        using var world = CrossTests.Setup(out var archetype);
+
+        var join1 = new Cross.Join<int>(archetype, [CrossTests.Plain<int>()]);
+        AssertDirectDispose(join1, join1.TestState);
+
+        var join2 = new Cross.Join<int, string>(archetype, [CrossTests.Plain<int>(), CrossTests.Plain<string>()]);
+        AssertDirectDispose(join2, join2.TestState);
+
+        var join3 = new Cross.Join<int, string, float>(archetype,
+            [CrossTests.Plain<int>(), CrossTests.Plain<string>(), CrossTests.Plain<float>()]);
+        AssertDirectDispose(join3, join3.TestState);
+
+        var join4 = new Cross.Join<int, string, float, double>(archetype,
+            [CrossTests.Plain<int>(), CrossTests.Plain<string>(), CrossTests.Plain<float>(), CrossTests.Plain<double>()]);
+        AssertDirectDispose(join4, join4.TestState);
+
+        var join5 = new Cross.Join<int, string, float, double, byte>(archetype,
+            [CrossTests.Plain<int>(), CrossTests.Plain<string>(), CrossTests.Plain<float>(), CrossTests.Plain<double>(),
+                CrossTests.Plain<byte>()]);
+        AssertDirectDispose(join5, join5.TestState);
+    }
+
+
     // Dispose must return the matched storage lists to their pool (which clears them).
     private static void AssertDisposeClearsStorages<TJoin>(TJoin join, IEnumerable[] lists) where TJoin : IDisposable
     {

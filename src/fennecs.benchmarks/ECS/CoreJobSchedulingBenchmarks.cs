@@ -38,15 +38,17 @@ public class CoreJobSchedulingBenchmarks
         for (var i = 0; i < targets.Length; i++) targets[i] = _world.Spawn();
 
         var entitiesPerArchetype = EntityCount / ArchetypeCount;
+        var remainder = EntityCount % ArchetypeCount;
         for (var i = 0; i < targets.Length; i++)
         {
             using var template = _world.Template()
                 .Add(new Counter())
                 .Add(new Fragment(), targets[i]);
-            template.Spawn(entitiesPerArchetype);
+            template.Spawn(entitiesPerArchetype + (i < remainder ? 1 : 0));
         }
 
         _stream = _world.Query<Counter>().Stream();
+        if (_stream.Count != EntityCount) throw new InvalidOperationException("Benchmark entity count mismatch.");
     }
 
     [GlobalCleanup]

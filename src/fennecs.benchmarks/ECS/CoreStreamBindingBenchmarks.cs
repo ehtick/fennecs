@@ -39,6 +39,7 @@ public class CoreStreamBindingBenchmarks
         for (var i = 0; i < targets.Length; i++) targets[i] = _world.Spawn();
 
         var entitiesPerArchetype = EntityCount / ArchetypeCount;
+        var remainder = EntityCount % ArchetypeCount;
         for (var i = 0; i < targets.Length; i++)
         {
             using var template = _world.Template()
@@ -48,12 +49,13 @@ public class CoreStreamBindingBenchmarks
                 .Add(new Component3(4))
                 .Add(new Component4(5))
                 .Add(new Fragment(), targets[i]);
-            template.Spawn(entitiesPerArchetype);
+            template.Spawn(entitiesPerArchetype + (i < remainder ? 1 : 0));
         }
 
         _stream1 = _world.Query<Component0>().Stream();
         _stream2 = _world.Query<Component0, Component1>().Stream();
         _stream5 = _world.Query<Component0, Component1, Component2, Component3, Component4>().Stream();
+        if (_stream1.Count != EntityCount) throw new InvalidOperationException("Benchmark entity count mismatch.");
     }
 
     [GlobalCleanup]
